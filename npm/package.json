@@ -1,0 +1,32 @@
+{
+  "name": "@scovant/core",
+  "version": "0.1.0",
+  "description": "Passive AI-agent-readiness scanner (thin launcher for the Python package scovant-core)",
+  "bin": {
+    "scovant": "bin/scovant.js"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Scovant/scovant-core.git"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "readiness",
+    "scanner",
+    "llms-txt",
+    "mcp"
+  ]
+}

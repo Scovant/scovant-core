@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Blue Running Shoes - AcmeShop</title>
+  <meta name="description" content="Buy our premium Blue Running Shoes with free shipping over $50.">
+  <link rel="canonical" href="https://example.com/products/blue-running-shoes">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="Blue Running Shoes - AcmeShop">
+  <meta property="og:description" content="Premium running shoes for all terrains.">
+  <meta property="og:image" content="https://example.com/images/blue-shoes.jpg">
+  <meta property="og:url" content="https://example.com/products/blue-running-shoes">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Blue Running Shoes",
+    "description": "Premium running shoes for all terrains.",
+    "sku": "BRS-001",
+    "brand": {
+      "@type": "Brand",
+      "name": "AcmeBrand"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "89.99",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://example.com/products/blue-running-shoes"
+    }
+  }
+  </script>
+</head>
+<body>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/products">Products</a>
+    <a href="/cart">Cart</a>
+  </nav>
+  <main>
+    <h1>Blue Running Shoes</h1>
+    <h2>Product Details</h2>
+    <p>These premium running shoes offer exceptional comfort and durability for all terrains.
+    Made with breathable mesh and reinforced sole for maximum performance.</p>
+    <h2>Available Sizes</h2>
+    <p>Sizes 7–13 available in medium and wide width.</p>
+    <div class="price">$89.99</div>
+    <div class="availability">In Stock</div>
+    <select aria-label="Select size">
+      <option>7</option>
+      <option>8</option>
+      <option>9</option>
+    </select>
+    <button aria-label="Add to cart" class="add-to-cart">Add to Cart</button>
+    <input aria-label="Quantity" type="number" value="1">
+  </main>
+  <footer>
+    <a href="/returns">Returns Policy</a>
+    <a href="/shipping">Shipping Info</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+    <p>&copy; 2024 AcmeShop</p>
+  </footer>
+  <script>
+    console.log("page loaded");
+    var secret = "should not appear in visible text";
+  </script>
+  <style>
+    body { font-family: sans-serif; }
+    .hidden { display: none; }
+  </style>
+</body>
+</html>

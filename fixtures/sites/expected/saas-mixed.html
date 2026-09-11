@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scovant Core — https://example.com/</title>
+<style>
+:root { color-scheme: light dark; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  margin: 0; padding: 0; line-height: 1.5; color: #1a1a1a; background: #fff;
+}
+main { max-width: 960px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+h1, h2 { line-height: 1.25; }
+h1 { font-size: 1.5rem; word-break: break-word; }
+h2 { font-size: 1.15rem; margin-top: 2.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.35rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; vertical-align: top; }
+th { background: #f5f5f5; }
+.badge {
+  display: inline-block; padding: 0.1rem 0.5rem; border-radius: 0.25rem; font-size: 0.8rem;
+  font-weight: 600; color: #fff;
+}
+.badge-pass { background: #1a7f37; }
+.badge-warn { background: #9a6700; }
+.badge-fail { background: #cf222e; }
+.badge-na { background: #6e7781; }
+.badge-error { background: #57606a; }
+details { margin: 0.5rem 0; border: 1px solid #ddd; border-radius: 0.25rem; padding: 0.4rem 0.6rem; }
+details summary { cursor: pointer; font-weight: 600; }
+pre {
+  overflow-x: auto; background: #f6f8fa; padding: 0.75rem; border-radius: 0.25rem;
+  font-size: 0.85rem;
+}
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; }
+dt { font-weight: 600; }
+footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; }
+a { color: #0969da; }
+@media (prefers-color-scheme: dark) {
+  body { color: #e6edf3; background: #0d1117; }
+  h2 { border-bottom-color: #30363d; }
+  th, td { border-color: #30363d; }
+  th { background: #161b22; }
+  details { border-color: #30363d; }
+  pre { background: #161b22; }
+  footer { border-top-color: #30363d; }
+  a { color: #58a6ff; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  a { color: #000; text-decoration: underline; }
+}
+</style>
+</head>
+<body>
+<main>
+<section id="summary">
+<h1>Scovant Core — https://example.com/</h1>
+<p><strong>Profile:</strong> saas (requested auto, confidence 80%)</p>
+<p><strong>Core version:</strong> 0.1.0</p>
+<p>20 PASS, 8 WARN, 0 FAIL, 17 N/A, 0 ERROR (45 checks)</p>
+</section>
+<section id="score">
+<h2>Score</h2>
+<p style="font-size:2.5rem;font-weight:700;">80 / 100</p>
+<p><strong>Grade:</strong> B &middot; <strong>Coverage:</strong> 100%</p>
+</section>
+<section id="categories">
+<h2>Categories</h2>
+<table>
+<tr><th>Category</th><th>Weight</th><th>Score</th><th>Evaluated / applicable</th></tr>
+<tr><td>Access &amp; Discovery</td><td>25</td><td>81</td><td>21 / 21</td></tr>
+<tr><td>Machine Understanding</td><td>25</td><td>92</td><td>12 / 12</td></tr>
+<tr><td>Agent Interfaces</td><td>20</td><td>50</td><td>4 / 4</td></tr>
+<tr><td>Trust &amp; Commerce</td><td>15</td><td>100</td><td>11 / 11</td></tr>
+<tr><td>Operability &amp; Efficiency</td><td>15</td><td>81</td><td>13 / 13</td></tr>
+</table>
+</section>
+<section id="findings">
+<h2>Findings</h2>
+<table>
+<tr><th>Status</th><th>ID</th><th>Title</th><th>Severity</th><th>Summary</th></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-ACCESS-003</code></td><td>AI search crawler policy</td><td>high</td><td>robots.txt declares PerplexityBot as disallowed.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-ACCESS-004</code></td><td>Training vs. search crawler separation</td><td>low</td><td>Search/retrieval crawlers are restricted together with training crawlers — intent unclear.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-ACCESS-006</code></td><td>Sitemap freshness</td><td>low</td><td>The newest lastmod in the sitemap is over 730 days old.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-INTERFACE-006</code></td><td>OAuth authorization-server metadata</td><td>medium</td><td>An authorization-server metadata document was found but is incomplete or does not parse.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-INTERFACE-007</code></td><td>OAuth protected-resource metadata</td><td>medium</td><td>A protected-resource metadata document was found but is incomplete or does not parse.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-MACHINE-002</code></td><td>Organization entity</td><td>medium</td><td>An Organization entity is missing url.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-OPERABILITY-001</code></td><td>Server-rendered core content</td><td>medium</td><td>The entry page&#x27;s static HTML carries only 90 chars of visible text (&lt; 200).</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-OPERABILITY-006</code></td><td>Form/control labels</td><td>medium</td><td>1 control(s) across 1 form(s) lack a label or accessible name.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-001</code></td><td>HTTPS reachability</td><td>info</td><td>HTTPS entry URL answered 200.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-002</code></td><td>robots.txt availability and syntax</td><td>info</td><td>robots.txt answered 200 with a well-formed policy.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-005</code></td><td>Sitemap availability</td><td>info</td><td>A valid urlset sitemap was found at https://example.com/sitemap.xml.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-007</code></td><td>Canonical URL integrity</td><td>info</td><td>The canonical URL matches the entry URL.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-008</code></td><td>Indexability</td><td>info</td><td>The entry page does not declare noindex.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-001</code></td><td>JSON-LD parseability</td><td>info</td><td>Every JSON-LD block on the sampled pages parses as valid JSON.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-003</code></td><td>WebSite/WebPage entity</td><td>info</td><td>A WebSite or WebPage entity was found on the sampled pages.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-007</code></td><td>Breadcrumbs</td><td>info</td><td>A sampled non-entry page declares a BreadcrumbList.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-008</code></td><td>Metadata quality</td><td>info</td><td>The entry page declares title, description, and Open Graph tags.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-009</code></td><td>Heading structure</td><td>info</td><td>The entry page has a single H1 and no skipped heading levels.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-MACHINE-010</code></td><td>Language declaration</td><td>info</td><td>The entry page declares a valid `lang` attribute.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-002</code></td><td>Redirect chain complexity</td><td>info</td><td>The entry URL redirects 0 time(s) before settling.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-003</code></td><td>Cache validators</td><td>info</td><td>The entry response carries an ETag or Last-Modified validator.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-004</code></td><td>Broken machine-consumable endpoints</td><td>info</td><td>All 4 checked machine-consumable reference(s) resolve.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-005</code></td><td>Agent parse cost</td><td>info</td><td>The entry page&#x27;s estimated parse cost is ~22 tokens (low).</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-001</code></td><td>Contact/support discoverability</td><td>info</td><td>A contact or support link was found on the entry page.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-004</code></td><td>Privacy policy discoverability</td><td>info</td><td>A privacy policy page was found with substantive content.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-005</code></td><td>Terms/conditions discoverability</td><td>info</td><td>A terms/conditions page was found with substantive content.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-006</code></td><td>security.txt discoverability</td><td>info</td><td>A valid security.txt was found with a contact method.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-007</code></td><td>Pricing discoverability</td><td>info</td><td>A pricing page was found with a readable price.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-ACCESS-009</code></td><td>llms.txt presence and integrity</td><td>info</td><td>No llms.txt is published.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-ACCESS-010</code></td><td>Content-Signal declaration</td><td>info</td><td>No Content-Signal directive is declared.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-001</code></td><td>MCP discovery presence</td><td>info</td><td>No MCP discovery file is published.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-002</code></td><td>MCP server declaration quality</td><td>info</td><td>No MCP server is declared.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-003</code></td><td>WebMCP static presence</td><td>info</td><td>No static WebMCP marker was found on the sampled pages.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-005</code></td><td>OpenAPI discovery</td><td>info</td><td>No OpenAPI document discovered at the conventional paths.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-004</code></td><td>Product structured data</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-005</code></td><td>Offer price, currency, and availability</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-006</code></td><td>Product identifier count</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-011</code></td><td>Image alt coverage</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-002</code></td><td>Shipping policy discoverability</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-003</code></td><td>Returns/refund policy discoverability</td><td>info</td><td>Not applicable to the saas profile.</td></tr>
+</table>
+<p><em>Experimental checks: not scored (run with --experimental)</em></p>
+<p>N/A: <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-INTERFACE-009</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code></p>
+</section>
+<section id="evidence">
+<h2>Evidence</h2>
+<details><summary><code>CORE-ACCESS-001</code> — HTTPS reachability</summary>
+<pre><code>{
+  &quot;final_url&quot;: &quot;https://example.com/&quot;,
+  &quot;input_url&quot;: &quot;https://example.com/&quot;,
+  &quot;redirect_chain&quot;: [],
+  &quot;redirect_count&quot;: 0,
+  &quot;status&quot;: 200
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-002</code> — robots.txt availability and syntax</summary>
+<pre><code>{
+  &quot;error&quot;: null,
+  &quot;resource&quot;: &quot;https://example.com/robots.txt&quot;,
+  &quot;served_as_html&quot;: false,
+  &quot;sha256&quot;: &quot;3986b6edab342dfd005c7e59bf3e6876ce79173402727d30bb6c632805c1a1da&quot;,
+  &quot;sitemap_count&quot;: 1,
+  &quot;status&quot;: 200,
+  &quot;unknown_directives&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-003</code> — AI search crawler policy</summary>
+<pre><code>{
+  &quot;declared_policy&quot;: {
+    &quot;Bingbot&quot;: true,
+    &quot;Claude-SearchBot&quot;: true,
+    &quot;Googlebot&quot;: true,
+    &quot;OAI-SearchBot&quot;: true,
+    &quot;PerplexityBot&quot;: false
+  },
+  &quot;http_status&quot;: 200,
+  &quot;resource&quot;: &quot;https://example.com/robots.txt&quot;,
+  &quot;robots_present&quot;: true
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-004</code> — Training vs. search crawler separation</summary>
+<pre><code>{
+  &quot;explicit_separation&quot;: false,
+  &quot;http_status&quot;: 200,
+  &quot;resource&quot;: &quot;https://example.com/robots.txt&quot;,
+  &quot;search_blocked&quot;: [
+    &quot;PerplexityBot&quot;
+  ],
+  &quot;training_blocked&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-005</code> — Sitemap availability</summary>
+<pre><code>{
+  &quot;entry_count&quot;: 4,
+  &quot;exists&quot;: true,
+  &quot;kind&quot;: &quot;urlset&quot;,
+  &quot;parse_error&quot;: null,
+  &quot;probe_error&quot;: null,
+  &quot;probe_status&quot;: 200,
+  &quot;served_as_html&quot;: false,
+  &quot;url&quot;: &quot;https://example.com/sitemap.xml&quot;,
+  &quot;valid&quot;: true
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-006</code> — Sitemap freshness</summary>
+<pre><code>{
+  &quot;dated_entry_count&quot;: 4,
+  &quot;entry_count&quot;: 4,
+  &quot;newest&quot;: &quot;2020-01-01&quot;,
+  &quot;oldest&quot;: &quot;2020-01-01&quot;,
+  &quot;url&quot;: &quot;https://example.com/sitemap.xml&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-007</code> — Canonical URL integrity</summary>
+<pre><code>{
+  &quot;canonical_url&quot;: &quot;https://example.com/&quot;,
+  &quot;entry_url&quot;: &quot;https://example.com/&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-008</code> — Indexability</summary>
+<pre><code>{
+  &quot;robots_meta&quot;: null,
+  &quot;x_robots_tag&quot;: null
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-009</code> — llms.txt presence and integrity</summary>
+<pre><code>{
+  &quot;http_status&quot;: 404,
+  &quot;resource&quot;: &quot;https://example.com/llms.txt&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-ACCESS-010</code> — Content-Signal declaration</summary>
+<pre><code>{
+  &quot;declared&quot;: false,
+  &quot;dimensions&quot;: {
+    &quot;ai-input&quot;: &quot;unset&quot;,
+    &quot;ai-train&quot;: &quot;unset&quot;,
+    &quot;search&quot;: &quot;unset&quot;
+  },
+  &quot;syntax_errors&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-INTERFACE-001</code> — MCP discovery presence</summary>
+<pre><code>{
+  &quot;exists&quot;: false,
+  &quot;http_status&quot;: 404,
+  &quot;resource&quot;: &quot;https://example.com/.well-known/mcp.json&quot;,
+  &quot;server_card&quot;: false,
+  &quot;valid&quot;: false
+}</code></pre>
+</details>
+<details><summary><code>CORE-INTERFACE-003</code> — WebMCP static presence</summary>
+<pre><code>{
+  &quot;pages_scanned&quot;: 4,
+  &quot;pages_with_marker&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-INTERFACE-005</code> — OpenAPI discovery</summary>
+<pre><code>{
+  &quot;candidates_checked&quot;: 5,
+  &quot;found_url&quot;: null,
+  &quot;openapi_version&quot;: null,
+  &quot;parseable&quot;: false
+}</code></pre>
+</details>
+<details><summary><code>CORE-INTERFACE-006</code> — OAuth authorization-server metadata</summary>
+<pre><code>{
+  &quot;has_endpoints&quot;: false,
+  &quot;http_status&quot;: 200,
+  &quot;parseable&quot;: true,
+  &quot;resource&quot;: &quot;https://example.com/.well-known/oauth-authorization-server&quot;,
+  &quot;served_as_html&quot;: false
+}</code></pre>
+</details>
+<details><summary><code>CORE-INTERFACE-007</code> — OAuth protected-resource metadata</summary>
+<pre><code>{
+  &quot;http_status&quot;: 200,
+  &quot;parseable&quot;: true,
+  &quot;resource&quot;: &quot;https://example.com/.well-known/oauth-protected-resource&quot;,
+  &quot;served_as_html&quot;: false
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-001</code> — JSON-LD parseability</summary>
+<pre><code>{
+  &quot;pages&quot;: [
+    {
+      &quot;parsed&quot;: 2,
+      &quot;raw&quot;: 2,
+      &quot;url&quot;: &quot;https://example.com/&quot;
+    },
+    {
+      &quot;parsed&quot;: 0,
+      &quot;raw&quot;: 0,
+      &quot;url&quot;: &quot;https://example.com/pricing&quot;
+    },
+    {
+      &quot;parsed&quot;: 1,
+      &quot;raw&quot;: 1,
+      &quot;url&quot;: &quot;https://example.com/docs&quot;
+    },
+    {
+      &quot;parsed&quot;: 0,
+      &quot;raw&quot;: 0,
+      &quot;url&quot;: &quot;https://example.com/signup&quot;
+    }
+  ],
+  &quot;parsed_total&quot;: 3,
+  &quot;raw_total&quot;: 3
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-002</code> — Organization entity</summary>
+<pre><code>{
+  &quot;found&quot;: true,
+  &quot;missing&quot;: [
+    &quot;url&quot;
+  ],
+  &quot;pages_parsed&quot;: 4
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-003</code> — WebSite/WebPage entity</summary>
+<pre><code>{
+  &quot;found&quot;: true,
+  &quot;pages_parsed&quot;: 4
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-007</code> — Breadcrumbs</summary>
+<pre><code>{
+  &quot;has_breadcrumb&quot;: true,
+  &quot;non_entry_pages&quot;: [
+    &quot;https://example.com/pricing&quot;,
+    &quot;https://example.com/docs&quot;,
+    &quot;https://example.com/signup&quot;
+  ],
+  &quot;non_entry_parsed&quot;: 3
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-008</code> — Metadata quality</summary>
+<pre><code>{
+  &quot;entry_url&quot;: &quot;https://example.com/&quot;,
+  &quot;issues&quot;: [],
+  &quot;meta_description&quot;: &quot;Example SaaS is a synthetic subscription service used to exercise agent-readiness checks.&quot;,
+  &quot;missing&quot;: [],
+  &quot;title&quot;: &quot;Example SaaS&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-009</code> — Heading structure</summary>
+<pre><code>{
+  &quot;entry_url&quot;: &quot;https://example.com/&quot;,
+  &quot;h1_count&quot;: 1,
+  &quot;heading_count&quot;: 1,
+  &quot;issues&quot;: [],
+  &quot;levels&quot;: [
+    &quot;h1&quot;
+  ]
+}</code></pre>
+</details>
+<details><summary><code>CORE-MACHINE-010</code> — Language declaration</summary>
+<pre><code>{
+  &quot;entry_url&quot;: &quot;https://example.com/&quot;,
+  &quot;html_lang&quot;: &quot;en&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-001</code> — Server-rendered core content</summary>
+<pre><code>{
+  &quot;entry_url&quot;: &quot;https://example.com/&quot;,
+  &quot;spa_shell_marker&quot;: false,
+  &quot;visible_text_chars&quot;: 90
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-002</code> — Redirect chain complexity</summary>
+<pre><code>{
+  &quot;redirect_chain&quot;: [],
+  &quot;redirect_count&quot;: 0
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-003</code> — Cache validators</summary>
+<pre><code>{
+  &quot;cache_control&quot;: null,
+  &quot;etag&quot;: &quot;\&quot;abc\&quot;&quot;,
+  &quot;last_modified&quot;: null
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-004</code> — Broken machine-consumable endpoints</summary>
+<pre><code>{
+  &quot;broken&quot;: [],
+  &quot;broken_count&quot;: 0,
+  &quot;inconclusive&quot;: [],
+  &quot;refs_checked&quot;: 4,
+  &quot;refs_resolved&quot;: 4,
+  &quot;unresolved&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-005</code> — Agent parse cost</summary>
+<pre><code>{
+  &quot;dom_nodes&quot;: 26,
+  &quot;estimated_tokens&quot;: 22,
+  &quot;html_bytes&quot;: 1278,
+  &quot;level&quot;: &quot;LOW&quot;,
+  &quot;link_count&quot;: 7,
+  &quot;script_bytes&quot;: 218,
+  &quot;script_ratio&quot;: 0.1705790297339593,
+  &quot;structured_bytes&quot;: 218,
+  &quot;text_chars&quot;: 90,
+  &quot;token_chars_ratio&quot;: 4
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-006</code> — Form/control labels</summary>
+<pre><code>{
+  &quot;totals&quot;: {
+    &quot;forms&quot;: 1,
+    &quot;inputs&quot;: 2,
+    &quot;unlabeled_inputs&quot;: 1,
+    &quot;unlabeled_selects&quot;: 0,
+    &quot;unnamed_buttons&quot;: 0
+  }
+}</code></pre>
+</details>
+<details><summary><code>CORE-TRUST-001</code> — Contact/support discoverability</summary>
+<pre><code>{
+  &quot;contact_url&quot;: &quot;https://example.com/contact&quot;,
+  &quot;kind&quot;: &quot;page&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-TRUST-004</code> — Privacy policy discoverability</summary>
+<pre><code>{
+  &quot;served_as_html&quot;: true,
+  &quot;status&quot;: 200,
+  &quot;text_chars&quot;: 342,
+  &quot;url&quot;: &quot;https://example.com/privacy&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-TRUST-005</code> — Terms/conditions discoverability</summary>
+<pre><code>{
+  &quot;served_as_html&quot;: true,
+  &quot;status&quot;: 200,
+  &quot;text_chars&quot;: 324,
+  &quot;url&quot;: &quot;https://example.com/terms&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-TRUST-006</code> — security.txt discoverability</summary>
+<pre><code>{
+  &quot;contact&quot;: true,
+  &quot;expires&quot;: null,
+  &quot;expires_valid&quot;: null,
+  &quot;found_url&quot;: &quot;https://example.com/.well-known/security.txt&quot;,
+  &quot;status&quot;: 200
+}</code></pre>
+</details>
+<details><summary><code>CORE-TRUST-007</code> — Pricing discoverability</summary>
+<pre><code>{
+  &quot;has_price_text&quot;: true,
+  &quot;has_structured_price&quot;: false,
+  &quot;status&quot;: 200,
+  &quot;url&quot;: &quot;https://example.com/pricing&quot;
+}</code></pre>
+</details>
+</section>
+<section id="remediation">
+<h2>Remediation</h2>
+<ul>
+<li><code>CORE-ACCESS-003</code> — Review whether blocking these retrieval crawlers is intended; they power answer-engine discovery, not model training.</li>
+<li><code>CORE-ACCESS-004</code> — Restrict only the training-purpose crawler tokens; leave search/retrieval crawlers allowed.</li>
+<li><code>CORE-ACCESS-006</code> — Regenerate the sitemap so lastmod reflects real content changes.</li>
+<li><code>CORE-INTERFACE-006</code> — Publish RFC 8414 metadata with `issuer`, `authorization_endpoint`, and `token_endpoint` at /.well-known/oauth-authorization-server.</li>
+<li><code>CORE-INTERFACE-007</code> — Publish RFC 9728 metadata with `resource` and a non-empty `authorization_servers` list at /.well-known/oauth-protected-resource.</li>
+<li><code>CORE-MACHINE-002</code> — Add the missing fields (url) to the Organization entity.</li>
+<li><code>CORE-OPERABILITY-001</code> — Server-render (or statically pre-render) the core content so an agent&#x27;s plain HTTP fetch sees it.</li>
+<li><code>CORE-OPERABILITY-006</code> — Add a &lt;label&gt; (or aria-label/aria-labelledby) to every input/select, and a name or accessible text to every button.</li>
+</ul>
+</section>
+<section id="limitations">
+<h2>Limitations</h2>
+<ul>
+<li>Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic.</li>
+<li>Only reachability and syntax are checked; per-agent policy is evaluated by the other CORE-ACCESS checks.</li>
+<li>Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed.</li>
+<li>Only the declared robots.txt policy is evaluated.</li>
+<li>Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated.</li>
+<li>Only ISO 8601 date-formatted lastmod values are parsed; malformed dates are ignored, not penalised.</li>
+<li>Only the entry page&#x27;s declared canonical is evaluated.</li>
+<li>Only the entry page&#x27;s own robots meta tag and X-Robots-Tag header are checked.</li>
+<li>Absence is not penalised; the convention is emerging. Reference checks are HTTP status only.</li>
+<li>Absence is not penalised; the convention is emerging.</li>
+<li>Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.</li>
+<li>Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check.</li>
+<li>This is a static text scan of already-fetched HTML for a marker string; the browser-side registration was not executed, so a marker&#x27;s presence does not confirm the tools actually register or work.</li>
+<li>Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed.</li>
+<li>Only the conventional /.well-known/oauth-authorization-server path is probed.</li>
+<li>Only the conventional /.well-known/oauth-protected-resource path is probed.</li>
+<li>Only well-formed-JSON parseability is checked; schema.org vocabulary correctness is not validated.</li>
+<li>Only the schema_org nodes on the sampled pages are checked; an Organization declared elsewhere on the site is not evaluated.</li>
+<li>Only the schema_org nodes on the sampled pages are checked.</li>
+<li>Only the sampled pages are checked; a product catalog not represented in the sample is not evaluated.</li>
+<li>Only the first sampled page that exposes a Product entity is checked.</li>
+<li>Only the non-entry pages in the sampled set are checked.</li>
+<li>Only the entry page&#x27;s metadata is checked.</li>
+<li>Only the entry page&#x27;s heading outline is checked.</li>
+<li>Only the entry page&#x27;s `&lt;html lang&gt;` attribute is checked.</li>
+<li>Only the images on the sampled pages are counted.</li>
+<li>Static-HTML signal only: the raw fetched response is inspected, never rendered in a browser, so a site that hydrates real content very quickly may still be flagged here.</li>
+<li>Only the entry URL&#x27;s own redirect chain is inspected; redirects encountered while fetching other sampled pages are not counted here.</li>
+<li>Only the entry response&#x27;s own headers are checked; per-page-type validator strategy is not inspected.</li>
+<li>Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.</li>
+<li>`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.</li>
+<li>Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.</li>
+<li>Only the entry page&#x27;s anchors are scanned; a contact method reachable only from a deeper page is not found.</li>
+<li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.</li>
+<li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.</li>
+<li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a privacy policy reachable only from a deeper page is not found.</li>
+<li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; terms reachable only from a deeper page are not found.</li>
+<li>Only the conventional /.well-known/security.txt and legacy /security.txt paths are probed.</li>
+<li>Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages.</li>
+</ul>
+</section>
+<section id="not-tested">
+<h2>Not tested by Scovant Core</h2>
+<ul>
+<li>Observed WAF access</li>
+<li>Real agent tasks</li>
+<li>MCP tool execution</li>
+<li>WebMCP state parity</li>
+<li>Multi-model reliability</li>
+<li>Regression stability</li>
+</ul>
+</section>
+<section id="cloud-comparison">
+<h2>Core vs Cloud</h2>
+<table>
+<tr><th>Capability</th><th>Core</th><th>Cloud</th></tr>
+<tr><td>HTTP reachability</td><td>✅</td><td>✅</td></tr>
+<tr><td>robots.txt</td><td>✅</td><td>✅</td></tr>
+<tr><td>Sitemap</td><td>✅</td><td>✅</td></tr>
+<tr><td>llms.txt</td><td>✅</td><td>✅</td></tr>
+<tr><td>Structured data (JSON-LD)</td><td>✅</td><td>✅</td></tr>
+<tr><td>Product/Offer data</td><td>✅</td><td>✅</td></tr>
+<tr><td>Static crawler policy</td><td>✅</td><td>✅</td></tr>
+<tr><td>Content-Signal</td><td>✅</td><td>✅</td></tr>
+<tr><td>MCP discovery</td><td>✅</td><td>✅</td></tr>
+<tr><td>WebMCP static presence</td><td>✅</td><td>✅</td></tr>
+<tr><td>OpenAPI presence</td><td>✅</td><td>✅</td></tr>
+<tr><td>OAuth authorization-server / protected-resource metadata</td><td>✅</td><td>✅</td></tr>
+<tr><td>UCP profile validity</td><td>✅ (experimental)</td><td>✅</td></tr>
+<tr><td>Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills)</td><td>✅ (experimental)</td><td>✅</td></tr>
+<tr><td>Core Score</td><td>✅</td><td>—</td></tr>
+<tr><td>Cloud&#x27;s full compatibility score</td><td>❌</td><td>✅</td></tr>
+<tr><td>Cloud&#x27;s full production ruleset</td><td>❌</td><td>✅</td></tr>
+<tr><td>Observed WAF/bot-firewall behavior</td><td>❌</td><td>✅</td></tr>
+<tr><td>Real crawler network access</td><td>❌</td><td>✅</td></tr>
+<tr><td>Browser-based agent simulation</td><td>❌</td><td>✅</td></tr>
+<tr><td>Multi-model execution</td><td>❌</td><td>✅</td></tr>
+<tr><td>MCP tool invocation</td><td>❌</td><td>✅</td></tr>
+<tr><td>WebMCP tool execution/state parity</td><td>❌</td><td>✅</td></tr>
+<tr><td>Tool/UI parity checking</td><td>❌</td><td>✅</td></tr>
+<tr><td>Checkout/task completion</td><td>❌</td><td>✅</td></tr>
+<tr><td>CAPTCHA/challenge behavior</td><td>❌</td><td>✅</td></tr>
+<tr><td>Verified-agent access</td><td>❌</td><td>✅</td></tr>
+<tr><td>Failure attribution</td><td>❌</td><td>✅</td></tr>
+<tr><td>Temporal stability / regressions</td><td>❌</td><td>✅</td></tr>
+<tr><td>Scheduled monitoring</td><td>❌</td><td>✅</td></tr>
+<tr><td>Alerts/webhooks</td><td>❌</td><td>✅</td></tr>
+<tr><td>Hosted, shareable reports</td><td>❌</td><td>✅</td></tr>
+<tr><td>Contextual fix plan</td><td>❌</td><td>✅</td></tr>
+</table>
+<p>Core measures what a site declares. Cloud measures what real agents actually experience.</p>
+</section>
+<section id="methodology">
+<h2>Methodology</h2>
+<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage (a document that could not be read counts against evidence), and N/A is excluded entirely. A category scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its applicable weight. Full reference: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">docs/methodology.md</a>.</p>
+</section>
+<section id="provenance">
+<h2>Provenance</h2>
+<dl>
+<dt>scan_id</dt><dd>local-golden</dd>
+<dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
+<dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
+<dt>schema_version</dt><dd>1.0</dd>
+<dt>core_version</dt><dd>0.1.0</dd>
+<dt>ruleset_version</dt><dd>2026.09</dd>
+<dt>ruleset_digest</dt><dd>d83df799eaa7</dd>
+<dt>python</dt><dd>&lt;runtime&gt;</dd>
+<dt>platform</dt><dd>&lt;runtime&gt;</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.1.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>timeout</dt><dd>60.0</dd>
+<dt>max_pages</dt><dd>5</dd>
+<dt>network_mode</dt><dd>fixture</dd>
+<dt>experimental</dt><dd>False</dd>
+<dt>allow_private_networks</dt><dd>False</dd>
+</dl>
+</section>
+<footer>
+<p>Verify with real agents: <a href="https://scovant.com/scan?utm_source=scovant-core&amp;utm_medium=html&amp;utm_campaign=oss">scovant.com/scan</a></p>
+</footer>
+</main>
+</body>
+</html>

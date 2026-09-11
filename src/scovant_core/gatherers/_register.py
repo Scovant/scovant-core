@@ -1,0 +1,20 @@
+"""Import side-effects: registers every gatherer into evidence.GATHERERS."""
+from scovant_core.gatherers import (  # noqa: F401
+    agent_discovery_surface,
+    contact,
+    forms,
+    http,
+    llms,
+    machine_links,
+    mcp_discovery,
+    oauth_metadata,
+    openapi,
+    page_metrics,
+    pages,
+    policy_pages,
+    reference_integrity,
+    robots_txt,
+    security_txt,
+    sitemap_urls,
+    ucp,
+)

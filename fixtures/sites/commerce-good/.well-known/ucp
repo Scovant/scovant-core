@@ -1,0 +1,18 @@
+{
+  "ucp": {
+    "version": "0.1",
+    "services": {
+      "checkout": [
+        {"version": "0.1", "spec": "https://example.com/ucp/spec/checkout", "transport": "REST", "endpoint": "https://example.com/ucp/checkout", "schema": "https://example.com/ucp/checkout.json"}
+      ]
+    },
+    "capabilities": {
+      "dev.ucp.commerce.checkout": [
+        {"version": "0.1", "spec": "https://example.com/ucp/spec/checkout", "schema": "https://example.com/ucp/checkout-capability.json"}
+      ]
+    }
+  },
+  "signing_keys": [
+    {"kid": "key-1", "kty": "OKP", "use": "sig"}
+  ]
+}

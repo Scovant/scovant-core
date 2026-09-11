@@ -1,0 +1,1092 @@
+{
+  "categories": {
+    "access": {
+      "applicable_weight": 23.0,
+      "evaluated_weight": 23.0,
+      "score": 17.4,
+      "title": "Access & Discovery",
+      "weight": 25
+    },
+    "interfaces": {
+      "applicable_weight": 0.0,
+      "evaluated_weight": 0.0,
+      "score": null,
+      "title": "Agent Interfaces",
+      "weight": 20
+    },
+    "machine": {
+      "applicable_weight": 22.0,
+      "evaluated_weight": 22.0,
+      "score": 40.9,
+      "title": "Machine Understanding",
+      "weight": 25
+    },
+    "operability": {
+      "applicable_weight": 13.0,
+      "evaluated_weight": 13.0,
+      "score": 50.0,
+      "title": "Operability & Efficiency",
+      "weight": 15
+    },
+    "trust": {
+      "applicable_weight": 12.0,
+      "evaluated_weight": 12.0,
+      "score": 41.7,
+      "title": "Trust & Commerce",
+      "weight": 15
+    }
+  },
+  "completed_at": "2026-09-04T00:00:00Z",
+  "core_version": "0.1.0",
+  "findings": [
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud tests reachability from real agent network paths and multiple regions.",
+      "confidence": "high",
+      "evidence": {
+        "final_url": "https://example.com/step4",
+        "input_url": "https://example.com/",
+        "redirect_chain": [
+          "https://example.com/",
+          "https://example.com/step1",
+          "https://example.com/step2",
+          "https://example.com/step3"
+        ],
+        "redirect_count": 4,
+        "status": 200
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-001",
+      "limitations": "Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic.",
+      "remediation": "Collapse the redirect chain to at most one hop.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "The entry URL redirects 4 times before settling.",
+      "title": "HTTPS reachability",
+      "weight": 2,
+      "why_it_matters": "An agent that cannot complete a request against the entry URL cannot use anything else the site declares."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud fetches robots.txt from multiple regions to catch geo-inconsistent policies.",
+      "confidence": "high",
+      "evidence": {
+        "error": null,
+        "resource": "https://example.com/robots.txt",
+        "served_as_html": false,
+        "sha256": "901c28336f0ee2ceb8b00545721bc3a75c09d539b54d031ab78f34d43f7e5294",
+        "sitemap_count": 0,
+        "status": 200,
+        "unknown_directives": []
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-002",
+      "limitations": "Only reachability and syntax are checked; per-agent policy is evaluated by the other CORE-ACCESS checks.",
+      "remediation": "Scope Disallow rules to specific paths instead of blocking `/` for `*`.",
+      "severity": "medium",
+      "status": "FAIL",
+      "summary": "robots.txt disallows all crawlers from the entire site.",
+      "title": "robots.txt availability and syntax",
+      "weight": 2,
+      "why_it_matters": "robots.txt is the first document a crawler checks; a broken or unreachable one forces every crawler to guess."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud observes whether these crawlers are actually admitted or challenged.",
+      "confidence": "high",
+      "evidence": {
+        "declared_policy": {
+          "Bingbot": false,
+          "Claude-SearchBot": false,
+          "Googlebot": false,
+          "OAI-SearchBot": false,
+          "PerplexityBot": false
+        },
+        "http_status": 200,
+        "resource": "https://example.com/robots.txt",
+        "robots_present": true
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-003",
+      "limitations": "Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed.",
+      "remediation": "Allow search/retrieval crawlers (e.g. OAI-SearchBot, Claude-SearchBot, PerplexityBot) in robots.txt while keeping any training restrictions separate.",
+      "severity": "high",
+      "status": "FAIL",
+      "summary": "robots.txt declares every major search and answer-engine crawler as disallowed.",
+      "title": "AI search crawler policy",
+      "weight": 4,
+      "why_it_matters": "Search and answer engines only surface pages their crawlers are declared allowed to fetch."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud observes whether training and search crawlers are actually treated differently in practice.",
+      "confidence": "high",
+      "evidence": {
+        "explicit_separation": false,
+        "http_status": 200,
+        "resource": "https://example.com/robots.txt",
+        "search_blocked": [
+          "OAI-SearchBot",
+          "Claude-SearchBot",
+          "PerplexityBot",
+          "Googlebot",
+          "Bingbot"
+        ],
+        "training_blocked": [
+          "GPTBot",
+          "ClaudeBot",
+          "Google-Extended",
+          "CCBot",
+          "Applebot-Extended"
+        ]
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-004",
+      "limitations": "Only the declared robots.txt policy is evaluated.",
+      "remediation": "Restrict only the training-purpose crawler tokens; leave search/retrieval crawlers allowed.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "Search/retrieval crawlers are restricted together with training crawlers — intent unclear.",
+      "title": "Training vs. search crawler separation",
+      "weight": 2,
+      "why_it_matters": "A site that wants to opt out of AI training without also losing answer-engine visibility needs the two crawler classes declared separately."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates every child sitemap in an index and samples the full URL count.",
+      "confidence": "high",
+      "evidence": {
+        "entry_count": 0,
+        "exists": false,
+        "kind": null,
+        "parse_error": null,
+        "probe_error": null,
+        "probe_status": 404,
+        "served_as_html": false,
+        "url": null,
+        "valid": false
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-005",
+      "limitations": "Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated.",
+      "remediation": "Publish /sitemap.xml and declare it in robots.txt.",
+      "severity": "medium",
+      "status": "FAIL",
+      "summary": "No sitemap was found.",
+      "title": "Sitemap availability",
+      "weight": 3,
+      "why_it_matters": "A sitemap is the most reliable way for a crawler to discover a site's full page inventory without following every link."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud cross-checks lastmod against observed page changes over time.",
+      "confidence": "high",
+      "evidence": {
+        "url": null
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-006",
+      "limitations": "Only ISO 8601 date-formatted lastmod values are parsed; malformed dates are ignored, not penalised.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No valid sitemap to evaluate freshness for.",
+      "title": "Sitemap freshness",
+      "weight": 2,
+      "why_it_matters": "A stale or suspiciously uniform lastmod signal gives a crawler no reliable way to prioritise re-crawling changed pages."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates canonical tags across every sampled page, not only the entry page.",
+      "confidence": "high",
+      "evidence": {
+        "canonical_url": "https://example.org/elsewhere",
+        "entry_url": "https://example.com/step4"
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-007",
+      "limitations": "Only the entry page's declared canonical is evaluated.",
+      "remediation": "Point the canonical tag at a URL on this site's own host.",
+      "severity": "medium",
+      "status": "FAIL",
+      "summary": "The canonical URL points off-host.",
+      "title": "Canonical URL integrity",
+      "weight": 3,
+      "why_it_matters": "A broken or off-host canonical tells agents the entry page's authoritative content lives somewhere else."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks indexability across every sampled page.",
+      "confidence": "high",
+      "evidence": {
+        "robots_meta": "noindex",
+        "x_robots_tag": null
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-008",
+      "limitations": "Only the entry page's own robots meta tag and X-Robots-Tag header are checked.",
+      "remediation": "Remove the noindex directive from the meta robots tag or X-Robots-Tag header.",
+      "severity": "high",
+      "status": "FAIL",
+      "summary": "The entry page declares noindex.",
+      "title": "Indexability",
+      "weight": 3,
+      "why_it_matters": "A page that declares noindex tells every compliant crawler, agents included, to leave it out of any index."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks the supply-chain integrity of packages and hosts referenced from llms.txt.",
+      "confidence": "high",
+      "evidence": {
+        "errors": [],
+        "references_broken": [
+          "https://example.com/does-not-exist"
+        ],
+        "references_checked": 1,
+        "references_unresolved": [],
+        "resource": "https://example.com/llms.txt",
+        "valid": true
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-009",
+      "limitations": "Absence is not penalised; the convention is emerging. Reference checks are HTTP status only.",
+      "remediation": "Remove or fix the broken references in llms.txt.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "llms.txt references 1 link(s) that do not resolve.",
+      "title": "llms.txt presence and integrity",
+      "weight": 2,
+      "why_it_matters": "A well-formed llms.txt gives agents a curated map of the pages worth reading; a broken one sends them to dead links."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud tracks Content-Signal adoption trends across the crawled corpus.",
+      "confidence": "high",
+      "evidence": {
+        "declared": true,
+        "dimensions": {
+          "ai-input": "unset",
+          "ai-train": "unset",
+          "search": "unset"
+        },
+        "syntax_errors": [
+          "unrecognized value for 'search': 'maybe' (expected yes|no)"
+        ]
+      },
+      "experimental": false,
+      "id": "CORE-ACCESS-010",
+      "limitations": "Absence is not penalised; the convention is emerging.",
+      "remediation": "Fix the Content-Signal directive, e.g. \"Content-Signal: search=yes, ai-input=yes, ai-train=no\".",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "Content-Signal is declared but has syntax error(s).",
+      "title": "Content-Signal declaration",
+      "weight": 2,
+      "why_it_matters": "Content-Signal lets a site state search/AI-input/AI-training intent per dimension instead of leaving agents to guess from Disallow rules alone."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud performs a live MCP handshake and enumerates the tool list, not just discovery-file presence.",
+      "confidence": "high",
+      "evidence": {
+        "exists": false,
+        "http_status": 404,
+        "resource": "https://example.com/.well-known/mcp.json",
+        "server_card": false,
+        "valid": false
+      },
+      "experimental": false,
+      "id": "CORE-INTERFACE-001",
+      "limitations": "Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No MCP discovery file is published.",
+      "title": "MCP discovery presence",
+      "weight": 3,
+      "why_it_matters": "A published MCP discovery file (or server card) is how an agent finds this site's own tool interface instead of falling back to browser-shaped scraping."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud performs a live handshake against each declared server and checks the declaration against the server's own runtime-reported identity.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-INTERFACE-002",
+      "limitations": "Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No MCP server is declared.",
+      "title": "MCP server declaration quality",
+      "weight": 2,
+      "why_it_matters": "An agent choosing among declared MCP servers needs a name, a URL, a transport, and a real description for each one — a bare, undescribed entry forces the agent to guess how to connect and why it should bother."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud enumerates WebMCP tools in a real browser and checks state parity.",
+      "confidence": "low",
+      "evidence": {
+        "pages_scanned": 1,
+        "pages_with_marker": []
+      },
+      "experimental": false,
+      "id": "CORE-INTERFACE-003",
+      "limitations": "This is a static text scan of already-fetched HTML for a marker string; the browser-side registration was not executed, so a marker's presence does not confirm the tools actually register or work.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No static WebMCP marker was found on the sampled pages.",
+      "title": "WebMCP static presence",
+      "weight": 3,
+      "why_it_matters": "A static WebMCP marker (an inline registration script, or a `<link rel=\"modelcontext\">`/`<meta name=\"webmcp\">` declaration) signals the page intends to expose in-browser tools to an agent."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud enumerates WebMCP tools live in a real browser, seeing runtime-only definitions this static scan cannot.",
+      "confidence": "high",
+      "evidence": {
+        "pages_scanned": 1,
+        "parse_errors": 0,
+        "tool_count": 0
+      },
+      "experimental": true,
+      "id": "CORE-INTERFACE-004",
+      "limitations": "Static extraction of `registerTool(` calls in already-fetched HTML on the sampled pages; a runtime-only or dynamically-constructed tool definition is not seen.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No WebMCP tool registration was found on the sampled pages.",
+      "title": "WebMCP tool declaration quality",
+      "weight": 2,
+      "why_it_matters": "A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates the full OpenAPI document against the spec, not just that one parses.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-INTERFACE-005",
+      "limitations": "Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Not applicable to the commerce profile.",
+      "title": "OpenAPI discovery",
+      "weight": 2,
+      "why_it_matters": "A discoverable OpenAPI document lets an agent understand and call this API's surface directly instead of reverse-engineering it from prose docs."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud exercises the discovered endpoints against a live OAuth flow, not just that the metadata document parses.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-INTERFACE-006",
+      "limitations": "Only the conventional /.well-known/oauth-authorization-server path is probed.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Not applicable to the commerce profile.",
+      "title": "OAuth authorization-server metadata",
+      "weight": 2,
+      "why_it_matters": "An agent that must authenticate to call this API needs RFC 8414 authorization-server metadata to discover the endpoints itself, rather than a human copying them out of docs."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud exercises the discovered authorization server against a live OAuth flow, not just that the metadata document parses.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-INTERFACE-007",
+      "limitations": "Only the conventional /.well-known/oauth-protected-resource path is probed.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Not applicable to the commerce profile.",
+      "title": "OAuth protected-resource metadata",
+      "weight": 2,
+      "why_it_matters": "An agent that receives a 401 from a protected API needs RFC 9728 protected-resource metadata to discover which authorization server to talk to, instead of dead-ending."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow.",
+      "confidence": "high",
+      "evidence": {
+        "exists": true,
+        "http_status": 200,
+        "resource": "https://example.com/.well-known/ucp",
+        "served_as_html": false,
+        "valid": false,
+        "validation_errors": [
+          "invalid JSON"
+        ]
+      },
+      "experimental": true,
+      "id": "CORE-INTERFACE-008",
+      "limitations": "Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found.",
+      "remediation": "Publish a valid UCP profile at /.well-known/ucp per the UCP specification.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "A UCP profile is published but fails validation.",
+      "title": "UCP profile validity",
+      "weight": 2,
+      "why_it_matters": "An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy."
+    },
+    {
+      "category": "interfaces",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates each discovered surface's own schema, not just that a document is present.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": true,
+      "id": "CORE-INTERFACE-009",
+      "limitations": "Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document could not be fetched or did not parse is indistinguishable here from one that is absent; this check therefore never reports WARN or ERROR.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Not applicable to the commerce profile.",
+      "title": "Agent discovery surface presence",
+      "weight": 2,
+      "why_it_matters": "A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates JSON-LD against the schema.org vocabulary, not just JSON syntax.",
+      "confidence": "high",
+      "evidence": {
+        "pages": [
+          {
+            "parsed": 1,
+            "raw": 2,
+            "url": "https://example.com/step4"
+          }
+        ],
+        "parsed_total": 1,
+        "raw_total": 2
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-001",
+      "limitations": "Only well-formed-JSON parseability is checked; schema.org vocabulary correctness is not validated.",
+      "remediation": "Fix the malformed JSON-LD blocks so every one parses (validate with a JSON linter before publishing).",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "Some JSON-LD blocks on the sampled pages fail to parse as valid JSON.",
+      "title": "JSON-LD parseability",
+      "weight": 3,
+      "why_it_matters": "A structured-data block an agent's parser cannot read is worse than no block: it promises machine-readable data and then withholds it."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates Organization data against the full schema.org vocabulary, not just presence of name/url.",
+      "confidence": "high",
+      "evidence": {
+        "found": false,
+        "pages_parsed": 1
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-002",
+      "limitations": "Only the schema_org nodes on the sampled pages are checked; an Organization declared elsewhere on the site is not evaluated.",
+      "remediation": "Add JSON-LD with \"@type\": \"Organization\" declaring at least name and url.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "No Organization entity was found on the sampled pages.",
+      "title": "Organization entity",
+      "weight": 2,
+      "why_it_matters": "An agent trying to identify who operates a site (for trust, citation, or contact) needs a machine-readable Organization entity, not just a human-facing 'About' page."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks WebSite/WebPage declarations across the full crawl, not just the sampled pages.",
+      "confidence": "high",
+      "evidence": {
+        "found": false,
+        "pages_parsed": 1
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-003",
+      "limitations": "Only the schema_org nodes on the sampled pages are checked.",
+      "remediation": "Add JSON-LD with \"@type\": \"WebSite\" or \"WebPage\".",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "No WebSite or WebPage entity was found on the sampled pages.",
+      "title": "WebSite/WebPage entity",
+      "weight": 1,
+      "why_it_matters": "A WebSite or WebPage entity anchors the rest of a site's structured data to a concrete machine-readable resource."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud crawls the full product catalog rather than a bounded sample.",
+      "confidence": "high",
+      "evidence": {
+        "has_identifiers": false,
+        "pages_parsed": 1,
+        "product_pages": [
+          "https://example.com/step4"
+        ]
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-004",
+      "limitations": "Only the sampled pages are checked; a product catalog not represented in the sample is not evaluated.",
+      "remediation": "Add a stable identifier (sku, gtin, mpn, or brand) to the Product entity.",
+      "severity": "high",
+      "status": "WARN",
+      "summary": "A Product entity exists but carries no identifiers.",
+      "title": "Product structured data",
+      "weight": 4,
+      "why_it_matters": "An agent completing a purchase needs a machine-readable Product entity with stable identifiers, not just human-facing catalog copy."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks Offer completeness across the full sampled catalog, not just the first product page.",
+      "confidence": "high",
+      "evidence": {
+        "availability": null,
+        "currency": null,
+        "missing": [
+          "price",
+          "priceCurrency",
+          "availability"
+        ],
+        "price": null,
+        "url": "https://example.com/step4"
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-005",
+      "limitations": "Only the first sampled page that exposes a Product entity is checked.",
+      "remediation": "Add an Offer with price, priceCurrency, and availability to the Product entity.",
+      "severity": "high",
+      "status": "FAIL",
+      "summary": "The Product entity has no Offer with price, currency, or availability.",
+      "title": "Offer price, currency, and availability",
+      "weight": 4,
+      "why_it_matters": "An agent cannot decide whether to buy without knowing the price, currency, and stock status up front."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks identifier coverage across the full sampled catalog, not just the pages in this scan.",
+      "confidence": "high",
+      "evidence": {
+        "count": 0,
+        "identifier_keys": [],
+        "pages_parsed": 1
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-006",
+      "limitations": "Only the sampled pages are checked; a product catalog not represented in the sample is not evaluated.",
+      "remediation": "Add a stable identifier (sku, gtin, mpn, or brand) to the Product entity.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "Product entities declare no stable identifiers.",
+      "title": "Product identifier count",
+      "weight": 2,
+      "why_it_matters": "Two or more stable identifiers (sku, gtin, mpn, brand, ...) let an agent match the same product across catalogs and marketplaces with confidence; a single identifier is a weak, ambiguous match."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks breadcrumb coverage across the full sampled catalog, not just the pages in this scan.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-MACHINE-007",
+      "limitations": "Only the non-entry pages in the sampled set are checked.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Only the entry page was sampled; there are no additional pages to check for breadcrumbs.",
+      "title": "Breadcrumbs",
+      "weight": 1,
+      "why_it_matters": "A BreadcrumbList tells an agent where a page sits in a site's hierarchy without it having to infer structure from navigation markup."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks metadata quality across every sampled page.",
+      "confidence": "high",
+      "evidence": {
+        "entry_url": "https://example.com/step4",
+        "issues": [
+          "og:title",
+          "og:description"
+        ],
+        "meta_description": "A synthetic fixture site with several broken agent-readiness signals.",
+        "missing": [
+          "og:title",
+          "og:description"
+        ],
+        "title": "Example Bad Shop"
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-008",
+      "limitations": "Only the entry page's metadata is checked.",
+      "remediation": "Add the missing metadata tags and give title and description distinct content.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "The entry page's metadata has issues: og:title, og:description.",
+      "title": "Metadata quality",
+      "weight": 2,
+      "why_it_matters": "Title, description, and Open Graph tags are the first summary an agent (or a link preview) sees of a page."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks heading structure across every sampled page.",
+      "confidence": "high",
+      "evidence": {
+        "entry_url": "https://example.com/step4",
+        "h1_count": 2,
+        "heading_count": 2,
+        "issues": [
+          "multiple H1"
+        ],
+        "levels": [
+          "h1",
+          "h1"
+        ]
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-009",
+      "limitations": "Only the entry page's heading outline is checked.",
+      "remediation": "Use exactly one H1 per page and avoid skipping heading levels (e.g. h1 to h3).",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "The entry page's heading structure has issues: multiple H1.",
+      "title": "Heading structure",
+      "weight": 2,
+      "why_it_matters": "A single, well-nested heading outline is how an agent (or a screen reader) infers a page's structure without reading every word."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks the language declaration across every sampled page.",
+      "confidence": "high",
+      "evidence": {
+        "entry_url": "https://example.com/step4",
+        "html_lang": null
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-010",
+      "limitations": "Only the entry page's `<html lang>` attribute is checked.",
+      "remediation": "Add a valid `lang` attribute to the `<html>` tag (e.g. `lang=\"en\"`).",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "The entry page's `lang` attribute is absent or invalid.",
+      "title": "Language declaration",
+      "weight": 1,
+      "why_it_matters": "A valid `lang` attribute lets an agent (or a translation/screen-reader tool) know what language a page's content is in without guessing."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks image alt coverage across the full sampled catalog, not just the pages in this scan.",
+      "confidence": "high",
+      "evidence": {
+        "covered": 0,
+        "empty_alt": 0,
+        "pages_parsed": 1,
+        "ratio": 0.0,
+        "total": 1,
+        "with_alt": 0
+      },
+      "experimental": false,
+      "id": "CORE-MACHINE-011",
+      "limitations": "Only the images on the sampled pages are counted.",
+      "remediation": "Add an alt attribute (or an explicit empty alt for decorative images) to every image.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "Only 0/1 images have an alt attribute (ratio 0%).",
+      "title": "Image alt coverage",
+      "weight": 1,
+      "why_it_matters": "Alt text (or a deliberate empty/decorative alt) is how an agent that cannot see an image learns what it shows."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks visible-vs-structured price agreement across the full sampled catalog and a broader set of currency formats.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": true,
+      "id": "CORE-MACHINE-012",
+      "limitations": "This is a fragile heuristic: the visible-price regex only matches a narrow set of currency-marked formats, and it compares only the first product page found.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No sampled page exposes a structured product price; evaluated by CORE-MACHINE-004/005.",
+      "title": "Visible vs. structured price",
+      "weight": 3,
+      "why_it_matters": "An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud renders a sample of pages in a real headless browser and compares the rendered content against the static fetch.",
+      "confidence": "high",
+      "evidence": {
+        "entry_url": "https://example.com/step4",
+        "spa_shell_marker": false,
+        "visible_text_chars": 148
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-001",
+      "limitations": "Static-HTML signal only: the raw fetched response is inspected, never rendered in a browser, so a site that hydrates real content very quickly may still be flagged here.",
+      "remediation": "Server-render (or statically pre-render) the core content so an agent's plain HTTP fetch sees it.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "The entry page's static HTML carries only 148 chars of visible text (< 200).",
+      "title": "Server-rendered core content",
+      "weight": 3,
+      "why_it_matters": "Most agent HTTP clients never execute JavaScript — if the core content only appears after client-side rendering, an agent reading the raw response sees an empty shell."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud tracks redirect chains across every sampled page and over time.",
+      "confidence": "high",
+      "evidence": {
+        "redirect_chain": [
+          "https://example.com/",
+          "https://example.com/step1",
+          "https://example.com/step2",
+          "https://example.com/step3"
+        ],
+        "redirect_count": 4
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-002",
+      "limitations": "Only the entry URL's own redirect chain is inspected; redirects encountered while fetching other sampled pages are not counted here.",
+      "remediation": "Collapse the redirect chain to at most one hop.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "The entry URL redirects 4 times before settling.",
+      "title": "Redirect chain complexity",
+      "weight": 1,
+      "why_it_matters": "Every redirect hop is a round trip an agent pays for before it reaches real content; a long or looping chain wastes budget CORE-ACCESS-001 already spent getting there."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks cache-validator presence and correctness across the full sampled page set.",
+      "confidence": "high",
+      "evidence": {
+        "cache_control": null,
+        "etag": null,
+        "last_modified": null
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-003",
+      "limitations": "Only the entry response's own headers are checked; per-page-type validator strategy is not inspected.",
+      "remediation": "Add an ETag or Last-Modified header so agents can issue conditional GETs.",
+      "severity": "info",
+      "status": "WARN",
+      "summary": "The entry response carries no cache validator (ETag, Last-Modified, or Cache-Control).",
+      "title": "Cache validators",
+      "weight": 1,
+      "why_it_matters": "Without an ETag or Last-Modified, an agent revisiting a page can never issue a conditional GET — it re-downloads the full page every time."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks a much larger set of machine-consumable endpoints and revisits them on a schedule.",
+      "confidence": "high",
+      "evidence": {
+        "broken": [
+          {
+            "source": "canonical",
+            "status": 404,
+            "url": "https://example.org/elsewhere"
+          },
+          {
+            "source": "llms",
+            "status": 404,
+            "url": "https://example.com/does-not-exist"
+          }
+        ],
+        "broken_count": 2,
+        "inconclusive": [],
+        "refs_checked": 2,
+        "refs_resolved": 2,
+        "unresolved": []
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-004",
+      "limitations": "Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.",
+      "remediation": "Fix or remove the broken references (sitemap, llms.txt, OpenAPI spec, policy links) so agents don't hit dead links.",
+      "severity": "high",
+      "status": "FAIL",
+      "summary": "2 of 2 machine-consumable reference(s) do not resolve.",
+      "title": "Broken machine-consumable endpoints",
+      "weight": 3,
+      "why_it_matters": "A declared machine reference that 404s wastes an agent's time and budget following a dead link the site itself pointed it at."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud measures parse cost across the full sampled page set with a real BPE tokenizer.",
+      "confidence": "high",
+      "evidence": {
+        "dom_nodes": 16,
+        "estimated_tokens": 37,
+        "html_bytes": 725,
+        "level": "LOW",
+        "link_count": 0,
+        "script_bytes": 88,
+        "script_ratio": 0.12137931034482759,
+        "structured_bytes": 88,
+        "text_chars": 148,
+        "token_chars_ratio": 4
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-005",
+      "limitations": "`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.",
+      "remediation": "",
+      "severity": "info",
+      "status": "PASS",
+      "summary": "The entry page's estimated parse cost is ~37 tokens (low).",
+      "title": "Agent parse cost",
+      "weight": 3,
+      "why_it_matters": "Every token of markup and script an agent parses before reaching real content is budget it can't spend understanding the page — a bloated entry page costs every agent that visits it, on every visit."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud inspects forms across the full crawled page set, including those reachable only after interaction.",
+      "confidence": "high",
+      "evidence": {
+        "totals": {
+          "forms": 1,
+          "inputs": 1,
+          "unlabeled_inputs": 1,
+          "unlabeled_selects": 0,
+          "unnamed_buttons": 0
+        }
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-006",
+      "limitations": "Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.",
+      "remediation": "Add a <label> (or aria-label/aria-labelledby) to every input/select, and a name or accessible text to every button.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "1 control(s) across 1 form(s) lack a label or accessible name.",
+      "title": "Form/control labels",
+      "weight": 2,
+      "why_it_matters": "An agent filling out a form has to guess an unlabeled input's purpose from placeholder text or surrounding prose alone — a labeled control is the difference between a reliable fill and a guess."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud resolves a larger reference surface on a recurring schedule and tracks resolution drift over time.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": true,
+      "id": "CORE-OPERABILITY-007",
+      "limitations": "Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Machine reference integrity was not evaluated (experimental off).",
+      "title": "Machine reference integrity",
+      "weight": 2,
+      "why_it_matters": "A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks contact reachability across the full sampled page set, not only the entry page.",
+      "confidence": "high",
+      "evidence": {
+        "contact_url": null,
+        "kind": null
+      },
+      "experimental": false,
+      "id": "CORE-TRUST-001",
+      "limitations": "Only the entry page's anchors are scanned; a contact method reachable only from a deeper page is not found.",
+      "remediation": "Add a clearly labeled contact or support link (a page or a mailto link) to the entry page.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "No contact or support link found on the entry page.",
+      "title": "Contact/support discoverability",
+      "weight": 2,
+      "why_it_matters": "An agent acting on a user's behalf needs a way to escalate to a human — a contact, support, or mailto link — when it hits a case it cannot resolve itself."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud crawls the full sampled page set for a shipping-policy link, not only the entry page.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-TRUST-002",
+      "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.",
+      "remediation": "Publish a shipping policy page (cost, timing, carriers) and link it from the entry page's nav or footer.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "No shipping policy page was found linked from the entry page.",
+      "title": "Shipping policy discoverability",
+      "weight": 2,
+      "why_it_matters": "An agent completing a purchase on a user's behalf needs to know shipping cost and timing before it commits to checkout — a missing or unreadable shipping policy forces it to guess or abandon the order."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud crawls the full sampled page set for a returns-policy link, not only the entry page.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-TRUST-003",
+      "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.",
+      "remediation": "Publish a returns/refund policy page and link it from the entry page's nav or footer.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "No returns/refund policy page was found linked from the entry page.",
+      "title": "Returns/refund policy discoverability",
+      "weight": 2,
+      "why_it_matters": "An agent purchasing on a user's behalf needs to know whether and how a purchase can be returned before it commits — a missing or unreadable returns policy is a real trust gap, not a cosmetic one."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud crawls the full sampled page set for a privacy-policy link, not only the entry page.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-TRUST-004",
+      "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a privacy policy reachable only from a deeper page is not found.",
+      "remediation": "Publish a privacy policy page and link it from the entry page's nav or footer.",
+      "severity": "high",
+      "status": "FAIL",
+      "summary": "No privacy policy page was found linked from the entry page.",
+      "title": "Privacy policy discoverability",
+      "weight": 2,
+      "why_it_matters": "An agent (and the human on whose behalf it acts) needs to know what data a site collects and how it is used before submitting any personal or payment information — a site with no privacy page at all is a real defect, not an omission."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud crawls the full sampled page set for a terms/conditions link, not only the entry page.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-TRUST-005",
+      "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; terms reachable only from a deeper page are not found.",
+      "remediation": "Publish a terms/conditions page and link it from the entry page's nav or footer.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "No terms/conditions page was found linked from the entry page.",
+      "title": "Terms/conditions discoverability",
+      "weight": 2,
+      "why_it_matters": "An agent transacting with a site — buying, subscribing, or calling an API — needs the terms it is agreeing to on behalf of a user to be readable, not buried behind a broken or missing link."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud validates the full RFC 9116 field set (Canonical, Encryption, Preferred-Languages), not only Contact and Expires.",
+      "confidence": "high",
+      "evidence": {
+        "contact": false,
+        "expires": "2020-01-01T00:00:00Z",
+        "expires_valid": false,
+        "found_url": "https://example.com/.well-known/security.txt",
+        "status": 200
+      },
+      "experimental": false,
+      "id": "CORE-TRUST-006",
+      "limitations": "Only the conventional /.well-known/security.txt and legacy /security.txt paths are probed.",
+      "remediation": "Add a Contact field (RFC 9116) to security.txt.",
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "security.txt was found but has no Contact field.",
+      "title": "security.txt discoverability",
+      "weight": 2,
+      "why_it_matters": "A security researcher — human or an automated scanner — needs a documented way to report a vulnerability; an agent auditing a site's operational maturity reads security.txt as that signal."
+    },
+    {
+      "category": "trust",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud checks pricing across the full sampled page set and renders client-side pricing widgets to verify agent-visibility.",
+      "confidence": "high",
+      "evidence": {},
+      "experimental": false,
+      "id": "CORE-TRUST-007",
+      "limitations": "Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No pricing signal (a pricing page or a structured product price) was found.",
+      "title": "Pricing discoverability",
+      "weight": 3,
+      "why_it_matters": "An agent comparing options or completing a purchase on a user's behalf needs a readable price — one it can extract as text or structured data, not one rendered only by client-side script."
+    }
+  ],
+  "metrics": {
+    "bytes_fetched": 1164,
+    "entry_error": null,
+    "gather_error_details": [],
+    "gather_errors": [],
+    "requests": 23
+  },
+  "not_tested": [
+    "Observed WAF access",
+    "Real agent tasks",
+    "MCP tool execution",
+    "WebMCP state parity",
+    "Multi-model reliability",
+    "Regression stability"
+  ],
+  "provenance": {
+    "allow_private_networks": false,
+    "core_version": "0.1.0",
+    "experimental": false,
+    "max_pages": 5,
+    "network_mode": "fixture",
+    "platform": "<runtime>",
+    "python": "<runtime>",
+    "ruleset_digest": "d83df799eaa7",
+    "ruleset_version": "2026.09",
+    "timeout": 60.0,
+    "user_agent": "ScovantCore/0.1.0 (+https://github.com/Scovant/scovant-core)"
+  },
+  "ruleset_version": "2026.09",
+  "scan_id": "local-golden",
+  "schema_version": "1.0",
+  "score": {
+    "coverage": 1.0,
+    "grade": "F",
+    "name": "Scovant Core Static Signal Score",
+    "status": "OK",
+    "value": 35
+  },
+  "started_at": "2026-09-04T00:00:00Z",
+  "target": {
+    "final_url": "https://example.com/step4",
+    "input_url": "https://example.com/",
+    "profile_confidence": 0.85,
+    "requested_profile": "auto",
+    "resolved_profile": "commerce"
+  }
+}

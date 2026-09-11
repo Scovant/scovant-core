@@ -1,0 +1,69 @@
+# Scovant Core — CI action. This action installs itself from the checked-out
+# ref, so it needs no separate install step. To reproduce the same scan
+# locally, install the published package: `pip install scovant-core` (Python
+# >= 3.12) or `npx @scovant/core scan https://example.com` (a Node launcher
+# for the same engine — needs `uv`, `pipx`, or a Python >= 3.12 on PATH; the
+# first two provision their own Python, so a pre-installed interpreter is
+# only required for the third fallback).
+name: Scovant Core
+description: Passive AI-agent readiness scan of one URL — static signals only. Scovant Core measures what a site declares.
+branding: { icon: search, color: blue }
+inputs:
+  url: { description: Entry URL to scan, required: true }
+  profile: { description: auto|content|commerce|saas|api, default: auto }
+  min-core-score: { description: Fail the step below this score (empty = no gate), default: '' }
+  fail-on: { description: never|fail|warn, default: never }
+  experimental: { description: Score experimental checks too, default: 'false' }
+  timeout: { description: Total scan budget in seconds, default: '60' }
+  report-format: { description: html|markdown — the uploaded artifact, default: html }
+  allow-private-networks: { description: Allow private/loopback targets (your own staging), default: 'false' }
+outputs:
+  score: { value: '${{ steps.out.outputs.score }}' }
+  grade: { value: '${{ steps.out.outputs.grade }}' }
+  pass_count: { value: '${{ steps.out.outputs.pass_count }}' }
+  warn_count: { value: '${{ steps.out.outputs.warn_count }}' }
+  fail_count: { value: '${{ steps.out.outputs.fail_count }}' }
+  report_path: { value: '${{ steps.out.outputs.report_path }}' }
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+      with: { python-version: '3.12' }
+    - shell: bash
+      run: pip install --quiet "$GITHUB_ACTION_PATH"
+    - shell: bash
+      env:
+        INPUT_URL: ${{ inputs.url }}
+        INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_TIMEOUT: ${{ inputs.timeout }}
+        INPUT_EXPERIMENTAL: ${{ inputs.experimental }}
+        INPUT_ALLOW_PRIVATE_NETWORKS: ${{ inputs.allow-private-networks }}
+      run: |
+        set -euo pipefail
+        args=(scan "$INPUT_URL" --profile "$INPUT_PROFILE" --timeout "$INPUT_TIMEOUT" --format json --output "$RUNNER_TEMP/core.json")
+        [[ "$INPUT_EXPERIMENTAL" == "true" ]] && args+=(--experimental)
+        [[ "$INPUT_ALLOW_PRIVATE_NETWORKS" == "true" ]] && args+=(--allow-private-networks)
+        code=0
+        scovant "${args[@]}" || code=$?
+        # 2 = invalid input/argparse, 3/4/5 = network/security/internal — no report
+        # exists for any of these, so fail here with the CLI's stderr. 1 = threshold
+        # (a report exists) — re-applied below by the gate step, not here.
+        if [[ $code -ge 2 ]]; then exit $code; fi
+    - id: out
+      shell: bash
+      env:
+        INPUT_REPORT_FORMAT: ${{ inputs.report-format }}
+      run: |
+        set -euo pipefail
+        fmt="$INPUT_REPORT_FORMAT"
+        ext=md; [[ "$fmt" == html ]] && ext=html
+        python -m scovant_core.action report "$RUNNER_TEMP/core.json" --format "$fmt" --out "$RUNNER_TEMP/scovant-core-report.$ext"
+        python -m scovant_core.action outputs "$RUNNER_TEMP/core.json" --report-path "$RUNNER_TEMP/scovant-core-report.$ext"
+        python -m scovant_core.action summary "$RUNNER_TEMP/core.json"
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with: { name: scovant-core-report, path: '${{ runner.temp }}/scovant-core-report.*' }
+    - shell: bash
+      env:
+        INPUT_MIN_CORE_SCORE: ${{ inputs.min-core-score }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+      run: python -m scovant_core.action gate "$RUNNER_TEMP/core.json" --min-score "$INPUT_MIN_CORE_SCORE" --fail-on "$INPUT_FAIL_ON"

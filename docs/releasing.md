@@ -1,0 +1,123 @@
+# Releasing
+
+This document describes how a release of `scovant-core` happens, as seen
+from this repository (`github.com/Scovant/scovant-core`) — not the private
+CI internals of the Scovant monorepo that produces it.
+
+## How a release is made
+
+This repository is a **snapshot mirror**. Every release is produced by a
+pipeline in Scovant's private monorepo and lands here already built,
+scanned, and signed:
+
+1. A maintainer tags a commit on the monorepo's `master` branch
+   (`core-vX.Y.Z`), after the package's `CHANGELOG.md` carries a matching
+   `## [X.Y.Z]` heading with a real date.
+2. The tag must be reachable from `master` — a tag pushed from a stray
+   branch is rejected outright.
+3. **Guard.** A publish guard scans the exported package tree (and, later,
+   each built artifact) for secrets, internal references, and anything that
+   should never leave the private monorepo. This is a hard gate: nothing
+   downstream runs if it fails.
+4. **gitleaks.** A second, independent secret scanner runs over the same
+   exported tree, so the guard above is never the only check standing
+   between a mistake and a public release.
+5. **Build + audit + SBOM.** The wheel and sdist are built from the exported
+   tree in an isolated environment. Right after the built wheel is installed
+   into a fresh virtualenv, `pip-audit --strict` runs against that
+   environment — a hard gate, same as the guard and gitleaks above; a real
+   advisory with no available fix blocks the release rather than being
+   ignored (there is no ignore list anywhere in this pipeline). Only once
+   that passes does a CycloneDX SBOM and a third-party license report get
+   generated from the *built package's* own dependency closure (not the CI
+   runner's environment, not the tooling's own dependencies).
+6. **Guard, again.** The publish guard re-runs against each built artifact
+   individually.
+7. **Mirror.** The guarded, scanned tree is committed to this repository's
+   `main` branch as a single sync commit. If the mirror's resulting working
+   tree is not byte-identical to what was just guarded and scanned, the
+   pipeline refuses to tag — a release tag is never placed on a tree that
+   differs from what was actually checked.
+8. **`vX.Y.Z` tag.** An immutable tag matching the released version is
+   pushed to this repository.
+9. **`v<major>` moving tag.** The major-version tag (`v0` for every
+   `0.y.z` release before 1.0 ships, `v1` for every `1.y.z` release once it
+   does, `v2` once a `2.0.0` ships, and so on) is force-moved to point at
+   the same commit as the `vX.Y.Z` tag just pushed. This is what lets
+   `uses: Scovant/scovant-core@v0` in a workflow always resolve to the
+   latest release within that major line without editing the pin — normal
+   [GitHub Action versioning
+   practice](https://github.com/actions/toolkit/blob/main/docs/action-versioning.md).
+   Because a release only reaches this step after the guard, gitleaks, and
+   the tree-identity check above all passed, the moving tag can only ever
+   point at a release that went through the full pipeline — never a
+   half-published or unscanned commit.
+10. **PyPI publish.** Only after a human reviewer approves the run (a
+    required-reviewer environment gate — every release pauses here) does
+    the pipeline publish to PyPI over OIDC trusted publishing (no long-lived
+    API token stored anywhere) and attach build provenance attestations to
+    the built artifacts.
+11. **GitHub release.** A GitHub Release is created on this repository at
+    the `vX.Y.Z` tag, carrying the wheel, the sdist, the SBOM, and the
+    third-party license report as downloadable assets.
+
+A community pull request against this repository does not follow this
+flow — it is reviewed here, then hand-applied as a patch inside the
+monorepo, credited to the contributor in the commit's co-author trailer,
+and shipped through the normal release process above like any other
+change.
+
+## Installing a specific version
+
+```bash
+pip install scovant-core==X.Y.Z
+```
+
+pins exactly one release. Omitting the version resolves the latest
+published release, as usual with `pip`.
+
+For the GitHub Action, pin either the immutable per-release tag or the
+moving major tag:
+
+```yaml
+- uses: Scovant/scovant-core@v0        # latest 0.y.z — recommended pre-1.0
+- uses: Scovant/scovant-core@v0.1.0    # exact release — reproducible, never moves
+```
+
+`@v0` is the moving tag while the package is pre-1.0; `@v1` will exist and
+take over as the recommended pin once a `1.0.0` release ships. A moving
+major tag trades a small amount of reproducibility (the action's behavior
+can change between runs as new patch/minor releases within that major line
+land) for never needing to bump the pin yourself; a pinned `vX.Y.Z` tag
+never changes once pushed. Both point at commits produced by the pipeline
+above — never at an unreviewed or unscanned tree.
+
+## Verifying provenance
+
+Every release's wheel and sdist carry a [build provenance
+attestation](https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds)
+generated by GitHub's `actions/attest-build-provenance`, proving the
+artifact was built by this project's own publish workflow from a specific
+commit — not hand-assembled and uploaded by someone with a PyPI token.
+Verify a downloaded distribution with the GitHub CLI:
+
+```bash
+gh attestation verify scovant_core-X.Y.Z-py3-none-any.whl \
+  --repo Scovant/scovant-core
+```
+
+A successful verification confirms the artifact matches an attestation
+signed by the `publish-core.yml` workflow run that produced this release —
+tying the file on your disk back to the exact commit, tag, and CI run that
+built it. The SBOM (`sbom.json`) and third-party license report
+(`THIRD_PARTY_LICENSES.md`) attached to each [GitHub
+Release](https://github.com/Scovant/scovant-core/releases) describe that
+same build's dependency closure.
+
+## PyPI publishing
+
+Releases are published via [PyPI trusted
+publishing](https://docs.pypi.org/trusted-publishers/) (OIDC) — there is no
+long-lived PyPI API token in this project at all, on either side of the
+mirror. Every publish is gated behind a required human reviewer approval,
+so a compromised or accidental tag push cannot reach PyPI unattended.

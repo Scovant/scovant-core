@@ -1,0 +1,1 @@
+{"issuer": "https://example.com", "authorization_endpoint": "https://example.com/oauth/authorize", "token_endpoint": "https://example.com/oauth/token"}

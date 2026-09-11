@@ -1,0 +1,5 @@
+# Example Bad Shop
+
+> Sloppy notes with a reference that does not resolve.
+
+Some text mentioning a broken reference: [Broken link](https://example.com/does-not-exist)

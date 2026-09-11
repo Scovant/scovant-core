@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+Sitemap: https://example.com/sitemap.xml
