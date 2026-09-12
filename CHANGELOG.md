@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
-## [0.1.0] - 2026-09-11
+## [0.1.0] - 2026-09-12
 
 ### Added
 - Package skeleton, security layer (SSRF guard), parsers for robots.txt,
