@@ -30,6 +30,8 @@ def build_payload(report: Report) -> dict:
         "core_version": report.core_version, "ruleset_version": report.ruleset_version,
         "ruleset_digest": report.provenance.get("ruleset_digest", ""),
         "profile": report.target.resolved_profile,
+        "profile_confidence": report.target.profile_confidence,
+        "profile_detector_version": report.provenance.get("profile_detector_version", ""),
         "experimental": bool(report.provenance.get("experimental")),
         "check_statuses": {f.id: f.status.value for f in report.findings},
         "score": {"value": s.value, "grade": s.grade, "coverage": s.coverage, "status": s.status},

@@ -1,13 +1,15 @@
 """SSRF-guarded, size- and time-capped HTTP client used by every gatherer.
 
-Residual DNS-rebinding risk: the SSRF guard's own hostname resolution (inside
-the shared `ssrf_guard` event-hook, via `assert_safe_public_url`) and the
-actual TCP connect's resolution performed by httpx/the OS resolver are two
-separate lookups a few milliseconds apart. An attacker controlling DNS could
-answer the guard's lookup with a public IP and the connect's lookup with a
-private one. Fully closing this needs an IP-pinned transport (resolve once,
-connect to that pinned address, verify TLS against the original hostname) —
-tracked as a follow-up, not implemented here.
+DNS-rebinding is closed (audit §8): the default transport is
+`PinnedTransport`, which resolves each host exactly once, validates every
+returned address against the same predicate the guard hook uses
+(`assert_public_address`), and connects to the address it validated — with
+`Host` and TLS SNI/verification kept against the original hostname, so a
+DNS answer that changes between the guard's lookup and the connect's lookup
+can no longer matter (there is only one lookup). The `_guard_hook` below
+stays attached as a second, independent check (belt-and-braces) — a caller
+that injects its own transport (tests, `--allow-private-networks` fixtures)
+still gets the per-request guard even without pinning.
 """
 from __future__ import annotations
 
@@ -18,6 +20,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from scovant_core.security.pinned_transport import PinnedTransport
 from scovant_core.security.policy import SecurityPolicy
 from scovant_core.security.url_safety import (
     SSRFBlocked,
@@ -60,16 +63,21 @@ class SecureClient:
         self.user_agent = user_agent
         self.requests: list[dict] = []
         self._started = time.monotonic()
+        # "injected" when a caller supplies its own transport (tests, fixture
+        # sites); "pinned" is the real-network default — see PinnedTransport.
+        self.transport_mode = "injected" if transport is not None else "pinned"
         # the shared guard from url_safety — one implementation, shared with Cloud's
         # crawler/sitemap/domain-verification fetchers, so a fix lands everywhere at once.
         # ALWAYS attached — `_guard_hook` below is the narrow per-host carve-out
-        # for `policy.private_hosts`, never a blanket skip.
+        # for `policy.private_hosts`, never a blanket skip. Kept even though the
+        # default transport is already pinned: belt-and-braces for an injected
+        # transport, and a second independent check against the pinned one.
         self.httpx = httpx.Client(
             timeout=httpx.Timeout(policy.request_timeout, connect=policy.connect_timeout),
             follow_redirects=False,  # we drive the redirect loop ourselves — see fetch()
             headers={"user-agent": user_agent, "accept": "*/*"},
             event_hooks={"request": [self._guard_hook]},
-            transport=transport,
+            transport=transport or PinnedTransport(policy),
             cookies=None,
             trust_env=False,
         )
@@ -94,10 +102,11 @@ class SecureClient:
     # -- pre-flight ------------------------------------------------------------
     def _precheck(self, url: str) -> None:
         """Structural-only checks (no DNS): scheme allow-list + the cheap
-        literal-IP/localhost checks. The resolved (DNS-aware) check happens
-        per-request in the shared `ssrf_guard` hook, closest to the connect —
-        see the module docstring for the residual DNS-rebinding gap between
-        the two lookups."""
+        literal-IP/localhost checks. The resolved (DNS-aware) check now
+        happens once inside the pinned transport itself, at the address it
+        actually connects to (see `security/pinned_transport.py`), which
+        closes the DNS-rebinding window between guard and connect; the
+        request hook remains as belt-and-braces."""
         scheme = url.split(":", 1)[0].lower() if ":" in url else ""
         if scheme not in _ALLOWED_SCHEMES:
             raise FetchError("security", f"unsupported URL scheme: {scheme or 'none'}", url)

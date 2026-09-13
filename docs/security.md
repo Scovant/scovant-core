@@ -240,21 +240,27 @@ written to disk, and the ring is empty again the moment the process exits.
 
 Core is a passive, read-only scanner: every request is a plain `GET`.
 
-## The residual DNS-rebinding gap
+## The DNS-rebinding gap is closed
 
-The SSRF guard validates a hostname's resolved address twice: once at the
-guard's own lookup (an `httpx` request-event hook, closest to the connect)
-and once implicitly by the underlying TCP connect performing its own
-resolution a few milliseconds later. These are two separate DNS lookups. An
+Earlier versions validated a hostname's resolved address twice: once at the
+SSRF guard's own lookup (an `httpx` request-event hook, closest to the
+connect) and once implicitly by the underlying TCP connect performing its
+own resolution a few milliseconds later — two separate DNS lookups an
 attacker controlling DNS for the target host could, in principle, answer
-the guard's lookup with a public address and the connect's lookup with a
-private one — a classic DNS-rebinding race.
+differently, a classic DNS-rebinding race.
 
-Fully closing this requires an IP-pinned transport: resolve once, connect
-to that exact pinned address, and verify TLS against the original hostname.
-This is not implemented in the current version; it is a tracked follow-up,
-not a hidden gap — documented here so anyone evaluating the tool's security
-posture for their own use knows exactly what is and isn't covered.
+The default transport (`PinnedTransport`, `security/pinned_transport.py`)
+closes this: it resolves each host exactly once, validates every returned
+address with the same predicate the guard hook uses
+(`url_safety.assert_public_address`), and connects to the address it
+validated — never a second, independent resolution. `Host` and the TLS
+SNI/certificate verification stay pinned to the original hostname (not the
+IP), and each redirect hop is re-pinned from scratch through the same
+one-resolution-per-host path, so a rebinding answer can change what a
+*later* hop connects to but never what an *already-validated* hop connects
+to. The per-request `_guard_hook` in `SecureClient` stays attached as a
+second, independent check — belt-and-braces, and the only check that
+applies when a caller injects its own transport (tests, fixture sites).
 
 ## Security test coverage
 

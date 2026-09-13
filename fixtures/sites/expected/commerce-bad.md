@@ -6,6 +6,8 @@
 **Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** commerce (requested auto, confidence 85%)
 
+**Capabilities detected** (descriptive, not scored): mcp: absent · webmcp: absent · ucp: invalid · llms_txt: invalid · openapi: not_checked · oauth: not_checked · content_signal: invalid · security_txt: invalid
+
 ## Categories
 
 | Category | Weight | Score | Evaluated / applicable |
@@ -584,7 +586,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERA
 
 ## Provenance
 
-Core 0.1.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.2.0 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

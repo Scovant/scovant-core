@@ -33,13 +33,15 @@ def test_provenance_carries_the_expected_keys():
     report = _scan()
     prov = report.provenance
     for key in (
-        "core_version", "ruleset_version", "ruleset_digest", "python", "platform",
-        "user_agent", "timeout", "max_pages", "network_mode", "experimental",
+        "core_version", "profile_detector_version", "ruleset_version", "ruleset_digest",
+        "python", "platform", "user_agent", "timeout", "max_pages", "network_mode",
+        "experimental", "dependencies", "environment_digest",
     ):
         assert key in prov, key
     # `_scan()` always passes an explicit transport (a fixture site), so this
     # is never a real network scan — `network_mode` says so honestly.
     assert prov["network_mode"] == "fixture"
+    assert prov["profile_detector_version"] == "1.0"
     assert report.metrics["requests"] > 0
     assert report.metrics["gather_errors"] == []
     assert report.metrics["gather_error_details"] == []

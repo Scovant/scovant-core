@@ -57,6 +57,7 @@ INPUT_KEYS = (
     "timeout",
     "report-format",
     "allow-private-networks",
+    "trusted-target",
     "require-canonical",
 )
 

@@ -5,10 +5,12 @@ import json
 
 from scovant_core.models import CheckStatus, Report
 from scovant_core.report._common import (
+    capabilities_lines,
     evaluated_experimental,
     grouped_by_status,
     has_experimental,
     na_experimental,
+    profile_note,
     scored_experimental,
     status_counts,
     status_note,
@@ -33,6 +35,9 @@ def _score_block(r: Report) -> list[str]:
     if note:
         strong, rest = note
         lines.append(f"**{strong}**{rest}")
+    p_note = profile_note(r)
+    if p_note:
+        lines.append(p_note)
     t = r.target
     lines.append(
         f"**Profile:** {t.resolved_profile} (requested {t.requested_profile}, "
@@ -45,6 +50,8 @@ def _score_block(r: Report) -> list[str]:
             "**Note:** private-network targets were allowed for this scan "
             "(`--allow-private-networks`)."
         )
+    lines.append("")
+    lines.append("**Capabilities detected** (descriptive, not scored): " + " · ".join(capabilities_lines(r)))
     return lines
 
 

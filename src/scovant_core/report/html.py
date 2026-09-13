@@ -9,10 +9,12 @@ import json
 from scovant_core.models import CheckResult, CheckStatus, Report
 from scovant_core.report._cloud_matrix import CORE_VS_CLOUD
 from scovant_core.report._common import (
+    capabilities_lines,
     evaluated_experimental,
     grouped_by_status,
     has_experimental,
     na_experimental,
+    profile_note,
     scored_experimental,
     status_counts,
     status_note,
@@ -129,6 +131,13 @@ def _score_section(r: Report) -> list[str]:
     if note:
         strong, rest = note
         out.append(f"<p><strong>{e(strong)}</strong>{e(rest)}</p>")
+    p_note = profile_note(r)
+    if p_note:
+        out.append(f"<p><em>{e(p_note)}</em></p>")
+    out.append(
+        f"<p><strong>Capabilities detected</strong> (descriptive, not scored): "
+        f"{e(' · '.join(capabilities_lines(r)))}</p>"
+    )
     out.append("</section>")
     return out
 

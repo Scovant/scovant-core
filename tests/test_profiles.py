@@ -5,7 +5,13 @@ import httpx
 import scovant_core.gatherers._register  # noqa: F401 — registers pages/openapi/http gatherers
 from scovant_core.context import ScanContext, ScanOptions
 from scovant_core.evidence import EvidenceStore
-from scovant_core.profiles import PROFILES, apply_profile, resolve_profile
+from scovant_core.profiles import (
+    LOW_CONFIDENCE,
+    PROFILE_DETECTOR_VERSION,
+    PROFILES,
+    apply_profile,
+    resolve_profile,
+)
 
 from .conftest import make_client
 
@@ -106,3 +112,28 @@ def test_apply_profile_auto_delegates_to_resolve_profile(fixture_site):
     apply_profile(ctx, store)
     assert ctx.resolved_profile == "commerce"
     assert ctx.profile_confidence >= 0.8
+
+
+def test_detector_version_and_threshold_constants():
+    assert PROFILE_DETECTOR_VERSION == "1.0" and LOW_CONFIDENCE == 0.70
+
+
+def test_profile_note_only_for_low_confidence_auto(load_expected):
+    from scovant_core.report._common import profile_note
+    r = load_expected("commerce-good")
+    low = r.model_copy(update={"target": r.target.model_copy(update={"requested_profile": "auto", "resolved_profile": "saas", "profile_confidence": 0.6})})
+    assert profile_note(low) == "Profile: saas? (confidence LOW, 0.60) — canonical comparison should specify --profile."
+    edge = r.model_copy(update={"target": r.target.model_copy(update={"requested_profile": "auto", "profile_confidence": 0.70})})
+    assert profile_note(edge) is None
+    declared = r.model_copy(update={"target": r.target.model_copy(update={"requested_profile": "saas", "profile_confidence": 1.0})})
+    assert profile_note(declared) is None
+
+
+def test_low_confidence_note_rendered_in_all_formats(load_expected):
+    from scovant_core.report.html import render_html
+    from scovant_core.report.markdown import render_markdown
+    from scovant_core.report.text import render_text
+    r = load_expected("commerce-good")
+    low = r.model_copy(update={"target": r.target.model_copy(update={"requested_profile": "auto", "resolved_profile": "content", "profile_confidence": 0.5})})
+    for out in (render_text(low), render_markdown(low), render_html(low)):
+        assert "Profile: content? (confidence LOW, 0.50)" in out

@@ -17,6 +17,7 @@ inputs:
   timeout: { description: Total scan budget in seconds, default: '60' }
   report-format: { description: html|markdown — the uploaded artifact, default: html }
   allow-private-networks: { description: Allow private/loopback targets (your own staging), default: 'false' }
+  trusted-target: { description: 'Required (true) when allow-private-networks is true; never honoured for pull requests from forks', default: 'false' }
   require-canonical: { description: Fail the step unless the scan is CANONICAL with score status OK, default: 'false' }
 outputs:
   score: { value: '${{ steps.out.outputs.score }}' }
@@ -43,8 +44,23 @@ runs:
         INPUT_TIMEOUT: ${{ inputs.timeout }}
         INPUT_EXPERIMENTAL: ${{ inputs.experimental }}
         INPUT_ALLOW_PRIVATE_NETWORKS: ${{ inputs.allow-private-networks }}
+        INPUT_TRUSTED_TARGET: ${{ inputs.trusted-target }}
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
       run: |
         set -euo pipefail
+        # --- private-network guard ---
+        if [[ "${INPUT_ALLOW_PRIVATE_NETWORKS:-false}" == "true" ]]; then
+          fork="false"
+          if [[ "${EVENT_NAME:-}" == "pull_request" || "${EVENT_NAME:-}" == "pull_request_target" ]]; then
+            [[ -z "${EVENT_HEAD_REPO:-}" || "${EVENT_HEAD_REPO}" != "${GITHUB_REPOSITORY:-}" ]] && fork="true"
+          fi
+          if [[ "${INPUT_TRUSTED_TARGET:-false}" != "true" || "$fork" == "true" ]]; then
+            echo "allow-private-networks requires trusted-target: true and never runs for pull requests from forks — never derive the target URL from untrusted PR input." >&2
+            exit 2
+          fi
+        fi
+        # --- end guard ---
         args=(scan "$INPUT_URL" --profile "$INPUT_PROFILE" --timeout "$INPUT_TIMEOUT" --format json --output "$RUNNER_TEMP/core.json")
         [[ "$INPUT_EXPERIMENTAL" == "true" ]] && args+=(--experimental)
         [[ "$INPUT_ALLOW_PRIVATE_NETWORKS" == "true" ]] && args+=(--allow-private-networks)

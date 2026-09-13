@@ -17,6 +17,16 @@ pip install scovant-core                                    # Python >= 3.12
 npx @scovant/core scan https://example.com                  # Node launcher, needs uv/pipx/python3
 ```
 
+### Reproducible install
+
+Same Core version does not guarantee the same dependency graph months
+later. Each release ships exact pins:
+
+    pip install "scovant-core==0.2.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.2.0/constraints/constraints-0.2.0.txt
+
+Every report records what actually ran (`provenance.dependencies`,
+`provenance.environment_digest`).
+
 ## Example output
 
 Running `scovant scan https://example.com` against a well-instrumented
@@ -39,7 +49,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.1.1
+Core version: 0.2.0
 
 Static Signal Score       100 / 100   A
 
@@ -165,10 +175,11 @@ for the same comparison as a live, always-current page.
     min-core-score: '70'
     fail-on: fail
     allow-private-networks: 'true'
+    trusted-target: 'true'
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.1.1` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.2.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -192,6 +203,7 @@ step when the gate you configured trips.
 | `timeout` | Total scan budget in seconds | `60` |
 | `report-format` | `html`\|`markdown` — the uploaded artifact | `html` |
 | `allow-private-networks` | Allow private/loopback targets (your own staging) | `false` |
+| `trusted-target` | Required (`true`) when `allow-private-networks` is `true`; never honoured for pull requests from forks | `false` |
 | `require-canonical` | Fail the step unless the scan is CANONICAL with score status OK | `false` |
 
 ### Outputs
@@ -208,6 +220,23 @@ step when the gate you configured trips.
 | `score_status` | `OK`\|`DEGRADED`\|`NOT_CANONICAL`\|`INSUFFICIENT_EVIDENCE` |
 | `scan_scope` | `CANONICAL`\|`CUSTOM`\|`PARTIAL` |
 | `error_count` | Number of checks that errored |
+
+### Scanning private networks
+
+> **WARNING:** Never derive the target URL from untrusted PR input when
+> `allow-private-networks: true`. On a self-hosted runner that combination
+> turns the scanner into an internal-network probe.
+
+`allow-private-networks: true` is honoured only together with
+`trusted-target: true`, and never for pull requests from forks — the
+action exits 2 otherwise. A pull request whose head repository is unknown
+(for example, a deleted fork) is treated as a fork. Take the URL from a
+repository variable, not from the event:
+
+    with:
+      url: ${{ vars.STAGING_URL }}
+      allow-private-networks: 'true'
+      trusted-target: 'true'
 
 ### Free boundary
 

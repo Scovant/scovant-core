@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.1.1",
+  "core_version": "0.2.0",
   "findings": [
     {
       "category": "access",
@@ -1057,6 +1057,16 @@
     "error_count": 0,
     "gather_error_details": [],
     "gather_errors": [],
+    "protocol_adoption": {
+      "content_signal": "absent",
+      "llms_txt": "absent",
+      "mcp": "absent",
+      "oauth": "present",
+      "openapi": "present",
+      "security_txt": "present",
+      "ucp": "not_checked",
+      "webmcp": "absent"
+    },
     "requests": 29
   },
   "not_tested": [
@@ -1070,7 +1080,9 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.1.1",
+    "core_version": "0.2.0",
+    "dependencies": "<runtime>",
+    "environment_digest": "<runtime>",
     "error_count": 0,
     "evidence_min_coverage": 0.6,
     "excluded_checks": [],
@@ -1079,12 +1091,13 @@
     "max_pages": 5,
     "network_mode": "fixture",
     "platform": "<runtime>",
+    "profile_detector_version": "1.0",
     "python": "<runtime>",
     "ruleset_digest": "ea4ada4fffbf",
     "ruleset_version": "2026.09",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.1.1 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.2.0 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.09",
   "scan_id": "local-golden",

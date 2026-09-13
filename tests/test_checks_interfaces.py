@@ -427,6 +427,26 @@ def test_005_na_not_found_on_saas_profile():
     assert result.status == CheckStatus.NA
 
 
+def test_005_absence_is_warn_for_api_and_na_for_saas():
+    """0.2.0 pin (audit §1): absence of an OpenAPI document is a defect ONLY
+    for the `api` profile; for `saas` it is N/A — optional, never penalised.
+    No dedicated fixtures for this exist, so the store is built inline the
+    same way the neighbouring -005 tests above do (a same-origin 404 for
+    every candidate path)."""
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/":
+            return httpx.Response(200, content=_DEFAULT_INDEX.encode(), headers={"content-type": "text/html"})
+        return httpx.Response(404, text="not found")
+
+    store_api, ctx_api = _scan(make_client(handler), options=ScanOptions(profile="api"))
+    warn = OpenApiDiscovery().run(store_api, ctx_api)
+
+    store_saas, ctx_saas = _scan(make_client(handler), options=ScanOptions(profile="saas"))
+    na = OpenApiDiscovery().run(store_saas, ctx_saas)
+
+    assert warn.status is CheckStatus.WARN and na.status is CheckStatus.NA
+
+
 def test_005_warn_found_but_not_parseable():
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/":

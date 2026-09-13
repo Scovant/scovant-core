@@ -3,10 +3,12 @@
 Each fixture site's scan output is deterministic given a frozen clock, a
 frozen `scan_id`, and a frozen "today" for CORE-ACCESS-006 (the only check
 that reads real wall-clock time) — so `render_json(scan(...))` can be
-byte-compared against a committed expected file. `provenance.python` and
-`provenance.platform` are the only genuinely non-deterministic fields (they
-vary with the interpreter/OS running the test); both are replaced with the
-literal string "<runtime>" before comparison.
+byte-compared against a committed expected file. `provenance.python`,
+`provenance.platform`, `provenance.dependencies`, and
+`provenance.environment_digest` are the only genuinely non-deterministic
+fields (they vary with the interpreter/OS/installed-package-versions running
+the test); all four are replaced with the literal string "<runtime>" before
+comparison.
 
 To regenerate the expected files after a deliberate ruleset change:
 
@@ -40,13 +42,15 @@ EXPECTED_DIR = FIXTURES / "sites" / "expected"
 
 
 def _normalize(data: dict) -> dict:
-    """Replace the two genuinely-nondeterministic provenance fields with a
+    """Replace the four genuinely-nondeterministic provenance fields with a
     stable placeholder. Nothing else in a `render_json` payload should ever
     vary run-to-run for a fixed clock/scan_id/frozen-today — that invariant
     is exactly what `test_render_json_is_byte_stable_across_two_runs` in
     test_report.py already pins."""
     data["provenance"]["python"] = "<runtime>"
     data["provenance"]["platform"] = "<runtime>"
+    data["provenance"]["dependencies"] = "<runtime>"
+    data["provenance"]["environment_digest"] = "<runtime>"
     return data
 
 
@@ -119,8 +123,9 @@ def test_golden_markdown_is_stable_across_two_runs(site, monkeypatch):
 
 
 def _run_html(site: str, monkeypatch: pytest.MonkeyPatch) -> str:
-    """Same non-determinism as `_run` above (`provenance.python`/`.platform`
-    vary with the interpreter/OS running the test — the CI matrix runs both
+    """Same non-determinism as `_run` above (`provenance.python`/`.platform`/
+    `.dependencies`/`.environment_digest` vary with the interpreter/OS/
+    installed-package-versions running the test — the CI matrix runs both
     3.12 and 3.13) — normalized the same way before rendering, since HTML has
     no JSON structure to post-process after the fact."""
     monkeypatch.setattr(core_access_006, "today", lambda: FROZEN_TODAY)
@@ -128,6 +133,8 @@ def _run_html(site: str, monkeypatch: pytest.MonkeyPatch) -> str:
     report = scan(URL, transport=transport, clock=CLOCK, scan_id="local-golden")
     report.provenance["python"] = "<runtime>"
     report.provenance["platform"] = "<runtime>"
+    report.provenance["dependencies"] = "<runtime>"
+    report.provenance["environment_digest"] = "<runtime>"
     return render_html(report)
 
 

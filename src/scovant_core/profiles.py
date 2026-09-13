@@ -7,6 +7,11 @@ from __future__ import annotations
 PROFILES = ("auto", "content", "commerce", "saas", "api")
 _TYPES_COMMERCE = {"Product", "Offer", "AggregateOffer", "ProductGroup"}
 
+# Bump when `resolve_profile`'s heuristics change (audit §14): two scores are
+# only comparable when the same detector chose the profile.
+PROFILE_DETECTOR_VERSION = "1.0"
+LOW_CONFIDENCE = 0.70
+
 
 def _types(schema_org: list[dict]) -> set[str]:
     out = set()

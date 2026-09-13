@@ -6,8 +6,10 @@ from __future__ import annotations
 
 from scovant_core.models import CATEGORY_TITLES, Category, CheckStatus, Report
 from scovant_core.report._common import (
+    capabilities_lines,
     evaluated_experimental,
     na_experimental,
+    profile_note,
     status_counts,
     top_findings,
 )
@@ -175,9 +177,15 @@ def render_text(report: Report, *, color: bool = False) -> str:
     lines.extend([
         "",
         score_line(report),
+    ])
+    note = profile_note(report)
+    if note:
+        lines.append(note)
+    lines.extend([
         f"Scope: {s.scope} · Status: {s.status} · Coverage: {s.coverage:.0%} · Errors: {error_count}",
         "",
     ])
+    lines += ["Capabilities detected (descriptive, not scored)", *("  " + line for line in capabilities_lines(report)), ""]
     counts = _category_counts(report.findings, scored_experimental)
     lines.extend(_category_lines(report.categories, counts))
     lines.append("")

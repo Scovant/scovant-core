@@ -12,12 +12,14 @@ from urllib.parse import urlsplit
 import scovant_core
 from scovant_core import checks  # noqa: F401 — importing this populates registry.CHECKS
 from scovant_core.analysis.ai_policy import classify_policy
+from scovant_core.analysis.protocol_adoption import protocol_adoption
 from scovant_core.checks.registry import CHECKS, RULESET_VERSION, ruleset_digest
 from scovant_core.context import ScanContext, ScanOptions
 from scovant_core.evidence import EvidenceStore
 from scovant_core.gatherers import _register  # noqa: F401 — registers evidence.GATHERERS
 from scovant_core.models import CheckStatus, Report, Target
-from scovant_core.profiles import apply_profile
+from scovant_core.profiles import PROFILE_DETECTOR_VERSION, apply_profile
+from scovant_core.provenance import environment_fingerprint
 from scovant_core.scoring import CANONICAL_MIN_COVERAGE, EVIDENCE_MIN_COVERAGE, score_results
 from scovant_core.security.client import SecureClient
 from scovant_core.security.policy import CORE_USER_AGENT, SecurityPolicy
@@ -175,6 +177,7 @@ def scan(
         if http_evidence.get("error")
         else None
     )
+    dependencies, environment_digest = environment_fingerprint()
     report = Report(
         core_version=scovant_core.__version__,
         ruleset_version=RULESET_VERSION,
@@ -203,10 +206,12 @@ def scan(
             "entry_error": entry_error,
             "error_count": error_count,
             "ai_crawler_policy": ai_crawler_policy,
+            "protocol_adoption": protocol_adoption(results),
         },
         not_tested=list(NOT_TESTED),
         provenance={
             "core_version": scovant_core.__version__,
+            "profile_detector_version": PROFILE_DETECTOR_VERSION,
             "ruleset_version": RULESET_VERSION,
             "ruleset_digest": ruleset_digest(),
             "python": sys.version.split()[0],
@@ -214,7 +219,7 @@ def scan(
             "user_agent": user_agent_for(options),
             "timeout": options.timeout,
             "max_pages": options.max_pages,
-            "network_mode": "live" if transport is None else "fixture",
+            "network_mode": "pinned" if transport is None else "fixture",
             "experimental": options.experimental,
             "allow_private_networks": options.allow_private_networks,
             "scan_scope": score.scope,
@@ -223,6 +228,8 @@ def scan(
             "error_count": error_count,
             "evidence_min_coverage": EVIDENCE_MIN_COVERAGE,
             "canonical_min_coverage": CANONICAL_MIN_COVERAGE,
+            "dependencies": dependencies,
+            "environment_digest": environment_digest,
         },
     )
     # Structural backstop, not a substitute for the at-source redactions

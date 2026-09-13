@@ -154,6 +154,17 @@ def _ip_is_blocked(ip: str) -> bool:
         or addr.is_multicast or addr.is_unspecified
 
 
+def assert_public_address(ip: str, *, host: str) -> None:
+    """Raise ``UnsafeURLError`` when ``ip`` — one resolved address of
+    ``host`` — is private/reserved/loopback/link-local/multicast/unspecified.
+
+    Extracted (audit §8) so the per-request SSRF guard's DNS-resolution loop
+    (below) and `PinnedTransport`'s own resolve-then-connect share the exact
+    same predicate — one implementation, not two that could drift."""
+    if _ip_is_blocked(ip):
+        raise UnsafeURLError(f"Host {host} resolves to a private/reserved IP ({ip})")
+
+
 def assert_safe_public_url(url: str, *, require_https: bool = True, resolve: bool = True) -> str:
     """Validate that ``url`` targets a public, non-reserved host.
 
@@ -193,9 +204,7 @@ def assert_safe_public_url(url: str, *, require_https: bool = True, resolve: boo
     except socket.gaierror as exc:
         raise UnresolvableHost(f"Could not resolve host {host}") from exc
     for info in infos:
-        ip = str(info[4][0])
-        if _ip_is_blocked(ip):
-            raise UnsafeURLError(f"Host {host} resolves to a private/reserved IP ({ip})")
+        assert_public_address(str(info[4][0]), host=host)
     return url
 
 
@@ -230,6 +239,7 @@ __all__ = [
     "SSRFBlocked",
     "UnresolvableHost",
     "UnsafeURLError",
+    "assert_public_address",
     "assert_safe_public_url",
     "display_url",
     "has_userinfo",

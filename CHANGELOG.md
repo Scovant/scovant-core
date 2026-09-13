@@ -4,6 +4,44 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.2.0] - 2026-09-14
+
+`ruleset_version` unchanged (`2026.09`); `ruleset_digest` unchanged — scores
+fully comparable with 0.1.x. This release adds description and hardening,
+not verdicts.
+
+### Breaking
+- GitHub Action: `allow-private-networks: true` now refuses to run unless
+  `trusted-target: true` is also set, and never runs for pull requests from
+  forks or with an unknown head repository (exit 2). Add
+  `trusted-target: 'true'` to existing private-network workflows that take
+  the URL from a trusted source.
+
+### Added
+- `metrics.protocol_adoption` — descriptive adoption of MCP, WebMCP, UCP,
+  llms.txt, OpenAPI, OAuth metadata, Content-Signal and security.txt
+  (`present | absent | invalid | not_checked`); rendered as "Capabilities
+  detected" in every report. Never scored: absence of an optional protocol
+  is not a defect, presence is not a bonus.
+- Profile identity: `provenance.profile_detector_version`; a low-confidence
+  auto-detected profile (< 0.70) is stated on the report; `--contribute`
+  sends `profile_confidence` and `profile_detector_version`.
+- Reproducibility: `constraints/constraints-0.2.0.txt` (exact pins, shipped
+  as a release asset); `provenance.dependencies` and
+  `provenance.environment_digest` record what actually ran.
+- IP-pinned HTTP transport: hostnames are resolved once, every address is
+  validated, and the connection goes to the validated address with `Host`
+  and TLS verification against the original hostname — closes the DNS
+  rebinding window between guard and connect. `provenance.network_mode`
+  is `pinned` for live scans.
+- GitHub Action: `trusted-target` input; `allow-private-networks: true`
+  now refuses to run without it and never runs for pull requests from
+  forks (exit 2).
+
+### Changed
+- Documentation: methodology states the optional-protocol rule explicitly;
+  security.md describes the pinned transport.
+
 ## [0.1.1] - 2026-09-13
 
 `ruleset_version` unchanged (`2026.09`); `ruleset_digest` changed — scores stay

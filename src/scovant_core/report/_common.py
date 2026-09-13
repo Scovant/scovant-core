@@ -27,6 +27,18 @@ def status_note(report: Report) -> tuple[str, str] | None:
     return None
 
 
+def profile_note(report: Report) -> str | None:
+    """Audit §14: an auto-detected profile below LOW_CONFIDENCE is stated on
+    the report — never silently scored as if declared. None for a declared
+    profile or a confident detection."""
+    from scovant_core.profiles import LOW_CONFIDENCE
+    t = report.target
+    if t.requested_profile != "auto" or t.profile_confidence >= LOW_CONFIDENCE:
+        return None
+    return (f"Profile: {t.resolved_profile}? (confidence LOW, {t.profile_confidence:.2f}) "
+            "— canonical comparison should specify --profile.")
+
+
 def scored_experimental(report: Report) -> bool:
     """Whether this scan actually scored experimental checks (`--experimental`
     was on) — read off the report's own provenance, never guessed from the
@@ -77,6 +89,15 @@ def status_counts(findings: list[CheckResult]) -> dict[CheckStatus, int]:
     for f in findings:
         counts[f.status] += 1
     return counts
+
+
+def capabilities_lines(report: Report) -> list[str]:
+    """`Capabilities detected` rows — `<protocol>: <state>` in PROTOCOLS
+    order; descriptive only (see analysis.protocol_adoption)."""
+    from scovant_core.analysis.protocol_adoption import PROTOCOLS
+
+    adoption = report.metrics.get("protocol_adoption") or {}
+    return [f"{p}: {adoption.get(p, 'not_checked')}" for p in PROTOCOLS]
 
 
 def grouped_by_status(findings: list[CheckResult]) -> dict[CheckStatus, list[CheckResult]]:

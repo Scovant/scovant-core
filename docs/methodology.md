@@ -72,7 +72,11 @@ was nothing to evaluate in the first place — the check does not apply to
 this profile, or the thing being checked is optional and a real response
 confirmed its absence. `ERROR` must never silently become `FAIL`, and
 absence must never be scored as a defect when the check documents it as
-optional.
+optional. Several optional agent-facing protocols (MCP, WebMCP, UCP,
+llms.txt, OpenAPI, OAuth discovery, Content-Signal, security.txt) are
+additionally surfaced as a separate `present`/`absent`/`invalid`/`not_checked`
+"Capabilities detected" summary derived from these same findings — it is
+purely descriptive, reported alongside the score, and never itself enters it.
 
 **The document-status rule:** every check that fetches a single well-known
 document (robots.txt, a sitemap, llms.txt, an MCP/OpenAPI/OAuth/UCP/
