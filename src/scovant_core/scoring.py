@@ -17,6 +17,8 @@ import math
 
 from scovant_core.models import (
     CATEGORY_TITLES,
+    SCORE_NAME,
+    SCORE_SUBSET_NAME,
     Category,
     CategoryScore,
     CheckResult,
@@ -26,11 +28,13 @@ from scovant_core.models import (
 
 CATEGORY_WEIGHTS = {"access": 25, "machine": 25, "interfaces": 20, "trust": 15, "operability": 15}
 STATUS_VALUE = {CheckStatus.PASS: 1.0, CheckStatus.WARN: 0.5, CheckStatus.FAIL: 0.0}
-MIN_COVERAGE = 0.60
+EVIDENCE_MIN_COVERAGE = 0.60     # below: no score at all (INSUFFICIENT_EVIDENCE)
+CANONICAL_MIN_COVERAGE = 0.85    # below (or any ERROR): score without a grade (DEGRADED)
+MIN_COVERAGE = EVIDENCE_MIN_COVERAGE  # kept for readers of 0.1.0 code
 GRADES = ((90, "A"), (80, "B"), (70, "C"), (60, "D"), (0, "F"))
-SCORING_DIGEST = hashlib.sha256(
-    repr((CATEGORY_WEIGHTS, {k.value: v for k, v in STATUS_VALUE.items()}, MIN_COVERAGE, GRADES)).encode()
-).hexdigest()[:12]
+_DIGEST_INPUT = (CATEGORY_WEIGHTS, {k.value: v for k, v in STATUS_VALUE.items()},
+                 EVIDENCE_MIN_COVERAGE, CANONICAL_MIN_COVERAGE, GRADES)
+SCORING_DIGEST = hashlib.sha256(repr(_DIGEST_INPUT).encode()).hexdigest()[:12]
 
 
 def grade_for(value: int) -> str:
@@ -38,7 +42,8 @@ def grade_for(value: int) -> str:
 
 
 def score_results(
-    results: list[CheckResult], *, include_experimental: bool = False
+    results: list[CheckResult], *, include_experimental: bool = False,
+    selection_is_custom: bool = False, error_count: int = 0,
 ) -> tuple[Score, dict[str, CategoryScore]]:
     cats: dict[str, CategoryScore] = {}
     raw_scores: dict[str, float] = {}
@@ -61,10 +66,18 @@ def score_results(
     raw_coverage = total_evaluated / total_applicable if total_applicable else 0.0
     coverage = round(raw_coverage, 3)
 
-    if raw_coverage < MIN_COVERAGE or not raw_scores:
-        return Score(value=None, grade=None, coverage=coverage, status="INSUFFICIENT_EVIDENCE"), cats
+    scope = "CUSTOM" if selection_is_custom else (
+        "CANONICAL" if raw_coverage >= CANONICAL_MIN_COVERAGE and error_count == 0 else "PARTIAL")
+    name = SCORE_SUBSET_NAME if selection_is_custom else SCORE_NAME
+    if raw_coverage < EVIDENCE_MIN_COVERAGE or not raw_scores:
+        return Score(name=name, value=None, grade=None, coverage=coverage,
+                     status="INSUFFICIENT_EVIDENCE", scope=scope), cats
 
     wsum = sum(CATEGORY_WEIGHTS[k] for k in raw_scores)
     weighted = sum(raw_scores[k] * CATEGORY_WEIGHTS[k] for k in raw_scores) / wsum
     value = math.floor(weighted + 0.5)  # half-up, never Python's banker's round()
-    return Score(value=value, grade=grade_for(value), coverage=coverage, status="OK"), cats
+    if scope == "CUSTOM":
+        return Score(name=name, value=value, grade=None, coverage=coverage, status="NOT_CANONICAL", scope=scope), cats
+    if scope == "PARTIAL":
+        return Score(name=name, value=value, grade=None, coverage=coverage, status="DEGRADED", scope=scope), cats
+    return Score(name=name, value=value, grade=grade_for(value), coverage=coverage, status="OK", scope=scope), cats

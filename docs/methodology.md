@@ -221,12 +221,43 @@ stay comparable within a ruleset version.
 
 ## Coverage floor
 
-A score is only emitted when at least 60% of the total applicable check
-weight was actually evaluated (not `N/A`, not `ERROR`). Below that floor,
-`Score.status` is `INSUFFICIENT_EVIDENCE` and `Score.value`/`Score.grade`
-are both `null` — Core will not present a number computed from mostly
-missing evidence as if it meant something. Coverage itself is still
-reported so a caller can see how far short of the floor the scan fell.
+There are two coverage floors, not one:
+
+- **Evidence floor (60%).** A score is only emitted when at least 60% of the
+  total applicable check weight was actually evaluated (not `N/A`, not
+  `ERROR`). Below that floor, `Score.status` is `INSUFFICIENT_EVIDENCE` and
+  `Score.value`/`Score.grade` are both `null` — Core will not present a
+  number computed from mostly missing evidence as if it meant something.
+  Coverage itself is still reported so a caller can see how far short of
+  the floor the scan fell.
+- **Canonical floor (85%).** A full-selection scan (no `--include`,
+  `--exclude`, or `--experimental`) that clears the 60% evidence floor but
+  falls short of 85% coverage, or that hit any `ERROR` check, still gets a
+  `value`/`coverage` but no `grade`: `Score.status` is `DEGRADED`. Only a
+  full scan at ≥85% coverage with zero errored checks reaches `status: OK`
+  and a letter grade.
+
+## Scan scope and score status
+
+Every report carries `Score.scope` (a property of the **selection**) and
+`Score.status` (a property of the **resulting score**):
+
+| Scope | Meaning | Status | Grade |
+|---|---|---|---|
+| `CANONICAL` | Full check selection (no `--include`/`--exclude`/`--experimental`), coverage ≥ 85%, zero `ERROR`ed checks | `OK` | Yes |
+| `PARTIAL` | Full check selection, but coverage < 85% or any check `ERROR`ed (and coverage still ≥ 60%) | `DEGRADED` | No |
+| `PARTIAL` or `CUSTOM` | Coverage < 60% (evidence floor) | `INSUFFICIENT_EVIDENCE` | No |
+| `CUSTOM` | `--include`/`--exclude`/`--experimental` narrowed or widened the run (and coverage ≥ 60%) | `NOT_CANONICAL` | No |
+
+A `CUSTOM` scan reports a **Subset Diagnostic Score** rather than the
+Scovant Core Static Signal Score, and the CLI prints "Canonical Core Score:
+NOT CALCULATED" instead of a value — a subset score is useful for local
+debugging of a specific check, but it is not comparable across sites or
+over time the way a canonical score is. Use `--require-canonical` to make a
+CI job fail fast when a scan is accidentally scoped down. `--contribute`
+refuses to send anything but a `CANONICAL`-scope report — the CLI prints
+`contributed: skipped (scan is CUSTOM; only canonical scans are accepted)`
+instead of posting.
 
 ## Profiles
 

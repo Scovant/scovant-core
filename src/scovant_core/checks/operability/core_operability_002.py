@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url, redact_message
 
 _MAX_REDIRECTS_OK = 2
 
@@ -26,17 +27,18 @@ class RedirectComplexity(CoreCheck):
     def evaluate(self, store, ctx):
         http = store.get("http")
         if http["error"]:
+            err = {**http["error"], "message": redact_message(http["error"]["message"], http["input_url"])}
             if http["error"]["kind"] == "network" and "too many redirects" in http["error"]["message"].lower():
-                ev = {"error": http["error"]}
+                ev = {"error": err}
                 return self.result(
                     CheckStatus.WARN, "The entry URL's redirect chain loops or exceeds the hop limit before settling.",
                     evidence=ev, severity=Severity.MEDIUM,
                     remediation="Collapse the redirect chain to at most one hop and eliminate any redirect loop.",
                 )
-            return self.error(f"the entry URL could not be fetched ({http['error']['kind']}).", {"error": http["error"]})
+            return self.error(f"the entry URL could not be fetched ({http['error']['kind']}).", {"error": err})
 
         redirect_count = len(http["redirect_chain"])
-        ev = {"redirect_chain": http["redirect_chain"], "redirect_count": redirect_count}
+        ev = {"redirect_chain": [display_url(u) for u in http["redirect_chain"]], "redirect_count": redirect_count}
         if redirect_count <= _MAX_REDIRECTS_OK:
             return self.result(CheckStatus.PASS, f"The entry URL redirects {redirect_count} time(s) before settling.", evidence=ev)
         return self.result(

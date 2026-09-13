@@ -33,6 +33,8 @@ def build_payload(report: Report) -> dict:
         "experimental": bool(report.provenance.get("experimental")),
         "check_statuses": {f.id: f.status.value for f in report.findings},
         "score": {"value": s.value, "grade": s.grade, "coverage": s.coverage, "status": s.status},
+        "scan_scope": s.scope, "score_status": s.status,
+        "error_count": int(report.metrics.get("error_count", 0)),
     }
 
 

@@ -3,6 +3,7 @@
 ## Score
 
 **Scovant Core Static Signal Score:** 100 / 100 · grade A · coverage 100%
+**Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** commerce (requested auto, confidence 85%)
 
 ## Categories
@@ -66,6 +67,7 @@
   ```json
   {
     "declared_policy": {
+      "Applebot": true,
       "Bingbot": true,
       "Claude-SearchBot": true,
       "Googlebot": true,
@@ -74,13 +76,19 @@
     },
     "http_status": 200,
     "resource": "https://example.com/robots.txt",
-    "robots_present": true
+    "robots_present": true,
+    "user_fetch_policy": {
+      "ChatGPT-User": true,
+      "Claude-User": true,
+      "DuckAssistBot": true,
+      "Perplexity-User": true
+    }
   }
   ```
 
   </details>
 
-- **CORE-ACCESS-004** — Training vs. search crawler separation (info): Training crawler(s) GPTBot, Google-Extended are restricted while search/retrieval crawlers remain allowed.
+- **CORE-ACCESS-004** — Training vs. search crawler separation (info): Training/content-use crawler(s) GPTBot, Google-Extended are restricted while search/retrieval crawlers remain allowed.
 
   <details><summary>evidence</summary>
 
@@ -629,7 +637,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
 
 ## Provenance
 
-Core 0.1.0 · ruleset 2026.09 (digest `d83df799eaa7`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.1.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

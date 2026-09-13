@@ -14,7 +14,7 @@ import logging
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
@@ -28,6 +28,7 @@ from scovant_core.report.html import render_html
 from scovant_core.report.json import render_json
 from scovant_core.report.markdown import render_markdown
 from scovant_core.report.text import render_text, score_line
+from scovant_core.security.url_safety import has_userinfo
 
 __all__ = ["main"]
 
@@ -135,6 +136,10 @@ def _build_parser() -> argparse.ArgumentParser:
         help="exit 1 when any finding reaches this status or worse (default: never)",
     )
     scan_p.add_argument(
+        "--require-canonical", action="store_true", dest="require_canonical",
+        help="exit 1 unless the scan is CANONICAL with score status OK",
+    )
+    scan_p.add_argument(
         "--timeout", type=_positive_timeout, default=60.0, help="total scan time budget in seconds (default: 60)",
     )
     scan_p.add_argument(
@@ -215,7 +220,11 @@ def _entry_error_kind(report: Report) -> str | None:
     return entry_error["kind"] if entry_error else None
 
 
-def _threshold_exit_code(report: Report, *, min_score: int | None, fail_on: str) -> int:
+def _threshold_exit_code(
+    report: Report, *, min_score: int | None, fail_on: str, require_canonical: bool = False,
+) -> int:
+    if require_canonical and not (report.score.scope == "CANONICAL" and report.score.status == "OK"):
+        return _EXIT_THRESHOLD
     if min_score is not None and (report.score.value is None or report.score.value < min_score):
         return _EXIT_THRESHOLD
     if fail_on != "never":
@@ -230,6 +239,15 @@ def _threshold_exit_code(report: Report, *, min_score: int | None, fail_on: str)
 def _run_scan(args: argparse.Namespace) -> int:
     if not _validate_url(args.url):
         return _invalid_input("URL must start with http:// or https:// and include a host")
+
+    if has_userinfo(args.url):
+        return _invalid_input("URL must not contain credentials (user:password@host)")
+
+    # The fragment is never sent to the server and never needed downstream —
+    # drop it before it can reach any output surface (it isn't redacted like
+    # a query value, so keeping it around would be a leak, not a display
+    # choice).
+    args.url = urlunsplit(urlsplit(args.url)._replace(fragment=""))
 
     if args.user_agent and _CLOUD_CRAWLER_TOKEN.lower() in args.user_agent.lower():
         return _invalid_input("--user-agent must not contain the Cloud crawler's identity")
@@ -271,7 +289,10 @@ def _run_scan(args: argparse.Namespace) -> int:
         print("NETWORK_ERROR", file=sys.stderr)
         exit_code = _EXIT_NETWORK
     else:
-        exit_code = _threshold_exit_code(report, min_score=args.min_score, fail_on=args.fail_on)
+        exit_code = _threshold_exit_code(
+            report, min_score=args.min_score, fail_on=args.fail_on,
+            require_canonical=args.require_canonical,
+        )
 
     color = args.format == "text" and not args.no_color and not args.output and sys.stdout.isatty()
     if args.format == "json":
@@ -293,9 +314,15 @@ def _run_scan(args: argparse.Namespace) -> int:
         print(rendered, end="")
 
     if args.contribute and report.metrics.get("entry_error") is None:
-        payload = build_payload(report)
-        result = send(payload)
-        print(f"contributed: {payload['domain']} ({result.message})", file=sys.stderr)
+        if report.score.scope != "CANONICAL":
+            print(
+                f"contributed: skipped (scan is {report.score.scope}; only canonical scans are accepted)",
+                file=sys.stderr,
+            )
+        else:
+            payload = build_payload(report)
+            result = send(payload)
+            print(f"contributed: {payload['domain']} ({result.message})", file=sys.stderr)
 
     return exit_code
 

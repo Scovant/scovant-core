@@ -3,6 +3,7 @@ from __future__ import annotations
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url
 
 
 class Indexability(CoreCheck):
@@ -21,7 +22,7 @@ class Indexability(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
         robots_meta = entry["parsed"].get("metadata", {}).get("robots_meta") or ""
         header = (http["headers"] or {}).get("x-robots-tag") or ""
         ev = {"robots_meta": robots_meta or None, "x_robots_tag": header or None}

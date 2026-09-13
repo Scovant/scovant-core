@@ -4,6 +4,33 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.1.1] - 2026-09-13
+
+`ruleset_version` unchanged (`2026.09`); `ruleset_digest` changed — scores stay
+comparable with 0.1.0, grades are stricter.
+
+### Changed
+- Scan scope and score status: a scan with `--include`/`--exclude`/`--experimental`
+  is `CUSTOM` and reports a **Subset Diagnostic Score** (no grade, "Canonical Core
+  Score: NOT CALCULATED"); a full scan under 85 % coverage or with any errored
+  check is `PARTIAL`/`DEGRADED` (score, no grade); a canonical scan is `OK`.
+  Provenance records `scan_scope`, `included_checks`, `excluded_checks`,
+  `error_count` and both coverage floors. New `--require-canonical` flag; the
+  GitHub Action gains `require-canonical` and outputs `coverage`, `score_status`,
+  `scan_scope`, `error_count`.
+- Crawler registry is purpose-aware (`search` / `user_fetch` / `training` /
+  `content_use_control`, `identity_type`, `official_source`, `last_reviewed`,
+  `REGISTRY_VERSION`); `CORE-ACCESS-003`/`-004` (1.1) derive their identity lists
+  from it, and `-003` reports user-triggered fetch agents separately;
+  `metrics.ai_crawler_policy` publishes the four dimensions.
+- `--contribute` sends only canonical scans (`scan_scope`, `score_status`,
+  `error_count` added to the payload); Scovant marks every client contribution
+  `unverified_client`.
+- URLs with credentials are rejected (exit 2); query values are shown as
+  `[REDACTED]` in every report, summary and output.
+- The npm launcher refuses an engine whose version differs from the launcher's
+  (exit 9) unless `SCOVANT_ALLOW_VERSION_MISMATCH=1`.
+
 ## [0.1.0] - 2026-09-12
 
 ### Added

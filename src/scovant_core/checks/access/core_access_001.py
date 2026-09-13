@@ -1,5 +1,6 @@
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url, redact_message
 
 
 class HttpsReachability(CoreCheck):
@@ -15,10 +16,15 @@ class HttpsReachability(CoreCheck):
 
     def evaluate(self, store, ctx):
         http = store.get("http")
-        ev = {"input_url": http["input_url"], "final_url": http["final_url"], "status": http["status"],
-              "redirect_chain": http["redirect_chain"], "redirect_count": len(http["redirect_chain"])}
+        ev = {
+            "input_url": display_url(http["input_url"]),
+            "final_url": display_url(http["final_url"]) if http["final_url"] else http["final_url"],
+            "status": http["status"],
+            "redirect_chain": [display_url(u) for u in http["redirect_chain"]],
+            "redirect_count": len(http["redirect_chain"]),
+        }
         if http["error"]:
-            ev["error"] = http["error"]
+            ev["error"] = {**http["error"], "message": redact_message(http["error"]["message"], http["input_url"])}
             return self.result(CheckStatus.FAIL, f"The entry URL could not be fetched ({http['error']['kind']}).", evidence=ev,
                                remediation="Make the HTTPS entry URL respond with a 2xx status.")
         if not (http["final_url"] or "").startswith("https://"):

@@ -8,6 +8,7 @@ from scovant_core.checks._truncation import record_truncation, truncated_confide
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
 from scovant_core.parsers.html import has_spa_shell_marker
+from scovant_core.security.url_safety import display_url
 
 _MIN_VISIBLE_CHARS = 200
 
@@ -30,12 +31,12 @@ class ServerRenderedCoreContent(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
 
         visible_text = entry["parsed"]["visible_text"] or ""
         chars = len(visible_text)
         shell_marker = has_spa_shell_marker(entry.get("html") or "")
-        ev = {"entry_url": ctx.final_url, "visible_text_chars": chars, "spa_shell_marker": shell_marker}
+        ev = {"entry_url": display_url(ctx.final_url), "visible_text_chars": chars, "spa_shell_marker": shell_marker}
         # Both `visible_text` and the SPA-shell marker are read out of the
         # entry page's own body; a page cut off at the fetch cap may show
         # artificially few visible chars (a false WARN) or an incomplete

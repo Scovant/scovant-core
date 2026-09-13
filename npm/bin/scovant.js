@@ -28,6 +28,10 @@ const TESTING = process.env.SCOVANT_NPM_TEST === '1';
 // missing tool: reporting "install uv" to someone whose uv is installed and
 // merely slow is false. Track the two apart so the no-runner message can.
 let timedOut = false;
+// Every python3.NN candidate that answered the probe with the WRONG engine
+// version (only populated once the loop in resolveRunner has exhausted
+// every candidate with no match) — see mismatchExhaustedMessage.
+let versionMismatches = [];
 
 function probe(cmd, args, opts = PROBE) {
   const r = spawnSync(cmd, args, opts);
@@ -64,21 +68,43 @@ function existsOnPath(cmd) {
 // that for free — they resolve the pinned SPEC. The `python3 -m
 // scovant_core` path runs whatever that interpreter happens to have, so the
 // guarantee only holds if we check it: parse the version the probe printed
-// and compare. On a mismatch (or an unparseable answer) we still run —
-// leaving a user with a working engine beats refusing to start — but we say
-// so on stderr, naming BOTH versions, because scores are only comparable
-// within one ruleset version and a silent substitution is exactly the
-// failure this check exists to prevent.
-function warnIfVersionDiffers(cmd, stdout) {
+// and compare. Scores are only comparable within one ruleset version, so a
+// mismatch here is not a warning-and-continue situation — it is a launcher
+// that is about to run a different engine than the one it claims to be —
+// and this fails CLOSED (exit 9), naming BOTH versions on stderr, unless
+// the caller explicitly opts into the old warn-and-continue behavior via
+// SCOVANT_ALLOW_VERSION_MISMATCH=1.
+// Returns the version string the probe reported, or null if `stdout`
+// didn't carry a recognizable one.
+function extractVersion(stdout) {
   const m = /scovant-core\s+(\S+)/.exec(stdout || '');
-  const found = m ? m[1] : null;
-  if (found === version) return;
+  return m ? m[1] : null;
+}
+
+function mismatchWarning(cmd, found) {
   const what = found ? `version ${found}` : 'an unknown version';
-  process.stderr.write(
-    `scovant: warning — running ${what} of the scovant-core engine via "${cmd} -m scovant_core", ` +
+  return (
+    `scovant: warning — scovant: engine version mismatch — "${cmd} -m scovant_core" runs scovant-core ${what}, ` +
     `but this launcher is @scovant/core ${version}.\n` +
-    `Results may use a different ruleset and are not comparable across versions. ` +
-    `Install uv or pipx (or "${cmd} -m pip install \\"${SPEC}\\"") to pin the engine version.\n`);
+    `Scores are only comparable within one ruleset version, so the launcher refuses to run a different engine.\n` +
+    `Fix: install uv or pipx (they pin "${SPEC}"), or "${cmd} -m pip install \\"${SPEC}\\"".\n`
+  );
+}
+
+// Every candidate that answered the probe but carried the wrong version —
+// a mismatched EARLIER candidate must not abort the whole loop when a
+// LATER one carries the exact version, so this is only consulted once the
+// loop has exhausted every candidate with no match.
+function mismatchExhaustedMessage(tried) {
+  const lines = tried.map(({ cmd, found }) => `  - "${cmd} -m scovant_core --version" reported ${found ? `version ${found}` : 'an unknown version'}`);
+  return (
+    `scovant: engine version mismatch — every Python interpreter tried on PATH runs a different\n` +
+    `scovant-core version than this launcher (@scovant/core ${version}):\n` +
+    lines.join('\n') + '\n' +
+    `Scores are only comparable within one ruleset version, so the launcher refuses to run a different engine.\n` +
+    `Fix: install uv or pipx (they pin "${SPEC}"), or "python3 -m pip install \\"${SPEC}\\"".\n` +
+    `Override (not recommended): SCOVANT_ALLOW_VERSION_MISMATCH=1\n`
+  );
 }
 
 function resolveRunner() {
@@ -105,18 +131,35 @@ function resolveRunner() {
   // and still fail to execute as a module; a probe that only checks import
   // would hand back a runner that crashes on the real invocation instead of
   // reporting "no runner found".
+  // A mismatched EARLIER candidate must not abort the probe: keep trying
+  // later candidates, and only report failure once every one of them has
+  // been tried and none matched.
+  const mismatches = [];
   for (const py of ['python3.13', 'python3.12', 'python3']) {
     const r = probe(py, ['-m', 'scovant_core', '--version'], PROBE_CAPTURE);
-    if (r.ok) {
-      warnIfVersionDiffers(py, r.stdout);
+    if (!r.ok) continue;
+    const found = extractVersion(r.stdout);
+    if (found === version) {
       return { cmd: py, pre: ['-m', 'scovant_core'] };
     }
+    if (process.env.SCOVANT_ALLOW_VERSION_MISMATCH === '1') {
+      process.stderr.write(mismatchWarning(py, found));
+      return { cmd: py, pre: ['-m', 'scovant_core'] };
+    }
+    mismatches.push({ cmd: py, found });
+  }
+  if (mismatches.length) {
+    versionMismatches = mismatches;
   }
   return null;
 }
 
 const runner = resolveRunner();
 if (!runner) {
+  if (versionMismatches.length) {
+    process.stderr.write(mismatchExhaustedMessage(versionMismatches));
+    process.exit(9);
+  }
   if (timedOut) {
     process.stderr.write(
       `scovant: a runner was found but its probe timed out, so nothing could be started.\n\n` +

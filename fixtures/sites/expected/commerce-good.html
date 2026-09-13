@@ -59,13 +59,13 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.1.0</p>
+<p><strong>Core version:</strong> 0.1.1</p>
 <p>37 PASS, 0 WARN, 0 FAIL, 8 N/A, 0 ERROR (45 checks)</p>
 </section>
 <section id="score">
-<h2>Score</h2>
+<h2>Scovant Core Static Signal Score</h2>
 <p style="font-size:2.5rem;font-weight:700;">100 / 100</p>
-<p><strong>Grade:</strong> A &middot; <strong>Coverage:</strong> 100%</p>
+<p><strong>Grade:</strong> A &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
 </section>
 <section id="categories">
 <h2>Categories</h2>
@@ -85,7 +85,7 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-001</code></td><td>HTTPS reachability</td><td>info</td><td>HTTPS entry URL answered 200.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-002</code></td><td>robots.txt availability and syntax</td><td>info</td><td>robots.txt answered 200 with a well-formed policy.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-003</code></td><td>AI search crawler policy</td><td>info</td><td>robots.txt declares all major search and answer-engine crawlers as allowed.</td></tr>
-<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-004</code></td><td>Training vs. search crawler separation</td><td>info</td><td>Training crawler(s) GPTBot, Google-Extended are restricted while search/retrieval crawlers remain allowed.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-004</code></td><td>Training vs. search crawler separation</td><td>info</td><td>Training/content-use crawler(s) GPTBot, Google-Extended are restricted while search/retrieval crawlers remain allowed.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-005</code></td><td>Sitemap availability</td><td>info</td><td>A valid urlset sitemap was found at https://example.com/sitemap.xml.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-006</code></td><td>Sitemap freshness</td><td>info</td><td>Sitemap lastmod values look plausible.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-007</code></td><td>Canonical URL integrity</td><td>info</td><td>The canonical URL matches the entry URL.</td></tr>
@@ -154,6 +154,7 @@ a { color: #0969da; }
 <details><summary><code>CORE-ACCESS-003</code> — AI search crawler policy</summary>
 <pre><code>{
   &quot;declared_policy&quot;: {
+    &quot;Applebot&quot;: true,
     &quot;Bingbot&quot;: true,
     &quot;Claude-SearchBot&quot;: true,
     &quot;Googlebot&quot;: true,
@@ -162,7 +163,13 @@ a { color: #0969da; }
   },
   &quot;http_status&quot;: 200,
   &quot;resource&quot;: &quot;https://example.com/robots.txt&quot;,
-  &quot;robots_present&quot;: true
+  &quot;robots_present&quot;: true,
+  &quot;user_fetch_policy&quot;: {
+    &quot;ChatGPT-User&quot;: true,
+    &quot;Claude-User&quot;: true,
+    &quot;DuckAssistBot&quot;: true,
+    &quot;Perplexity-User&quot;: true
+  }
 }</code></pre>
 </details>
 <details><summary><code>CORE-ACCESS-004</code> — Training vs. search crawler separation</summary>
@@ -589,7 +596,7 @@ a { color: #0969da; }
 </section>
 <section id="methodology">
 <h2>Methodology</h2>
-<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage (a document that could not be read counts against evidence), and N/A is excluded entirely. A category scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its applicable weight. Full reference: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">docs/methodology.md</a>.</p>
+<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage (a document that could not be read counts against evidence), and N/A is excluded entirely. A scan scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its applicable weight. A full-selection scan that clears that floor but falls short of 85% coverage, or that hit any ERROR, is reported as DEGRADED (a score, no letter grade) rather than being silently graded on incomplete evidence. Running with checks narrowed or widened via --include/--exclude/--experimental instead reports a NOT_CANONICAL Subset Diagnostic Score over that subset, not the full Core Score. Full reference: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">docs/methodology.md</a>.</p>
 </section>
 <section id="provenance">
 <h2>Provenance</h2>
@@ -598,17 +605,23 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.1.0</dd>
+<dt>core_version</dt><dd>0.1.1</dd>
 <dt>ruleset_version</dt><dd>2026.09</dd>
-<dt>ruleset_digest</dt><dd>d83df799eaa7</dd>
+<dt>ruleset_digest</dt><dd>ea4ada4fffbf</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.1.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.1.1 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>
 <dt>experimental</dt><dd>False</dd>
 <dt>allow_private_networks</dt><dd>False</dd>
+<dt>scan_scope</dt><dd>CANONICAL</dd>
+<dt>included_checks</dt><dd>[]</dd>
+<dt>excluded_checks</dt><dd>[]</dd>
+<dt>error_count</dt><dd>0</dd>
+<dt>evidence_min_coverage</dt><dd>0.6</dd>
+<dt>canonical_min_coverage</dt><dd>0.85</dd>
 </dl>
 </section>
 <footer>

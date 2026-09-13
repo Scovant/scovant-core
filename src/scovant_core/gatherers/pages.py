@@ -16,6 +16,7 @@ from scovant_core.parsers import html as H
 from scovant_core.parsers.bot_protection import detect_bot_protection
 from scovant_core.parsers.html import normalize_internal_url
 from scovant_core.security.client import FetchError, SecureClient
+from scovant_core.security.url_safety import display_url
 
 _PRODUCTISH = re.compile(r"/(product|products|item|p|shop|store|pricing|plans)(/|$)", re.I)
 _DOCSISH = re.compile(r"/(docs|documentation|api|developers|reference)(/|$)", re.I)
@@ -114,7 +115,14 @@ def _same_origin(url: str, origin: str) -> bool:
 
 def select_pages(ctx: ScanContext, entry_links: list[str], sitemap_entries: list[dict]) -> list[dict]:
     final_url = ctx.final_url or ctx.input_url
-    picks: list[dict] = [{"url": final_url, "reason": "entry"}]
+    # The entry pick is never re-fetched below (the `http` gatherer already
+    # fetched it) — its "url" only ever reaches display/evidence, so it is
+    # stored redacted from the start rather than leaking the real query
+    # string into every check that copies `pages[0]["url"]` (JSON-LD/forms/
+    # price/page-cost evidence, etc.). Dedup below still canonicalizes the
+    # REAL final_url so a sitemap/link entry for the same page is still
+    # recognised and skipped.
+    picks: list[dict] = [{"url": display_url(final_url), "reason": "entry"}]
     seen = {_canon(final_url)}
 
     def add(url: str, reason: str) -> None:

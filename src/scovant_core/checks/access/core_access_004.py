@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from scovant_core.checks.access._identities import SEARCH_CRAWLERS, TRAINING_CRAWLERS
+from scovant_core.checks.access._identities import (
+    CONTENT_USE_TOKENS,
+    SEARCH_CRAWLERS,
+    TRAINING_CRAWLERS,
+)
 from scovant_core.checks.access._robots_readability import (
     classify_robots_readability,
     robots_truncation,
@@ -17,6 +21,7 @@ class TrainingVsSearchSeparation(CoreCheck):
     category = Category.ACCESS
     weight = 2
     severity_on_fail = Severity.LOW
+    check_version = "1.1"
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)
     why_it_matters = (
         "A site that wants to opt out of AI training without also losing answer-engine visibility needs "
@@ -38,7 +43,14 @@ class TrainingVsSearchSeparation(CoreCheck):
                                "real robots.txt document).", ev)
         url = f"{ctx.origin}/"
         conf = truncated_confidence(truncated)
-        training_blocked = [ua for ua in TRAINING_CRAWLERS if not is_allowed(robots["text"], ua, url)]
+        # Content-use-control tokens (e.g. an operator's AI-training/grounding
+        # opt-out that carries no user-agent of its own — see
+        # `identity_type="robots_token"` in the registry) are, from a site
+        # owner's perspective, the same training-CLASS restriction as the
+        # dedicated training crawlers: disallowing only one of them is still
+        # an explicit training opt-out, not "no restriction declared".
+        training_class = TRAINING_CRAWLERS + CONTENT_USE_TOKENS
+        training_blocked = [ua for ua in training_class if not is_allowed(robots["text"], ua, url)]
         search_blocked = [ua for ua in SEARCH_CRAWLERS if not is_allowed(robots["text"], ua, url)]
         ev["training_blocked"], ev["search_blocked"] = training_blocked, search_blocked
         if readability == "absent":
@@ -56,8 +68,8 @@ class TrainingVsSearchSeparation(CoreCheck):
         if training_blocked:
             ev["explicit_separation"] = True
             return self.result(CheckStatus.PASS,
-                               f"Training crawler(s) {', '.join(training_blocked)} are restricted while search/retrieval "
-                               "crawlers remain allowed." + note,
+                               f"Training/content-use crawler(s) {', '.join(training_blocked)} are restricted while "
+                               "search/retrieval crawlers remain allowed." + note,
                                evidence=ev, confidence=conf)
         ev["explicit_separation"] = False
         return self.result(CheckStatus.PASS,

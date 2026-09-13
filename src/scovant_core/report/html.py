@@ -15,6 +15,7 @@ from scovant_core.report._common import (
     na_experimental,
     scored_experimental,
     status_counts,
+    status_note,
 )
 from scovant_core.report._cta import CTA_TEXT, cta_url
 
@@ -116,11 +117,18 @@ def _score_section(r: Report) -> list[str]:
     s = r.score
     value = "—" if s.value is None else str(s.value)
     grade = s.grade or "—"
-    out = ['<section id="score">', "<h2>Score</h2>"]
+    error_count = r.metrics.get("error_count", 0)
+    out = ['<section id="score">', f"<h2>{e(s.name)}</h2>"]
     out.append(f'<p style="font-size:2.5rem;font-weight:700;">{e(value)} / 100</p>')
-    out.append(f"<p><strong>Grade:</strong> {e(grade)} &middot; <strong>Coverage:</strong> {s.coverage:.0%}</p>")
-    if s.status != "OK":
-        out.append(f"<p><strong>Status:</strong> {e(s.status)}</p>")
+    out.append(
+        f"<p><strong>Grade:</strong> {e(grade)} &middot; <strong>Scope:</strong> {e(s.scope)} "
+        f"&middot; <strong>Status:</strong> {e(s.status)} &middot; "
+        f"<strong>Coverage:</strong> {s.coverage:.0%} &middot; <strong>Errors:</strong> {error_count}</p>"
+    )
+    note = status_note(r)
+    if note:
+        strong, rest = note
+        out.append(f"<p><strong>{e(strong)}</strong>{e(rest)}</p>")
     out.append("</section>")
     return out
 
@@ -252,8 +260,13 @@ def _methodology_section() -> list[str]:
         "<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, "
         "WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage "
         "(a document that could not be read counts against evidence), and N/A is excluded "
-        "entirely. A category scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its "
-        "applicable weight. Full reference: "
+        "entirely. A scan scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its "
+        "applicable weight. A full-selection scan that clears that floor but falls short of "
+        "85% coverage, or that hit any ERROR, is reported as DEGRADED (a score, no letter "
+        "grade) rather than being silently graded on incomplete evidence. Running with "
+        "checks narrowed or widened via --include/--exclude/--experimental instead reports a "
+        "NOT_CANONICAL Subset Diagnostic Score over that subset, not the full Core Score. "
+        "Full reference: "
         '<a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">'
         "docs/methodology.md</a>.</p>"
     )

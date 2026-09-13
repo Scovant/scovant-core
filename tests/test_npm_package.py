@@ -3,16 +3,21 @@ Python, no check ids, and a version equal to the Python package's."""
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 import scovant_core
 
 PKG = Path(__file__).resolve().parents[1]
 NPM = PKG / "npm"
+NPM_BIN = NPM / "bin" / "scovant.js"
+VERSION = scovant_core.__version__
 
 # Files allowed to declare their own suffix inside npm/; everything else
 # (in particular: no suffix at all, e.g. an accidentally-added Python
@@ -107,3 +112,123 @@ def test_npm_ships_the_licence_text():
     pkg = json.loads((NPM / "package.json").read_text(encoding="utf-8"))
     assert pkg["license"] == "Apache-2.0"
     assert "LICENSE" in pkg["files"], "npm/LICENSE exists but `files` would exclude it"
+
+
+def test_launcher_fails_closed_on_engine_version_mismatch(tmp_path):
+    """A fake `python3` on PATH that answers `--version` with a different
+    engine version: the launcher must exit 9 and name both versions; with
+    SCOVANT_ALLOW_VERSION_MISMATCH=1 it must run (and print the warning)."""
+    if shutil.which("node") is None:
+        pytest.skip("node not installed")
+
+    fake = tmp_path / "python3"
+    fake.write_text(
+        "#!/bin/sh\n"
+        "if [ \"$1\" = \"-m\" ] && [ \"$3\" = \"--version\" ]; then echo 'scovant-core 9.9.9'; exit 0; fi\n"
+        "echo ran-engine; exit 0\n"
+    )
+    fake.chmod(0o755)
+
+    # A real python3.12/python3.13 on this machine can have scovant_core
+    # importable already (e.g. a dev box with `pip install -e .`), which
+    # would answer the probe for real and hide the mismatch this test
+    # exists to prove. Build a PATH containing ONLY the fake `python3`
+    # (never a versioned python3.NN — that would let the launcher's own
+    # fallback loop skip past the fake) plus symlinks for the binaries the
+    # launcher process itself needs to start, so uvx/pipx stay invisible
+    # (existsOnPath under SCOVANT_NPM_TEST=1 finds nothing there) and the
+    # python3 fallback is the one and only runner resolveRunner can reach.
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "python3").write_bytes(fake.read_bytes())
+    (bin_dir / "python3").chmod(0o755)
+    for name in ("node", "env", "sh"):
+        src = shutil.which(name)
+        if src:
+            (bin_dir / name).symlink_to(src)
+
+    env = {**os.environ, "PATH": str(bin_dir), "SCOVANT_NPM_TEST": "1"}
+    r = subprocess.run(["node", str(NPM_BIN), "--version"], env=env, capture_output=True, text=True)
+    assert r.returncode == 9 and "9.9.9" in r.stderr and VERSION in r.stderr and "SCOVANT_ALLOW_VERSION_MISMATCH" in r.stderr
+
+    # The probe always runs `-m scovant_core --version` regardless of the
+    # caller's own arguments, so the real run below is given a DIFFERENT
+    # trailing argument than "--version" — otherwise it would coincide with
+    # the probe's fixed invocation and the fake script could not tell "the
+    # version-check probe" apart from "the actual run", always answering
+    # with the version line instead of proving a real run happened.
+    r2 = subprocess.run(["node", str(NPM_BIN), "scan"], env={**env, "SCOVANT_ALLOW_VERSION_MISMATCH": "1"},
+                         capture_output=True, text=True)
+    assert r2.returncode == 0 and "ran-engine" in r2.stdout and "warning" in r2.stderr
+
+
+def _write_fake_interpreter(path, *, version_reply, run_marker):
+    """A fake `pythonX.Y` that answers `-m scovant_core --version` with
+    `version_reply` and, for any other invocation (the real run), prints
+    `run_marker` and exits 0."""
+    path.write_text(
+        "#!/bin/sh\n"
+        f"if [ \"$1\" = \"-m\" ] && [ \"$3\" = \"--version\" ]; then echo 'scovant-core {version_reply}'; exit 0; fi\n"
+        f"echo {run_marker}; exit 0\n"
+    )
+    path.chmod(0o755)
+
+
+def _isolated_bin_dir(tmp_path, extra_files):
+    """A PATH containing ONLY the given fake interpreters plus symlinks for
+    the binaries the launcher process itself needs — never a real
+    python3.NN, which would answer the probe for real and hide the
+    mismatch these tests exist to prove."""
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    for name, version_reply, run_marker in extra_files:
+        _write_fake_interpreter(bin_dir / name, version_reply=version_reply, run_marker=run_marker)
+    for name in ("node", "env", "sh"):
+        src = shutil.which(name)
+        if src:
+            (bin_dir / name).symlink_to(src)
+    return bin_dir
+
+
+def test_launcher_skips_a_mismatched_interpreter_and_uses_a_later_matching_one(tmp_path):
+    """resolveRunner tries python3.13 -> python3.12 -> python3 in order. A
+    stale engine on an EARLIER candidate (python3.12) must not abort the
+    whole probe — a LATER candidate (python3) that carries the exact
+    version must still be used, silently (no mismatch warning), and the
+    stale one must never run."""
+    if shutil.which("node") is None:
+        pytest.skip("node not installed")
+
+    bin_dir = _isolated_bin_dir(tmp_path, [
+        ("python3.12", "9.9.9", "ran-stale-engine"),
+        ("python3", VERSION, "ran-correct-engine"),
+    ])
+    env = {**os.environ, "PATH": str(bin_dir), "SCOVANT_NPM_TEST": "1"}
+
+    r = subprocess.run(["node", str(NPM_BIN), "scan"], env=env, capture_output=True, text=True)
+    assert r.returncode == 0
+    assert "ran-correct-engine" in r.stdout
+    assert "ran-stale-engine" not in r.stdout
+    assert "mismatch" not in r.stderr and "warning" not in r.stderr
+
+
+def test_launcher_fails_closed_when_every_interpreter_mismatches(tmp_path):
+    """When EVERY candidate interpreter carries the wrong engine version,
+    the launcher must exit 9 and name every interpreter tried and the
+    version each one reported, plus the escape hatch — not just the first
+    one it happened to probe."""
+    if shutil.which("node") is None:
+        pytest.skip("node not installed")
+
+    bin_dir = _isolated_bin_dir(tmp_path, [
+        ("python3.12", "9.9.9", "ran-stale-3.12"),
+        ("python3", "8.8.8", "ran-stale-3"),
+    ])
+    env = {**os.environ, "PATH": str(bin_dir), "SCOVANT_NPM_TEST": "1"}
+
+    r = subprocess.run(["node", str(NPM_BIN), "--version"], env=env, capture_output=True, text=True)
+    assert r.returncode == 9
+    assert "python3.12" in r.stderr and "9.9.9" in r.stderr
+    assert "python3" in r.stderr and "8.8.8" in r.stderr
+    assert VERSION in r.stderr
+    assert "SCOVANT_ALLOW_VERSION_MISMATCH" in r.stderr

@@ -39,7 +39,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.1.0
+Core version: 0.1.1
 
 Static Signal Score       100 / 100   A
 
@@ -168,7 +168,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.1.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.1.1` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -192,6 +192,7 @@ step when the gate you configured trips.
 | `timeout` | Total scan budget in seconds | `60` |
 | `report-format` | `html`\|`markdown` — the uploaded artifact | `html` |
 | `allow-private-networks` | Allow private/loopback targets (your own staging) | `false` |
+| `require-canonical` | Fail the step unless the scan is CANONICAL with score status OK | `false` |
 
 ### Outputs
 
@@ -203,6 +204,10 @@ step when the gate you configured trips.
 | `warn_count` | Number of WARN findings |
 | `fail_count` | Number of FAIL findings |
 | `report_path` | Path to the uploaded report file on the runner |
+| `coverage` | Evidence coverage ratio (0.0-1.0) |
+| `score_status` | `OK`\|`DEGRADED`\|`NOT_CANONICAL`\|`INSUFFICIENT_EVIDENCE` |
+| `scan_scope` | `CANONICAL`\|`CUSTOM`\|`PARTIAL` |
+| `error_count` | Number of checks that errored |
 
 ### Free boundary
 

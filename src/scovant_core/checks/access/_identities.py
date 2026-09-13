@@ -1,12 +1,11 @@
-"""Search vs. training crawler identity tokens used by the CORE-ACCESS checks.
-
-Deliberately independent from `parsers.robots._AI_AGENTS` (which extracts only
-a fixed subset's per-agent directives during `parse_robots_txt`) — these
-tuples list every crawler token an access check probes via `is_allowed`
-against the parsed robots.txt text directly, not the narrower set
-`parse_robots_txt` special-cases output for.
-"""
+"""Crawler identity token groups used by the CORE-ACCESS checks, derived
+from the ONE registry (`registry.ai_bots`) — no literal crawler token may be
+hand-copied here (see `tests/test_registry_derivation.py`)."""
 from __future__ import annotations
 
-SEARCH_CRAWLERS: tuple[str, ...] = ("OAI-SearchBot", "Claude-SearchBot", "PerplexityBot", "Googlebot", "Bingbot")
-TRAINING_CRAWLERS: tuple[str, ...] = ("GPTBot", "ClaudeBot", "Google-Extended", "CCBot", "Applebot-Extended")
+from scovant_core.registry.ai_bots import by_purpose
+
+SEARCH_CRAWLERS: tuple[str, ...] = by_purpose("search")
+USER_FETCH_CRAWLERS: tuple[str, ...] = by_purpose("user_fetch")
+TRAINING_CRAWLERS: tuple[str, ...] = by_purpose("training")
+CONTENT_USE_TOKENS: tuple[str, ...] = by_purpose("content_use_control")

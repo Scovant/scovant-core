@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import ipaddress
+import re
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlsplit, urlunsplit
 
 import httpx
 
@@ -44,6 +45,108 @@ class SSRFBlocked(httpx.RequestError):
     block from an ordinary network failure can `isinstance(exc, SSRFBlocked)`."""
 
 
+# RFC 3986 path parameters (`;key=value` or bare `;key`) attached to a path
+# SEGMENT — e.g. `/path;jsessionid=abc123`. These travel in `urlsplit().path`,
+# not `.query`, so a query-only redaction misses them entirely; a session id
+# riding a path param would otherwise round-trip unchanged.
+_PATH_PARAM_RE = re.compile(r";([^=;/]+)(=[^;/]*)?")
+
+
+def _redact_path_params(path: str) -> str:
+    return _PATH_PARAM_RE.sub(lambda m: f";{m.group(1)}=[REDACTED]", path)
+
+
+def has_userinfo(url: str) -> bool:
+    """True iff `url` carries embedded credentials (`user:pw@host` or
+    `user@host`). Tested against `netloc` containing "@", not the whole
+    URL, so a query VALUE that happens to contain "@" (e.g. an email
+    address, `?u=user@example.com`) is never mistaken for userinfo."""
+    p = urlparse(url)
+    return bool(p.username) or bool(p.password) or ("@" in p.netloc)
+
+
+def display_url(url: str) -> str:
+    """The URL as every report shows it: query VALUES replaced by
+    [REDACTED] (keys kept), RFC 3986 path-parameter VALUES (`;key=value`
+    segments in the path, e.g. a `;jsessionid=...`) redacted the same way,
+    fragment dropped. The full URL exists only inside the engine's fetch
+    path (audit §7)."""
+    p = urlsplit(url)
+    path = _redact_path_params(p.path)
+    if not p.query:
+        return urlunsplit((p.scheme, p.netloc, path, "", ""))
+    keys = [kv.split("=", 1)[0] for kv in p.query.split("&") if kv]
+    return urlunsplit((p.scheme, p.netloc, path, "&".join(f"{k}=[REDACTED]" for k in keys), ""))
+
+
+def redact_message(message: str, url: str) -> str:
+    """Replace any occurrence of the raw `url` (or its bare query string, or
+    a raw `;key=value` path-parameter segment) inside an error `message`
+    with its redacted display form — httpx exception text often embeds the
+    full request URL verbatim."""
+    if not message:
+        return message
+    return _apply_replacements(message, _replacements_for(url))
+
+
+def _replacements_for(url: str) -> list[tuple[str, str]]:
+    """Every raw substring of `url` that must never survive into a report,
+    paired with its redacted replacement — longest-first so the full-URL
+    replacement (when present) runs before any of its own substrings could
+    partially match. Shared by `redact_message` (single string) and
+    `redact_report_strings` (arbitrary nested structure) so the two never
+    drift on what counts as "the secret part of this URL"."""
+    if not url:
+        return []
+    p = urlsplit(url)
+    redacted = display_url(url)
+    replacements = [(url, redacted)]
+    if p.query:
+        replacements.append((p.query, urlsplit(redacted).query))
+    if p.fragment:
+        replacements.append((p.fragment, ""))
+    for m in _PATH_PARAM_RE.finditer(p.path):
+        replacements.append((m.group(0), f";{m.group(1)}=[REDACTED]"))
+    replacements = [(raw, red) for raw, red in replacements if raw]
+    replacements.sort(key=lambda kv: -len(kv[0]))
+    return replacements
+
+
+def _apply_replacements(text: str, replacements: list[tuple[str, str]]) -> str:
+    out = text
+    for raw, red in replacements:
+        out = out.replace(raw, red)
+    return out
+
+
+def redact_report_strings(obj, url: str):
+    """Pure recursive walker: replaces every raw fragment of `url` (the raw
+    full URL, its raw query string, its raw fragment, and any raw
+    `;key=value` path-parameter segment) with its display form, in EVERY
+    string found anywhere inside `obj` (arbitrarily nested dict/list/str;
+    any other value passes through unchanged).
+
+    This is the belt to the ~20 at-source `display_url`/`redact_message`
+    call sites' suspenders: those redact evidence at the point a check
+    builds it, which is precise but has no single choke point — the next
+    check that copies a URL into its evidence without routing it through
+    `display_url` leaks again. `engine.scan` calls this ONCE over the
+    finished `Report` right before returning, so a forgotten at-source
+    call site degrades to "redacted late" instead of "never redacted"."""
+    replacements = _replacements_for(url)
+
+    def _walk(node):
+        if isinstance(node, str):
+            return _apply_replacements(node, replacements)
+        if isinstance(node, dict):
+            return {k: _walk(v) for k, v in node.items()}
+        if isinstance(node, list):
+            return [_walk(v) for v in node]
+        return node
+
+    return _walk(obj)
+
+
 def _ip_is_blocked(ip: str) -> bool:
     addr = ipaddress.ip_address(ip)
     return any(addr in net for net in _PRIVATE_NETWORKS) or addr.is_private \
@@ -66,6 +169,8 @@ def assert_safe_public_url(url: str, *, require_https: bool = True, resolve: boo
     domain isn't dropped; the per-request hook still blocks the actual fetch.
     """
     parsed = urlparse(url)
+    if has_userinfo(url):
+        raise UnsafeURLError("URL must not contain credentials")
     if require_https and parsed.scheme != "https":
         raise UnsafeURLError("URL must be HTTPS")
     if parsed.scheme not in ("http", "https"):
@@ -126,6 +231,10 @@ __all__ = [
     "UnresolvableHost",
     "UnsafeURLError",
     "assert_safe_public_url",
+    "display_url",
+    "has_userinfo",
+    "redact_message",
+    "redact_report_strings",
     "ssrf_guard",
     "ssrf_guard_async",
 ]

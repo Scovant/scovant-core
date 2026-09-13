@@ -11,6 +11,7 @@ from scovant_core.report._common import (
     na_experimental,
     scored_experimental,
     status_counts,
+    status_note,
     top_findings,
 )
 from scovant_core.report._cta import CTA_TEXT, cta_url
@@ -25,9 +26,13 @@ def _score_block(r: Report) -> list[str]:
     s = r.score
     value = "—" if s.value is None else str(s.value)
     grade = s.grade or "—"
+    error_count = r.metrics.get("error_count", 0)
     lines = [f"**{s.name}:** {value} / 100 · grade {grade} · coverage {s.coverage:.0%}"]
-    if s.status != "OK":
-        lines.append(f"**Status:** {s.status}")
+    lines.append(f"**Scope:** {s.scope} · **Status:** {s.status} · **Errors:** {error_count}")
+    note = status_note(r)
+    if note:
+        strong, rest = note
+        lines.append(f"**{strong}**{rest}")
     t = r.target
     lines.append(
         f"**Profile:** {t.resolved_profile} (requested {t.requested_profile}, "

@@ -17,6 +17,7 @@ inputs:
   timeout: { description: Total scan budget in seconds, default: '60' }
   report-format: { description: html|markdown — the uploaded artifact, default: html }
   allow-private-networks: { description: Allow private/loopback targets (your own staging), default: 'false' }
+  require-canonical: { description: Fail the step unless the scan is CANONICAL with score status OK, default: 'false' }
 outputs:
   score: { value: '${{ steps.out.outputs.score }}' }
   grade: { value: '${{ steps.out.outputs.grade }}' }
@@ -24,6 +25,10 @@ outputs:
   warn_count: { value: '${{ steps.out.outputs.warn_count }}' }
   fail_count: { value: '${{ steps.out.outputs.fail_count }}' }
   report_path: { value: '${{ steps.out.outputs.report_path }}' }
+  coverage: { value: '${{ steps.out.outputs.coverage }}' }
+  score_status: { value: '${{ steps.out.outputs.score_status }}' }
+  scan_scope: { value: '${{ steps.out.outputs.scan_scope }}' }
+  error_count: { value: '${{ steps.out.outputs.error_count }}' }
 runs:
   using: composite
   steps:
@@ -66,4 +71,9 @@ runs:
       env:
         INPUT_MIN_CORE_SCORE: ${{ inputs.min-core-score }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
-      run: python -m scovant_core.action gate "$RUNNER_TEMP/core.json" --min-score "$INPUT_MIN_CORE_SCORE" --fail-on "$INPUT_FAIL_ON"
+        INPUT_REQUIRE_CANONICAL: ${{ inputs.require-canonical }}
+      run: |
+        set -euo pipefail
+        extra=()
+        [[ "$INPUT_REQUIRE_CANONICAL" == "true" ]] && extra+=(--require-canonical)
+        python -m scovant_core.action gate "$RUNNER_TEMP/core.json" --min-score "$INPUT_MIN_CORE_SCORE" --fail-on "$INPUT_FAIL_ON" "${extra[@]}"

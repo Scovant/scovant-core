@@ -4,22 +4,41 @@ import httpx
 import pytest
 
 from scovant_core import cli, contribute
-from scovant_core.contribute import build_payload, send
+from scovant_core.contribute import ContributeResult, build_payload, send
 from tests.conftest import FIXTURES, FixtureTransport
 from tests.test_report_markdown import _report
 
 PAYLOAD_KEYS = {
     "domain", "timestamp", "core_version", "ruleset_version", "ruleset_digest",
     "profile", "experimental", "check_statuses", "score",
+    "scan_scope", "score_status", "error_count",
 }
 
 
-def test_payload_is_exactly_d3():
+def test_payload_is_exactly_d3_v0_1_1():
     p = build_payload(_report("commerce-good"))
     assert set(p) == PAYLOAD_KEYS and p["domain"] == "example.com"
     assert set(p["score"]) == {"value", "grade", "coverage", "status"}
     assert all(v in ("PASS", "WARN", "FAIL", "N/A", "ERROR") for v in p["check_statuses"].values())
     assert "http" not in json.dumps(p["check_statuses"])  # no URLs
+    assert p["scan_scope"] == "CANONICAL"
+    assert p["score_status"] == "OK"
+    assert p["error_count"] == 0
+
+
+def test_cli_skips_contribute_for_a_custom_scan(monkeypatch, capsys):
+    calls = []
+    monkeypatch.setattr(
+        cli, "send",
+        lambda payload, **kw: calls.append(payload) or ContributeResult(True, 202, "accepted"),
+    )
+    monkeypatch.setattr(cli, "_TRANSPORT_FACTORY", lambda: FixtureTransport(FIXTURES / "sites" / "commerce-good"))
+    code = cli.main(
+        ["scan", "https://example.com/", "--contribute", "--include", "CORE-ACCESS-003", "--quiet"]
+    )
+    err = capsys.readouterr().err
+    assert code == 0 and calls == []
+    assert "contributed: skipped (scan is CUSTOM; only canonical scans are accepted)" in err
 
 
 def _factory(handler):

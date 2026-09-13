@@ -74,22 +74,67 @@ test('no uvx, no pipx → falls back to python3 -m scovant_core, argv and exit c
   assert.equal(r.stderr, '');
 });
 
-test('a python3 carrying a DIFFERENT engine version still runs, but says so', () => {
+test('a python3 carrying a DIFFERENT engine version is refused, naming both versions', () => {
   const dir = fakePython('0.0.1-other', 'echo "ARGS:$@"; exit 0');
   const r = spawnSync(process.execPath, [BIN, 'scan', 'https://example.com'],
     { env: { PATH: dir, SCOVANT_NPM_TEST: '1' }, encoding: 'utf8' });
-  assert.equal(r.status, 0, 'a version mismatch must not stop the user working');
-  assert.match(r.stdout, /-m scovant_core scan/);
+  assert.equal(r.status, 9, 'a mismatched engine cannot prove a match, so it is refused by default');
   assert.match(r.stderr, /0\.0\.1-other/);
-  assert.ok(r.stderr.includes(VERSION), 'the warning must name the launcher version too');
+  assert.ok(r.stderr.includes(VERSION), 'the message must name the launcher version too');
+  assert.match(r.stderr, /SCOVANT_ALLOW_VERSION_MISMATCH/);
 });
 
-test('a python3 whose --version is unparseable warns rather than claiming a match', () => {
+test('...with SCOVANT_ALLOW_VERSION_MISMATCH=1, the mismatched engine runs anyway, with a warning', () => {
+  const dir = fakePython('0.0.1-other', 'echo "ARGS:$@"; exit 0');
+  const r = spawnSync(process.execPath, [BIN, 'scan', 'https://example.com'],
+    { env: { PATH: dir, SCOVANT_NPM_TEST: '1', SCOVANT_ALLOW_VERSION_MISMATCH: '1' }, encoding: 'utf8' });
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /-m scovant_core scan/);
+  assert.match(r.stderr, /warning/);
+  assert.match(r.stderr, /0\.0\.1-other/);
+});
+
+test('a python3 whose --version is unparseable is refused, not silently trusted', () => {
   const dir = fakeRunner('python3', 'echo "ARGS:$@"; exit 0');
   const r = spawnSync(process.execPath, [BIN, 'scan', 'https://example.com'],
     { env: { PATH: dir, SCOVANT_NPM_TEST: '1' }, encoding: 'utf8' });
+  assert.equal(r.status, 9, 'an unparseable answer cannot prove a match either, so it is refused by default');
+  assert.match(r.stderr, /an unknown version/);
+  assert.match(r.stderr, /SCOVANT_ALLOW_VERSION_MISMATCH/);
+});
+
+test('...with SCOVANT_ALLOW_VERSION_MISMATCH=1, the unparseable-version engine runs anyway, with a warning', () => {
+  const dir = fakeRunner('python3', 'echo "ARGS:$@"; exit 0');
+  const r = spawnSync(process.execPath, [BIN, 'scan', 'https://example.com'],
+    { env: { PATH: dir, SCOVANT_NPM_TEST: '1', SCOVANT_ALLOW_VERSION_MISMATCH: '1' }, encoding: 'utf8' });
   assert.equal(r.status, 0);
-  assert.match(r.stderr, /unknown version/);
+  assert.match(r.stdout, /-m scovant_core scan/);
+  assert.match(r.stderr, /warning/);
+  assert.match(r.stderr, /an unknown version/);
+});
+
+// The interpreter-loop case (a first python3.NN candidate answers with a
+// mismatched version, a later candidate answers with a match, so the
+// launcher succeeds via the later one) needs TWO distinctly-named fake
+// interpreters on PATH at once — `fakeRunner`/`fakePython` above only ever
+// stage one binary per temp dir, and `resolveRunner`'s loop tries fixed
+// names (`python3.13`, `python3.12`, `python3`) in order, so exercising the
+// fallback for real would mean faking `python3.13` (mismatched) AND
+// `python3` (matching) side by side in the same directory. That's
+// expressible; do it explicitly rather than skipping.
+test('a mismatched python3.13 is skipped in favor of a matching python3', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'fakebin-'));
+  const bad = join(dir, 'python3.13');
+  writeFileSync(bad, `#!/bin/sh\ncase "$*" in *--version) echo "scovant-core 0.0.1-other"; exit 0;; esac\necho "ARGS:$@"; exit 0\n`);
+  chmodSync(bad, 0o755);
+  const good = join(dir, 'python3');
+  writeFileSync(good, `#!/bin/sh\ncase "$*" in *--version) echo "scovant-core ${VERSION}"; exit 0;; esac\necho "ARGS:$@"; exit 0\n`);
+  chmodSync(good, 0o755);
+  const r = spawnSync(process.execPath, [BIN, 'scan', 'https://example.com'],
+    { env: { PATH: dir, SCOVANT_NPM_TEST: '1' }, encoding: 'utf8' });
+  assert.equal(r.status, 0, 'a later, matching candidate must still let the launcher succeed');
+  assert.match(r.stdout, /-m scovant_core scan/);
+  assert.equal(r.stderr, '', 'the matching candidate that actually ran leaves no warning');
 });
 
 test('a probe killed by its own timeout is not reported as a missing tool', () => {

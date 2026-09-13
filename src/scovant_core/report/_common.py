@@ -10,6 +10,23 @@ _GROUP_ORDER = (
 )
 
 
+def status_note(report: Report) -> tuple[str, str] | None:
+    """A one-sentence explanation for a non-OK, non-INSUFFICIENT_EVIDENCE
+    score status, split as `(strong, rest)` so each renderer can bold the
+    first part in its own markup (`**{strong}**{rest}` in Markdown/the
+    Action summary, `<strong>{e(strong)}</strong>{e(rest)}` in HTML) without
+    three copies of the wording drifting apart. `None` when the status needs
+    no extra sentence (OK, or INSUFFICIENT_EVIDENCE — already unambiguous
+    from the score line itself)."""
+    s = report.score
+    if s.status == "NOT_CANONICAL":
+        return ("Canonical Core Score: NOT CALCULATED", " — a subset of checks was selected.")
+    if s.status == "DEGRADED":
+        n = int(report.metrics.get("error_count", 0))
+        return ("No grade", f" — score DEGRADED (coverage {s.coverage:.0%}, {n} checks errored).")
+    return None
+
+
 def scored_experimental(report: Report) -> bool:
     """Whether this scan actually scored experimental checks (`--experimental`
     was on) — read off the report's own provenance, never guessed from the

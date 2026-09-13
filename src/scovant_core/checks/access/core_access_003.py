@@ -1,4 +1,4 @@
-from scovant_core.checks.access._identities import SEARCH_CRAWLERS
+from scovant_core.checks.access._identities import SEARCH_CRAWLERS, USER_FETCH_CRAWLERS
 from scovant_core.checks.access._robots_readability import (
     classify_robots_readability,
     robots_truncation,
@@ -15,6 +15,7 @@ class AiSearchCrawlerPolicy(CoreCheck):
     category = Category.ACCESS
     weight = 4
     severity_on_fail = Severity.HIGH
+    check_version = "1.1"
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)
     why_it_matters = "Search and answer engines only surface pages their crawlers are declared allowed to fetch."
     limitations = "Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed."
@@ -43,16 +44,25 @@ class AiSearchCrawlerPolicy(CoreCheck):
         verdicts = {ua: is_allowed(robots["text"], ua, f"{ctx.origin}/") for ua in SEARCH_CRAWLERS}
         disallowed = [ua for ua, ok in verdicts.items() if not ok]
         ev["declared_policy"], ev["robots_present"] = verdicts, True
+        # The user-fetch class (a person's own agent fetching a page on
+        # their behalf, e.g. ChatGPT-User) is reported alongside the search
+        # verdict, never folded into it — a site can restrict one without
+        # the other, and conflating them would misreport which class is
+        # actually blocked.
+        uf = {ua: is_allowed(robots["text"], ua, f"{ctx.origin}/") for ua in USER_FETCH_CRAWLERS}
+        ev["user_fetch_policy"] = uf
+        blocked_uf = [ua for ua, ok in uf.items() if not ok]
+        uf_note = f" User-triggered fetch agents blocked: {', '.join(blocked_uf)}." if blocked_uf else ""
         conf = truncated_confidence(truncated)
         if not disallowed:
             return self.result(CheckStatus.PASS,
-                               "robots.txt declares all major search and answer-engine crawlers as allowed." + note,
+                               "robots.txt declares all major search and answer-engine crawlers as allowed." + note + uf_note,
                                evidence=ev, confidence=conf)
         if len(disallowed) == len(verdicts):
             return self.result(CheckStatus.FAIL,
-                               "robots.txt declares every major search and answer-engine crawler as disallowed." + note,
+                               "robots.txt declares every major search and answer-engine crawler as disallowed." + note + uf_note,
                                evidence=ev, confidence=conf,
-                               remediation="Allow search/retrieval crawlers (e.g. OAI-SearchBot, Claude-SearchBot, PerplexityBot) in robots.txt while keeping any training restrictions separate.")
-        return self.result(CheckStatus.WARN, "robots.txt declares " + ", ".join(disallowed) + " as disallowed." + note,
+                               remediation="Allow search/retrieval crawlers (" + ", ".join(SEARCH_CRAWLERS[:3]) + ", …) in robots.txt while keeping any training restrictions separate.")
+        return self.result(CheckStatus.WARN, "robots.txt declares " + ", ".join(disallowed) + " as disallowed." + note + uf_note,
                            evidence=ev, confidence=conf,
                            remediation="Review whether blocking these retrieval crawlers is intended; they power answer-engine discovery, not model training.")

@@ -6,6 +6,7 @@ from scovant_core.checks._truncation import record_truncation, truncated_confide
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
 from scovant_core.parsers.html import normalize_internal_url
+from scovant_core.security.url_safety import display_url
 
 
 def _canon(url: str) -> str:
@@ -36,9 +37,9 @@ class CanonicalIntegrity(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
         canonical = entry["parsed"].get("metadata", {}).get("canonical_url")
-        ev = {"entry_url": ctx.final_url, "canonical_url": canonical}
+        ev = {"entry_url": display_url(ctx.final_url), "canonical_url": canonical}
         # `canonical` was read out of the entry page's own HTML — a page cut
         # off at the fetch cap may have lost the <link rel="canonical"> tag
         # (or the truth about whether one is even declared), so every verdict

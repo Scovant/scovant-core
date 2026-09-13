@@ -206,6 +206,19 @@ def test_004_warn_on_bad(fixture_site):
     assert result.evidence["search_blocked"]
 
 
+def test_004_content_use_control_token_counts_as_training_class_restriction():
+    # Google-Extended has no user-agent of its own (identity_type="robots_token")
+    # and purpose="content_use_control", not "training" — but disallowing only
+    # it is still an explicit training-class opt-out from a site owner's
+    # perspective, not "no restriction declared".
+    robots = "User-agent: Google-Extended\nDisallow: /\n"
+    store, ctx = _scan(make_client(_site_handler(robots=robots)))
+    result = TrainingVsSearchSeparation().run(store, ctx)
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["explicit_separation"] is True
+    assert "Google-Extended" in result.evidence["training_blocked"]
+
+
 # ---------------------------------------------------------------------------
 # 005 sitemap availability
 # ---------------------------------------------------------------------------
@@ -919,3 +932,51 @@ def test_009_llms_txt_mislabeled_as_text_html_is_still_llms_txt():
     store, ctx = _scan(make_client(handler))
     assert store.get("llms")["served_as_html"] is False
     assert LlmsTxtIntegrity().run(store, ctx).status == CheckStatus.PASS
+
+
+# ---------------------------------------------------------------------------
+# v0.1.1 (audit P0 §5): purpose-aware registry — user-fetch class reported
+# separately from search, and the engine metric derived from the registry.
+
+def test_access_003_reports_user_fetch_class_separately():
+    robots = "User-agent: ChatGPT-User\nDisallow: /\n"
+    store, ctx = _scan(make_client(_site_handler(robots=robots)))
+    r = AiSearchCrawlerPolicy().run(store, ctx)
+    assert r.status == CheckStatus.PASS                      # search class untouched → verdict unchanged
+    assert r.evidence["user_fetch_policy"]["ChatGPT-User"] is False
+    assert "user-triggered" in r.summary.lower()
+    assert AiSearchCrawlerPolicy.check_version == "1.1"
+
+
+def test_engine_metrics_ai_crawler_policy():
+    from scovant_core.engine import scan
+    from tests.conftest import FIXTURES, FixtureTransport
+    rep = scan("https://example.com/", transport=FixtureTransport(FIXTURES / "sites" / "commerce-good", "example.com"))
+    pol = rep.metrics["ai_crawler_policy"]
+    assert set(pol) == {"search", "user_triggered", "training", "content_use", "registry_version"}
+    assert pol["search"]["verdict"] in ("allowed", "blocked", "mixed", "undeclared")
+    assert pol["registry_version"] == "2026.09.13"
+
+
+def test_engine_metrics_ai_crawler_policy_is_none_when_robots_was_never_gathered():
+    """A narrowed `--include` selection that never touches robots.txt
+    evidence must not report `ai_crawler_policy` as a dict of "undeclared"
+    verdicts — that would claim a measurement (fetching robots.txt) that
+    never happened. It must be `None`.
+
+    Two things must both be true for robots.txt to go genuinely unfetched:
+    the selected check itself must not need it (CORE-INTERFACE-001 reads
+    only "http"/"mcp_discovery" — unlike the Machine Understanding checks,
+    it never chains into "pages" -> "sitemap_urls" -> "robots_txt"), AND
+    profile resolution must not run (auto-profiling reads "pages" too, on
+    every scan, independent of `--include`) — so an explicit `profile` is
+    passed here."""
+    from scovant_core.context import ScanOptions
+    from scovant_core.engine import scan
+    from tests.conftest import FIXTURES, FixtureTransport
+    rep = scan(
+        "https://example.com/",
+        options=ScanOptions(include=("CORE-INTERFACE-001",), profile="content"),
+        transport=FixtureTransport(FIXTURES / "sites" / "commerce-good", "example.com"),
+    )
+    assert rep.metrics["ai_crawler_policy"] is None

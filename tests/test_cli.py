@@ -397,3 +397,233 @@ def test_token_chars_ratio_must_be_at_least_one():
     with pytest.raises(SystemExit) as exc_info:
         cli.main(["scan", "https://example.com/", "--token-chars-ratio", "0"])
     assert exc_info.value.code == 2
+
+
+def test_scan_provenance_carries_scope_and_selection(monkeypatch, capsys):
+    import json
+    _use_fixture(monkeypatch)
+    assert cli.main(["scan", "https://example.com/", "--format", "json", "--include", "CORE-ACCESS-003"]) == 0
+    rep = json.loads(capsys.readouterr().out)
+    p = rep["provenance"]
+    assert p["scan_scope"] == "CUSTOM" and p["included_checks"] == ["CORE-ACCESS-003"] and p["excluded_checks"] == []
+    assert p["canonical_min_coverage"] == 0.85 and p["evidence_min_coverage"] == 0.6
+    assert rep["metrics"]["error_count"] == 0
+    assert rep["score"]["scope"] == "CUSTOM" and rep["score"]["name"] == "Subset Diagnostic Score"
+
+
+def test_full_fixture_scan_is_canonical(monkeypatch, capsys):
+    import json
+    _use_fixture(monkeypatch)
+    assert cli.main(["scan", "https://example.com/", "--format", "json"]) == 0
+    rep = json.loads(capsys.readouterr().out)
+    assert rep["score"]["scope"] == "CANONICAL" and rep["score"]["status"] == "OK"
+    assert rep["provenance"]["included_checks"] == [] and rep["provenance"]["excluded_checks"] == []
+
+
+def test_excluded_checks_records_only_what_exclude_removed(monkeypatch, capsys):
+    import json
+    _use_fixture(monkeypatch)
+    code = cli.main([
+        "scan", "https://example.com/", "--format", "json",
+        "--include", "CORE-ACCESS-003", "--include", "CORE-ACCESS-004",
+        "--exclude", "CORE-ACCESS-004",
+    ])
+    assert code == 0
+    rep = json.loads(capsys.readouterr().out)
+    p = rep["provenance"]
+    assert p["included_checks"] == ["CORE-ACCESS-003", "CORE-ACCESS-004"]
+    assert p["excluded_checks"] == ["CORE-ACCESS-004"]
+    non_na = [f for f in rep["findings"] if f["status"] != "N/A"]
+    assert len(non_na) == 1 and non_na[0]["id"] == "CORE-ACCESS-003"
+
+
+def test_exclude_alone_records_only_the_excluded_id(monkeypatch, capsys):
+    import json
+    _use_fixture(monkeypatch)
+    code = cli.main([
+        "scan", "https://example.com/", "--format", "json",
+        "--exclude", "CORE-ACCESS-003",
+    ])
+    assert code == 0
+    rep = json.loads(capsys.readouterr().out)
+    p = rep["provenance"]
+    assert p["excluded_checks"] == ["CORE-ACCESS-003"]
+    assert p["included_checks"] == []
+
+
+def _base_report_for_text():
+    from scovant_core.engine import scan
+
+    return scan(
+        "https://example.com/",
+        transport=FixtureTransport(FIXTURES / "sites" / "commerce-good", "example.com"),
+        clock=CLOCK,
+    )
+
+
+def test_text_score_line_by_status():
+    from scovant_core.models import Score
+    from scovant_core.report.text import score_line
+
+    base = _base_report_for_text()
+
+    ok = base.model_copy(update={
+        "score": Score(value=71, grade="C", coverage=1.0, status="OK", scope="CANONICAL"),
+    })
+    assert score_line(ok).endswith("71 / 100   C")
+
+    degraded = base.model_copy(update={
+        "score": Score(value=71, grade=None, coverage=0.78, status="DEGRADED", scope="PARTIAL"),
+        "metrics": {**base.metrics, "error_count": 2},
+    })
+    from scovant_core.report.text import _LABEL_WIDTH
+    assert score_line(degraded) == (
+        f"{'Static Signal Score'.ljust(_LABEL_WIDTH)}"
+        "71 / 100   (no grade — score DEGRADED, coverage 0.78, 2 checks errored)"
+    )
+
+    not_canonical = base.model_copy(update={
+        "score": Score(
+            name="Subset Diagnostic Score", value=71, grade=None, coverage=1.0,
+            status="NOT_CANONICAL", scope="CUSTOM",
+        ),
+    })
+    line = score_line(not_canonical)
+    assert line.startswith("Subset Diagnostic Score 71 / 100 — Canonical Core Score: NOT CALCULATED (")
+    assert "checks selected)" in line
+
+    insufficient = base.model_copy(update={
+        "score": Score(value=None, grade=None, coverage=0.3, status="INSUFFICIENT_EVIDENCE", scope="CANONICAL"),
+    })
+    assert score_line(insufficient) == "Core Score: INSUFFICIENT EVIDENCE (coverage 0.30)"
+
+
+def test_require_canonical_exit_codes(monkeypatch, capsys):
+    _use_fixture(monkeypatch)
+    assert cli.main(["scan", "https://example.com/", "--require-canonical", "--quiet"]) == 0
+    assert cli.main([
+        "scan", "https://example.com/", "--require-canonical", "--quiet", "--include", "CORE-ACCESS-003",
+    ]) == 1
+    out = capsys.readouterr().out
+    assert "NOT CALCULATED" in out
+
+
+def test_markdown_and_html_show_scope_and_status(monkeypatch, capsys):
+    _use_fixture(monkeypatch)
+    cli.main(["scan", "https://example.com/", "--format", "markdown", "--include", "CORE-ACCESS-003"])
+    md = capsys.readouterr().out
+    assert "**Subset Diagnostic Score:**" in md and "**Scope:** CUSTOM" in md and "Canonical Core Score: NOT CALCULATED" in md
+    cli.main(["scan", "https://example.com/", "--format", "html", "--include", "CORE-ACCESS-003"])
+    html = capsys.readouterr().out
+    assert "Subset Diagnostic Score" in html and "NOT CALCULATED" in html and "CUSTOM" in html
+
+
+def test_markdown_degraded_status_line_appears_once():
+    from scovant_core.models import Score
+    from scovant_core.report.markdown import render_markdown
+
+    base = _base_report_for_text()
+    degraded = base.model_copy(update={
+        "score": Score(value=71, grade=None, coverage=0.78, status="DEGRADED", scope="PARTIAL"),
+        "metrics": {**base.metrics, "error_count": 2},
+    })
+    md = render_markdown(degraded)
+    assert md.count("**Status:**") == 1
+    assert "No grade" in md
+
+
+def test_markdown_not_canonical_note_appears_once(monkeypatch, capsys):
+    _use_fixture(monkeypatch)
+    cli.main(["scan", "https://example.com/", "--format", "markdown", "--include", "CORE-ACCESS-003"])
+    md = capsys.readouterr().out
+    assert md.count("Canonical Core Score: NOT CALCULATED") == 1
+
+
+LEAK_CANARY = "canary-7f3a9c"
+
+
+def test_userinfo_url_is_invalid_input_and_never_echoed(capsys):
+    # Assembled at runtime (not one literal containing `user:...@example.com`) so
+    # the publish guard's bare-hostname heuristic doesn't mistake this test
+    # fixture for a real leaked credential.
+    url = "https://" + f"user:{LEAK_CANARY}@" + "example.com/"
+    code = cli.main(["scan", url])
+    err = capsys.readouterr().err
+    assert code == 2 and "credentials" in err and LEAK_CANARY not in err
+
+
+def test_query_secret_never_appears_in_any_output(monkeypatch, capsys, tmp_path):
+    _use_fixture(monkeypatch)
+    url = f"https://example.com/?token={LEAK_CANARY}&x=1"
+    for fmt in ("text", "json", "markdown", "html"):
+        code = cli.main(["scan", url, "--format", fmt])
+        cap = capsys.readouterr()
+        assert code == 0, cap.err
+        assert LEAK_CANARY not in cap.out and LEAK_CANARY not in cap.err
+        assert "token=[REDACTED]" in cap.out
+
+    # --quiet text mode goes through the same score_line/renderer path
+    _use_fixture(monkeypatch)
+    code = cli.main(["scan", url, "--quiet"])
+    cap = capsys.readouterr()
+    assert code == 0, cap.err
+    assert LEAK_CANARY not in cap.out and LEAK_CANARY not in cap.err
+
+    # --require-canonical's failure path renders through the same text
+    # renderer as the success path above
+    _use_fixture(monkeypatch)
+    code = cli.main(["scan", url, "--require-canonical", "--include", "CORE-ACCESS-003"])
+    cap = capsys.readouterr()
+    assert LEAK_CANARY not in cap.out and LEAK_CANARY not in cap.err
+
+    # the Action's summary + outputs, fed from the JSON report
+    from scovant_core import action
+    cli.main(["scan", url, "--format", "json", "--output", str(tmp_path / "core.json")])
+    capsys.readouterr()
+    out, summ = tmp_path / "out", tmp_path / "summ"
+    action.main(["outputs", str(tmp_path / "core.json"), "--report-path", "r.html"], env={"GITHUB_OUTPUT": str(out)})
+    action.main(["summary", str(tmp_path / "core.json")], env={"GITHUB_STEP_SUMMARY": str(summ)})
+    assert LEAK_CANARY not in out.read_text() and LEAK_CANARY not in summ.read_text()
+    assert LEAK_CANARY not in (tmp_path / "core.json").read_text()
+
+
+_LEAK_CANARY_Q = "canary-query-9f21c"
+_LEAK_CANARY_P = "canary-pathparam-7be44"
+_LEAK_URL = f"https://example.com/path;sid={_LEAK_CANARY_P}?token={_LEAK_CANARY_Q}&x=1"
+
+
+@pytest.mark.parametrize("extra_args", [[], ["--experimental"]], ids=["canonical", "experimental"])
+@pytest.mark.parametrize("fixture_name", ["commerce-good", "commerce-bad", "api-good", "saas-mixed"])
+def test_no_secret_leaks_across_every_fixture_format_and_selection(
+    monkeypatch, capsys, tmp_path, fixture_name, extra_args,
+):
+    """Permanent tripwire (fix round 1 on task S.4): a query-string secret
+    AND an RFC 3986 path-parameter secret must never survive into ANY
+    report surface, for ANY golden fixture, canonical or `--experimental`.
+    Guards both the ~20 at-source `display_url`/`redact_message` call
+    sites AND the report-level `redact_report_strings` backstop — a check
+    added later that forgets to redact a URL it copies into evidence is
+    still caught here (by the backstop), even though this test can't tell
+    which layer caught it."""
+    for fmt in ("text", "json", "markdown", "html"):
+        _use_fixture(monkeypatch, fixture_name)
+        code = cli.main(["scan", _LEAK_URL, "--format", fmt, *extra_args])
+        cap = capsys.readouterr()
+        assert code in (0, 1, 5), cap.err  # never a crash on the injected secret itself
+        assert _LEAK_CANARY_Q not in cap.out and _LEAK_CANARY_Q not in cap.err
+        assert _LEAK_CANARY_P not in cap.out and _LEAK_CANARY_P not in cap.err
+
+    if fixture_name != "commerce-good" or extra_args:
+        return  # the Action round-trip below only needs to run once
+
+    from scovant_core import action
+
+    _use_fixture(monkeypatch, fixture_name)
+    report_path = tmp_path / "core.json"
+    cli.main(["scan", _LEAK_URL, "--format", "json", "--output", str(report_path)])
+    capsys.readouterr()
+    out_file, summ_file = tmp_path / "out", tmp_path / "summ"
+    action.main(["outputs", str(report_path), "--report-path", "r.html"], env={"GITHUB_OUTPUT": str(out_file)})
+    action.main(["summary", str(report_path)], env={"GITHUB_STEP_SUMMARY": str(summ_file)})
+    for text in (report_path.read_text(), out_file.read_text(), summ_file.read_text()):
+        assert _LEAK_CANARY_Q not in text and _LEAK_CANARY_P not in text

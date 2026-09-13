@@ -5,6 +5,7 @@ import re
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url
 
 _LANG_RE = re.compile(r"^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$")
 
@@ -24,9 +25,9 @@ class LanguageDeclaration(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
         lang = entry["parsed"]["html_lang"]
-        ev = {"entry_url": ctx.final_url, "html_lang": lang}
+        ev = {"entry_url": display_url(ctx.final_url), "html_lang": lang}
         # `lang` is read out of the entry page's own `<html>` tag.
         note, truncated = record_truncation(entry, ev)
         conf = truncated_confidence(truncated)

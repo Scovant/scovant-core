@@ -5,14 +5,14 @@ from io import StringIO
 from typing import Any
 from urllib.robotparser import RobotFileParser
 
+from scovant_core.registry.ai_bots import ALL_CRAWLERS
+
 CORE_USER_AGENT_TOKEN = "ScovantCore"
 
-# A small, fixed subset of AI-crawler tokens whose per-agent Allow/Disallow
-# directives `parse_robots_txt` extracts individually below. This is
-# deliberately narrower than a full AI-crawler registry — a caller that needs
-# every registered token's verdict should evaluate each one through
-# `is_allowed` instead.
-_AI_AGENTS = ("GPTBot", "ClaudeBot", "Google-Extended", "PerplexityBot")
+# Every registered crawler token (see `registry.ai_bots.ALL_CRAWLERS`) —
+# `parse_robots_txt` extracts each one's per-agent Allow/Disallow directives
+# individually below.
+_AI_AGENTS = tuple(b.token for b in ALL_CRAWLERS)
 
 
 def _parser(robots_txt: str) -> RobotFileParser:
@@ -33,21 +33,13 @@ def parse_robots_txt(robots_content: str) -> dict[str, Any]:
     Returns:
         {
             "general": {"allow": [...], "disallow": [...]},
-            "GPTBot": {"allow": [...], "disallow": [...]},
-            "ClaudeBot": {"allow": [...], "disallow": [...]},
-            "Google-Extended": {"allow": [...], "disallow": [...]},
-            "PerplexityBot": {"allow": [...], "disallow": [...]},
+            # one entry per registered crawler token (see `_AI_AGENTS`)
             "sitemaps": [...],
         }
     """
-    result: dict[str, Any] = {
-        "general": {"allow": [], "disallow": []},
-        "GPTBot": {"allow": [], "disallow": []},
-        "ClaudeBot": {"allow": [], "disallow": []},
-        "Google-Extended": {"allow": [], "disallow": []},
-        "PerplexityBot": {"allow": [], "disallow": []},
-        "sitemaps": [],
-    }
+    result: dict[str, Any] = {"general": {"allow": [], "disallow": []}, "sitemaps": []}
+    for agent in _AI_AGENTS:
+        result[agent] = {"allow": [], "disallow": []}
 
     if not robots_content or not robots_content.strip():
         return result

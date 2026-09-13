@@ -172,6 +172,11 @@
           "title": "Name",
           "type": "string"
         },
+        "scope": {
+          "default": "CANONICAL",
+          "title": "Scope",
+          "type": "string"
+        },
         "status": {
           "title": "Status",
           "type": "string"

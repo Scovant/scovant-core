@@ -3,6 +3,7 @@ from __future__ import annotations
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url
 
 
 class HeadingStructure(CoreCheck):
@@ -20,7 +21,7 @@ class HeadingStructure(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
         headings = entry["parsed"]["headings"]
         h1_count = sum(1 for h in headings if h["level"] == "h1")
         issues = []
@@ -35,7 +36,7 @@ class HeadingStructure(CoreCheck):
                 issues.append("skipped heading level")
                 break
             prev = level
-        ev = {"entry_url": ctx.final_url, "heading_count": len(headings), "h1_count": h1_count,
+        ev = {"entry_url": display_url(ctx.final_url), "heading_count": len(headings), "h1_count": h1_count,
               "levels": [h["level"] for h in headings], "issues": issues}
         # The heading outline is read out of the entry page's own HTML — a
         # page cut off at the fetch cap may be missing a heading (or the H1)

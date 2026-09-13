@@ -3,6 +3,7 @@ from __future__ import annotations
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url
 
 
 class MetadataQuality(CoreCheck):
@@ -20,7 +21,7 @@ class MetadataQuality(CoreCheck):
         pages = store.get("pages")["pages"]
         entry = pages[0] if pages else None
         if entry is None or entry.get("parsed") is None:
-            return self.error("the entry page could not be parsed.", {"entry_url": ctx.final_url})
+            return self.error("the entry page could not be parsed.", {"entry_url": display_url(ctx.final_url)})
         md, og = entry["parsed"]["metadata"], entry["parsed"]["og_meta"]
         missing = []
         if not md.get("title"):
@@ -34,7 +35,7 @@ class MetadataQuality(CoreCheck):
         issues = list(missing)
         if md.get("title") and md.get("meta_description") and md["title"] == md["meta_description"]:
             issues.append("title equals description")
-        ev = {"entry_url": ctx.final_url, "title": md.get("title"), "meta_description": md.get("meta_description"),
+        ev = {"entry_url": display_url(ctx.final_url), "title": md.get("title"), "meta_description": md.get("meta_description"),
               "missing": missing, "issues": issues}
         # title/description/OG tags are read out of the entry page's own
         # <head> — a page cut off at the fetch cap may be missing a tag

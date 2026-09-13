@@ -56,3 +56,13 @@ class EvidenceStore:
             return self.get(name)
         except EvidenceUnavailable:
             return None
+
+    def gathered(self, name: str) -> dict | None:
+        """The evidence IF some already-executed check (or a gatherer it
+        depended on) already triggered `name`'s gather — never triggers a
+        NEW fetch itself. Unlike `get`/`try_get`, this distinguishes
+        "genuinely not attempted this scan" (a narrowed `--include`/
+        `--exclude` selection that never needed this evidence) from "was
+        attempted and failed" — both return `None` here, but a caller that
+        cares about the difference can still consult `self.errors`."""
+        return self._data.get(name)

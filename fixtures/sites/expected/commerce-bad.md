@@ -3,6 +3,7 @@
 ## Score
 
 **Scovant Core Static Signal Score:** 35 / 100 · grade F · coverage 100%
+**Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** commerce (requested auto, confidence 85%)
 
 ## Categories
@@ -19,7 +20,7 @@
 
 ## Top findings
 
-- **CORE-ACCESS-003** — robots.txt declares every major search and answer-engine crawler as disallowed.
+- **CORE-ACCESS-003** — robots.txt declares every major search and answer-engine crawler as disallowed. User-triggered fetch agents blocked: ChatGPT-User, Claude-User, Perplexity-User, DuckAssistBot.
 - **CORE-MACHINE-005** — The Product entity has no Offer with price, currency, or availability.
 - **CORE-ACCESS-005** — No sitemap was found.
 - **CORE-ACCESS-007** — The canonical URL points off-host.
@@ -51,14 +52,15 @@
 
   </details>
 
-- **CORE-ACCESS-003** — AI search crawler policy (high): robots.txt declares every major search and answer-engine crawler as disallowed.
-  - Remediation: Allow search/retrieval crawlers (e.g. OAI-SearchBot, Claude-SearchBot, PerplexityBot) in robots.txt while keeping any training restrictions separate.
+- **CORE-ACCESS-003** — AI search crawler policy (high): robots.txt declares every major search and answer-engine crawler as disallowed. User-triggered fetch agents blocked: ChatGPT-User, Claude-User, Perplexity-User, DuckAssistBot.
+  - Remediation: Allow search/retrieval crawlers (OAI-SearchBot, Claude-SearchBot, PerplexityBot, …) in robots.txt while keeping any training restrictions separate.
 
   <details><summary>evidence</summary>
 
   ```json
   {
     "declared_policy": {
+      "Applebot": false,
       "Bingbot": false,
       "Claude-SearchBot": false,
       "Googlebot": false,
@@ -67,7 +69,13 @@
     },
     "http_status": 200,
     "resource": "https://example.com/robots.txt",
-    "robots_present": true
+    "robots_present": true,
+    "user_fetch_policy": {
+      "ChatGPT-User": false,
+      "Claude-User": false,
+      "DuckAssistBot": false,
+      "Perplexity-User": false
+    }
   }
   ```
 
@@ -212,15 +220,16 @@
       "OAI-SearchBot",
       "Claude-SearchBot",
       "PerplexityBot",
+      "Applebot",
       "Googlebot",
       "Bingbot"
     ],
     "training_blocked": [
       "GPTBot",
       "ClaudeBot",
-      "Google-Extended",
+      "Applebot-Extended",
       "CCBot",
-      "Applebot-Extended"
+      "Google-Extended"
     ]
   }
   ```
@@ -575,7 +584,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERA
 
 ## Provenance
 
-Core 0.1.0 · ruleset 2026.09 (digest `d83df799eaa7`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.1.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

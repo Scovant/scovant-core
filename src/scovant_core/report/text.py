@@ -47,13 +47,36 @@ def _profile_line(target) -> str:
     return f"Profile: {target.resolved_profile}"
 
 
+def _total_checks() -> int:
+    # Imported lazily to avoid a module-load cycle (checks import report
+    # helpers transitively; report.text must not import checks at module scope).
+    from scovant_core.checks.registry import CHECKS
+
+    return len(CHECKS)
+
+
 def score_line(report: Report) -> str:
-    """The single summary line — `Static Signal Score NN / 100  GRADE` or the
-    `INSUFFICIENT EVIDENCE` fallback. Public so the CLI's `--quiet` mode can
-    print exactly this line without pulling in the rest of `render_text`."""
+    """The single summary line — `Static Signal Score NN / 100  GRADE`, or a
+    status-specific fallback for DEGRADED/NOT_CANONICAL/INSUFFICIENT_EVIDENCE
+    scans. Public so the CLI's `--quiet` mode can print exactly this line
+    without pulling in the rest of `render_text`."""
     score = report.score
-    if score.status != "OK" or score.value is None:
+    if score.status == "INSUFFICIENT_EVIDENCE" or score.value is None:
         return f"Core Score: INSUFFICIENT EVIDENCE (coverage {score.coverage:.2f})"
+    if score.status == "NOT_CANONICAL":
+        selected = len(report.findings)
+        excluded = report.provenance.get("excluded_checks")
+        total = len(report.findings) + len(excluded) if excluded else _total_checks()
+        return (
+            f"{score.name} {score.value} / 100 — Canonical Core Score: NOT CALCULATED "
+            f"({selected} of {total} checks selected)"
+        )
+    if score.status == "DEGRADED":
+        n = int(report.metrics.get("error_count", 0))
+        return (
+            f"{'Static Signal Score'.ljust(_LABEL_WIDTH)}{score.value} / 100   "
+            f"(no grade — score DEGRADED, coverage {score.coverage:.2f}, {n} checks errored)"
+        )
     return f"{'Static Signal Score'.ljust(_LABEL_WIDTH)}{score.value} / 100   {score.grade}"
 
 
@@ -147,7 +170,14 @@ def render_text(report: Report, *, color: bool = False) -> str:
         lines.append("Note: private-network targets allowed (--allow-private-networks)")
     if scored_experimental:
         lines.append("Experimental checks: scored")
-    lines.extend(["", score_line(report), ""])
+    s = report.score
+    error_count = report.metrics.get("error_count", 0)
+    lines.extend([
+        "",
+        score_line(report),
+        f"Scope: {s.scope} · Status: {s.status} · Coverage: {s.coverage:.0%} · Errors: {error_count}",
+        "",
+    ])
     counts = _category_counts(report.findings, scored_experimental)
     lines.extend(_category_lines(report.categories, counts))
     lines.append("")

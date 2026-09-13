@@ -8,6 +8,9 @@ from pydantic import BaseModel, Field
 REPORT_SCHEMA_VERSION = "1.0"
 SCORE_NAME = "Scovant Core Static Signal Score"
 SCORE_SHORT_NAME = "Core Score"
+SCORE_SUBSET_NAME = "Subset Diagnostic Score"
+SCAN_SCOPES = ("CANONICAL", "CUSTOM", "PARTIAL")
+SCORE_STATUSES = ("OK", "DEGRADED", "NOT_CANONICAL", "INSUFFICIENT_EVIDENCE")
 
 
 class CheckStatus(StrEnum):
@@ -88,7 +91,13 @@ class Score(BaseModel):
     value: int | None
     grade: str | None
     coverage: float
-    status: str  # "OK" | "INSUFFICIENT_EVIDENCE"
+    # OK | DEGRADED | NOT_CANONICAL | INSUFFICIENT_EVIDENCE — see docs/methodology.md
+    status: str
+    # CANONICAL (full selection, coverage >= 0.85, no ERROR) | CUSTOM
+    # (--include/--exclude/--experimental) | PARTIAL (full selection but
+    # under-covered or errored). A property of the SELECTION and evidence;
+    # `status` is a property of the score.
+    scope: str = "CANONICAL"
 
 
 class Report(BaseModel):

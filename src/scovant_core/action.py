@@ -32,7 +32,12 @@ from pathlib import Path
 
 from scovant_core.cli import _threshold_exit_code
 from scovant_core.models import CheckStatus, Report, Severity
-from scovant_core.report._common import scored_experimental, status_counts, top_findings
+from scovant_core.report._common import (
+    scored_experimental,
+    status_counts,
+    status_note,
+    top_findings,
+)
 from scovant_core.report._cta import cta_url
 from scovant_core.report.html import render_html
 from scovant_core.report.markdown import render_markdown
@@ -52,6 +57,7 @@ INPUT_KEYS = (
     "timeout",
     "report-format",
     "allow-private-networks",
+    "require-canonical",
 )
 
 # `action.yml`'s `outputs:` keys, in the order §25 defines them.
@@ -62,6 +68,10 @@ OUTPUT_KEYS = (
     "warn_count",
     "fail_count",
     "report_path",
+    "coverage",
+    "score_status",
+    "scan_scope",
+    "error_count",
 )
 
 _FAIL_ON = ("fail", "warn", "never")
@@ -117,6 +127,10 @@ def _build_parser() -> argparse.ArgumentParser:
     gate_p.add_argument("report_json")
     gate_p.add_argument("--min-score", type=_min_score_type, default=None, dest="min_score")
     gate_p.add_argument("--fail-on", choices=_FAIL_ON, default="never", dest="fail_on")
+    gate_p.add_argument(
+        "--require-canonical", action="store_true", dest="require_canonical",
+        help="fail unless the scan is CANONICAL with score status OK",
+    )
 
     return parser
 
@@ -142,10 +156,18 @@ def render_summary(report: Report) -> str:
     top = top_findings(report.findings, scored)
     top_line = f"`{top[0].id}` — {top[0].summary}" if top else "none"
 
+    note = status_note(report)
+
     lines = [
-        "## Scovant Core",
+        f"## Scovant Core — scope {s.scope} · status {s.status}",
         "",
-        f"**Static Signal Score:** {value} / 100 · grade {grade} · coverage {s.coverage:.0%}",
+        f"**{s.name}:** {value} / 100 · grade {grade} · scope {s.scope} · status {s.status} · "
+        f"coverage {s.coverage:.0%}",
+    ]
+    if note:
+        strong, rest = note
+        lines.append(f"**{strong}**{rest}")
+    lines += [
         "",
         f"{counts[CheckStatus.PASS]} pass · {counts[CheckStatus.WARN]} warn · "
         f"{counts[CheckStatus.FAIL]} fail · {counts[CheckStatus.NA]} n/a · "
@@ -172,6 +194,10 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
         f"warn_count={counts[CheckStatus.WARN]}",
         f"fail_count={counts[CheckStatus.FAIL]}",
         f"report_path={args.report_path}",
+        f"coverage={s.coverage}",
+        f"score_status={s.status}",
+        f"scan_scope={s.scope}",
+        f"error_count={report.metrics.get('error_count', 0)}",
     ]
     _append(env.get("GITHUB_OUTPUT"), "".join(f"{line}\n" for line in lines))
     return 0
@@ -195,7 +221,10 @@ def _cmd_report(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noq
 
 def _cmd_gate(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa: ARG001 — env unused, kept for the shared call shape
     report = _load_report(args.report_json)
-    return _threshold_exit_code(report, min_score=args.min_score, fail_on=args.fail_on)
+    return _threshold_exit_code(
+        report, min_score=args.min_score, fail_on=args.fail_on,
+        require_canonical=args.require_canonical,
+    )
 
 
 _COMMANDS = {

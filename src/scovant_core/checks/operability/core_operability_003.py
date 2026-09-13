@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import redact_message
 
 
 class CacheValidators(CoreCheck):
@@ -23,7 +24,8 @@ class CacheValidators(CoreCheck):
     def evaluate(self, store, ctx):
         http = store.get("http")
         if http["error"]:
-            return self.error(f"the entry URL could not be fetched ({http['error']['kind']}).", {"error": http["error"]})
+            err = {**http["error"], "message": redact_message(http["error"]["message"], http["input_url"])}
+            return self.error(f"the entry URL could not be fetched ({http['error']['kind']}).", {"error": err})
 
         headers = http["headers"] or {}
         etag = headers.get("etag")

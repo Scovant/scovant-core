@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.1.0",
+  "core_version": "0.1.1",
   "findings": [
     {
       "category": "access",
@@ -89,11 +89,12 @@
     },
     {
       "category": "access",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud observes whether these crawlers are actually admitted or challenged.",
       "confidence": "high",
       "evidence": {
         "declared_policy": {
+          "Applebot": true,
           "Bingbot": true,
           "Claude-SearchBot": true,
           "Googlebot": true,
@@ -102,7 +103,13 @@
         },
         "http_status": 200,
         "resource": "https://example.com/robots.txt",
-        "robots_present": true
+        "robots_present": true,
+        "user_fetch_policy": {
+          "ChatGPT-User": true,
+          "Claude-User": true,
+          "DuckAssistBot": true,
+          "Perplexity-User": true
+        }
       },
       "experimental": false,
       "id": "CORE-ACCESS-003",
@@ -117,7 +124,7 @@
     },
     {
       "category": "access",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud observes whether training and search crawlers are actually treated differently in practice.",
       "confidence": "medium",
       "evidence": {
@@ -1003,8 +1010,51 @@
     }
   ],
   "metrics": {
+    "ai_crawler_policy": {
+      "content_use": {
+        "allowed": [
+          "Google-Extended"
+        ],
+        "blocked": [],
+        "verdict": "allowed"
+      },
+      "registry_version": "2026.09.13",
+      "search": {
+        "allowed": [
+          "OAI-SearchBot",
+          "Claude-SearchBot",
+          "PerplexityBot",
+          "Applebot",
+          "Googlebot",
+          "Bingbot"
+        ],
+        "blocked": [],
+        "verdict": "allowed"
+      },
+      "training": {
+        "allowed": [
+          "GPTBot",
+          "ClaudeBot",
+          "Applebot-Extended",
+          "CCBot"
+        ],
+        "blocked": [],
+        "verdict": "allowed"
+      },
+      "user_triggered": {
+        "allowed": [
+          "ChatGPT-User",
+          "Claude-User",
+          "Perplexity-User",
+          "DuckAssistBot"
+        ],
+        "blocked": [],
+        "verdict": "allowed"
+      }
+    },
     "bytes_fetched": 3712,
     "entry_error": null,
+    "error_count": 0,
     "gather_error_details": [],
     "gather_errors": [],
     "requests": 29
@@ -1019,16 +1069,22 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.1.0",
+    "canonical_min_coverage": 0.85,
+    "core_version": "0.1.1",
+    "error_count": 0,
+    "evidence_min_coverage": 0.6,
+    "excluded_checks": [],
     "experimental": false,
+    "included_checks": [],
     "max_pages": 5,
     "network_mode": "fixture",
     "platform": "<runtime>",
     "python": "<runtime>",
-    "ruleset_digest": "d83df799eaa7",
+    "ruleset_digest": "ea4ada4fffbf",
     "ruleset_version": "2026.09",
+    "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.1.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.1.1 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.09",
   "scan_id": "local-golden",
@@ -1037,6 +1093,7 @@
     "coverage": 1.0,
     "grade": "B",
     "name": "Scovant Core Static Signal Score",
+    "scope": "CANONICAL",
     "status": "OK",
     "value": 89
   },

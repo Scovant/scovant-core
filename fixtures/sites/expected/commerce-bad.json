@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.1.0",
+  "core_version": "0.1.1",
   "findings": [
     {
       "category": "access",
@@ -94,11 +94,12 @@
     },
     {
       "category": "access",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud observes whether these crawlers are actually admitted or challenged.",
       "confidence": "high",
       "evidence": {
         "declared_policy": {
+          "Applebot": false,
           "Bingbot": false,
           "Claude-SearchBot": false,
           "Googlebot": false,
@@ -107,22 +108,28 @@
         },
         "http_status": 200,
         "resource": "https://example.com/robots.txt",
-        "robots_present": true
+        "robots_present": true,
+        "user_fetch_policy": {
+          "ChatGPT-User": false,
+          "Claude-User": false,
+          "DuckAssistBot": false,
+          "Perplexity-User": false
+        }
       },
       "experimental": false,
       "id": "CORE-ACCESS-003",
       "limitations": "Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed.",
-      "remediation": "Allow search/retrieval crawlers (e.g. OAI-SearchBot, Claude-SearchBot, PerplexityBot) in robots.txt while keeping any training restrictions separate.",
+      "remediation": "Allow search/retrieval crawlers (OAI-SearchBot, Claude-SearchBot, PerplexityBot, …) in robots.txt while keeping any training restrictions separate.",
       "severity": "high",
       "status": "FAIL",
-      "summary": "robots.txt declares every major search and answer-engine crawler as disallowed.",
+      "summary": "robots.txt declares every major search and answer-engine crawler as disallowed. User-triggered fetch agents blocked: ChatGPT-User, Claude-User, Perplexity-User, DuckAssistBot.",
       "title": "AI search crawler policy",
       "weight": 4,
       "why_it_matters": "Search and answer engines only surface pages their crawlers are declared allowed to fetch."
     },
     {
       "category": "access",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud observes whether training and search crawlers are actually treated differently in practice.",
       "confidence": "high",
       "evidence": {
@@ -133,15 +140,16 @@
           "OAI-SearchBot",
           "Claude-SearchBot",
           "PerplexityBot",
+          "Applebot",
           "Googlebot",
           "Bingbot"
         ],
         "training_blocked": [
           "GPTBot",
           "ClaudeBot",
-          "Google-Extended",
+          "Applebot-Extended",
           "CCBot",
-          "Applebot-Extended"
+          "Google-Extended"
         ]
       },
       "experimental": false,
@@ -1044,8 +1052,51 @@
     }
   ],
   "metrics": {
+    "ai_crawler_policy": {
+      "content_use": {
+        "allowed": [],
+        "blocked": [
+          "Google-Extended"
+        ],
+        "verdict": "blocked"
+      },
+      "registry_version": "2026.09.13",
+      "search": {
+        "allowed": [],
+        "blocked": [
+          "OAI-SearchBot",
+          "Claude-SearchBot",
+          "PerplexityBot",
+          "Applebot",
+          "Googlebot",
+          "Bingbot"
+        ],
+        "verdict": "blocked"
+      },
+      "training": {
+        "allowed": [],
+        "blocked": [
+          "GPTBot",
+          "ClaudeBot",
+          "Applebot-Extended",
+          "CCBot"
+        ],
+        "verdict": "blocked"
+      },
+      "user_triggered": {
+        "allowed": [],
+        "blocked": [
+          "ChatGPT-User",
+          "Claude-User",
+          "Perplexity-User",
+          "DuckAssistBot"
+        ],
+        "verdict": "blocked"
+      }
+    },
     "bytes_fetched": 1164,
     "entry_error": null,
+    "error_count": 0,
     "gather_error_details": [],
     "gather_errors": [],
     "requests": 23
@@ -1060,16 +1111,22 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.1.0",
+    "canonical_min_coverage": 0.85,
+    "core_version": "0.1.1",
+    "error_count": 0,
+    "evidence_min_coverage": 0.6,
+    "excluded_checks": [],
     "experimental": false,
+    "included_checks": [],
     "max_pages": 5,
     "network_mode": "fixture",
     "platform": "<runtime>",
     "python": "<runtime>",
-    "ruleset_digest": "d83df799eaa7",
+    "ruleset_digest": "ea4ada4fffbf",
     "ruleset_version": "2026.09",
+    "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.1.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.1.1 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.09",
   "scan_id": "local-golden",
@@ -1078,6 +1135,7 @@
     "coverage": 1.0,
     "grade": "F",
     "name": "Scovant Core Static Signal Score",
+    "scope": "CANONICAL",
     "status": "OK",
     "value": 35
   },

@@ -7,6 +7,7 @@ from __future__ import annotations
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.security.url_safety import display_url
 
 _LOW_MAX_TOKENS = 8_000
 _MEDIUM_MAX_TOKENS = 20_000
@@ -37,7 +38,7 @@ class AgentParseCost(CoreCheck):
         metrics = store.get("page_metrics")
         entry = metrics.get("entry")
         if entry is None:
-            return self.error("the entry page's parse-cost metrics are unavailable.", {"entry_url": ctx.final_url})
+            return self.error("the entry page's parse-cost metrics are unavailable.", {"entry_url": display_url(ctx.final_url)})
 
         tokens = entry["estimated_tokens"]
         ev = {**entry, "token_chars_ratio": ctx.options.token_chars_ratio}
