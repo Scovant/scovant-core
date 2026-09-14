@@ -39,6 +39,7 @@ def gather_security_txt(client: SecureClient, ctx: ScanContext, store: EvidenceS
 
     last_status: int | None = None
     last_served_as_html = False
+    last_retry_after: str | None = None
 
     for path in _PATHS:
         url = f"{origin}{path}"
@@ -52,6 +53,7 @@ def gather_security_txt(client: SecureClient, ctx: ScanContext, store: EvidenceS
             continue
 
         last_status = res.status
+        last_retry_after = res.headers.get("retry-after") if res.status == 429 else None
         if res.status != 200:
             last_served_as_html = False
             continue
@@ -75,7 +77,10 @@ def gather_security_txt(client: SecureClient, ctx: ScanContext, store: EvidenceS
             "truncated": bool(res.truncated) and res.text != "",
         }
 
-    return {
+    out = {
         "found_url": None, "status": last_status, "contact": False, "expires": None,
         "expires_valid": None, "served_as_html": last_served_as_html, "truncated": False,
     }
+    if last_status == 429:
+        out["retry_after"] = last_retry_after
+    return out

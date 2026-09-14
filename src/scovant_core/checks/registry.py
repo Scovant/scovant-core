@@ -12,7 +12,7 @@ from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category
 from scovant_core.scoring import SCORING_DIGEST
 
-RULESET_VERSION = "2026.09"
+RULESET_VERSION = "2026.10"
 RETIRED_IDS: frozenset[str] = frozenset()
 _ID_RE = re.compile(r"CORE-(ACCESS|MACHINE|INTERFACE|TRUST|OPERABILITY)-\d{3}")
 _ID_CATEGORY = {

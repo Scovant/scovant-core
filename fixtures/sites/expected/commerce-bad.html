@@ -59,12 +59,12 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/step4</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.2.1</p>
-<p>1 PASS, 23 WARN, 8 FAIL, 13 N/A, 0 ERROR (45 checks)</p>
+<p><strong>Core version:</strong> 0.3.0</p>
+<p>4 PASS, 24 WARN, 8 FAIL, 14 N/A, 0 ERROR (50 checks)</p>
 </section>
 <section id="score">
 <h2>Scovant Core Static Signal Score</h2>
-<p style="font-size:2.5rem;font-weight:700;">35 / 100</p>
+<p style="font-size:2.5rem;font-weight:700;">38 / 100</p>
 <p><strong>Grade:</strong> F &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: absent · webmcp: absent · ucp: invalid · llms_txt: invalid · openapi: not_checked · oauth: not_checked · content_signal: invalid · security_txt: invalid</p>
 <p><strong>Standards:</strong> AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 warn, 2 fail · SHOULD 4/12 measured — 3 warn, 1 fail · MAY none measured (0/3) — Mapping: docs/standards/agentready.md</p>
@@ -77,7 +77,7 @@ a { color: #0969da; }
 <tr><td>Machine Understanding</td><td>25</td><td>41</td><td>22 / 22</td></tr>
 <tr><td>Agent Interfaces</td><td>20</td><td>n/a</td><td>0 / 0</td></tr>
 <tr><td>Trust &amp; Commerce</td><td>15</td><td>42</td><td>12 / 12</td></tr>
-<tr><td>Operability &amp; Efficiency</td><td>15</td><td>50</td><td>13 / 13</td></tr>
+<tr><td>Operability &amp; Efficiency</td><td>15</td><td>64</td><td>18 / 18</td></tr>
 </table>
 </section>
 <section id="findings">
@@ -115,6 +115,8 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-TRUST-005</code></td><td>Terms/conditions discoverability</td><td>medium</td><td>No terms/conditions page was found linked from the entry page.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-TRUST-006</code></td><td>security.txt discoverability</td><td>medium</td><td>security.txt was found but has no Contact field.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-005</code></td><td>Agent parse cost</td><td>info</td><td>The entry page&#x27;s estimated parse cost is ~37 tokens (low).</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-008</code></td><td>Unknown paths return 404</td><td>info</td><td>Unknown paths answer with a real 404.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-010</code></td><td>Challenge pages are not served as 200</td><td>info</td><td>No challenge page is served with HTTP 200.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-ACCESS-006</code></td><td>Sitemap freshness</td><td>info</td><td>No valid sitemap to evaluate freshness for.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-001</code></td><td>MCP discovery presence</td><td>info</td><td>No MCP discovery file is published.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-002</code></td><td>MCP server declaration quality</td><td>info</td><td>No MCP server is declared.</td></tr>
@@ -123,10 +125,13 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-006</code></td><td>OAuth authorization-server metadata</td><td>info</td><td>Not applicable to the commerce profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-INTERFACE-007</code></td><td>OAuth protected-resource metadata</td><td>info</td><td>Not applicable to the commerce profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-007</code></td><td>Breadcrumbs</td><td>info</td><td>Only the entry page was sampled; there are no additional pages to check for breadcrumbs.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-OPERABILITY-009</code></td><td>Rate limiting is signalled</td><td>info</td><td>No 429 response was observed during this scan.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-007</code></td><td>Pricing discoverability</td><td>info</td><td>No pricing signal (a pricing page or a structured product price) was found.</td></tr>
 </table>
 <h3>Experimental (not scored)</h3><ul>
+<li><code>CORE-ACCESS-011</code> (PASS) — llms.txt links useful same-origin pages and carries no misplaced policy or template text.</li>
 <li><code>CORE-INTERFACE-008</code> (WARN) — A UCP profile is published but fails validation.</li>
+<li><code>CORE-OPERABILITY-011</code> (WARN) — 2 of 2 machine surface(s) are not linked from anything an agent reads: llms_txt, ucp.</li>
 </ul>
 <p>N/A: <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-009</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code></p>
 </section>
@@ -440,6 +445,27 @@ a { color: #0969da; }
   }
 }</code></pre>
 </details>
+<details><summary><code>CORE-OPERABILITY-008</code> — Unknown paths return 404</summary>
+<pre><code>{
+  &quot;final_url&quot;: &quot;https://example.com/scovant-core-probe-9b580505&quot;,
+  &quot;probed_url&quot;: &quot;https://example.com/scovant-core-probe-9b580505&quot;,
+  &quot;redirected&quot;: false,
+  &quot;served_html&quot;: false,
+  &quot;status&quot;: 404
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-009</code> — Rate limiting is signalled</summary>
+<pre><code>{
+  &quot;observed&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-010</code> — Challenge pages are not served as 200</summary>
+<pre><code>{
+  &quot;honest_challenges&quot;: 0,
+  &quot;pages&quot;: [],
+  &quot;pages_checked&quot;: 2
+}</code></pre>
+</details>
 <details><summary><code>CORE-TRUST-001</code> — Contact/support discoverability</summary>
 <pre><code>{
   &quot;contact_url&quot;: null,
@@ -526,6 +552,9 @@ a { color: #0969da; }
 <li>Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.</li>
 <li>`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.</li>
 <li>Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.</li>
+<li>One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.</li>
+<li>Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.</li>
+<li>Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).</li>
 <li>Only the entry page&#x27;s anchors are scanned; a contact method reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.</li>
@@ -598,13 +627,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.2.1</dd>
+<dt>core_version</dt><dd>0.3.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
-<dt>ruleset_version</dt><dd>2026.09</dd>
-<dt>ruleset_digest</dt><dd>ea4ada4fffbf</dd>
+<dt>ruleset_version</dt><dd>2026.10</dd>
+<dt>ruleset_digest</dt><dd>994a69bc7f12</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.2.1 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.3.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

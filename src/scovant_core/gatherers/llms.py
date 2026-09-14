@@ -16,10 +16,11 @@ MAX_REFERENCES = 20
 @register_gatherer("llms")
 def gather_llms(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -> dict:
     store.get("http")
-    res = client.try_fetch(f"{ctx.origin}/llms.txt", kind="text")
+    url = f"{ctx.origin}/llms.txt"
+    res = client.try_fetch(url, kind="text")
     if isinstance(res, FetchError):
         parsed = parse_llms_txt("", 0)
-        return {"status": None, "parsed": parsed, "full_exists": False, "references": [],
+        return {"url": url, "status": None, "parsed": parsed, "full_exists": False, "references": [],
                 "served_as_html": False, "truncated": False}
 
     status = res.status
@@ -47,9 +48,15 @@ def gather_llms(client: SecureClient, ctx: ScanContext, store: EvidenceStore) ->
         truncated = truncated or (bool(full.truncated) and full.text != "")
 
     references = []
-    for url in parsed["urls"][:MAX_REFERENCES]:
-        r = client.try_fetch(url, kind="text")
-        references.append({"url": url, "status": None if isinstance(r, FetchError) else r.status})
+    for ref_url in parsed["urls"][:MAX_REFERENCES]:
+        r = client.try_fetch(ref_url, kind="text")
+        ref = {"url": ref_url, "status": None if isinstance(r, FetchError) else r.status}
+        if not isinstance(r, FetchError) and r.status == 429:
+            ref["retry_after"] = r.headers.get("retry-after")
+        references.append(ref)
 
-    return {"status": status, "parsed": parsed, "full_exists": full_exists, "references": references,
-            "served_as_html": served_as_html, "truncated": truncated}
+    out = {"url": url, "status": status, "parsed": parsed, "full_exists": full_exists, "references": references,
+           "served_as_html": served_as_html, "truncated": truncated}
+    if status == 429:
+        out["retry_after"] = res.headers.get("retry-after")
+    return out

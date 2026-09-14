@@ -107,8 +107,54 @@ def test_discovery_reads_openapi_and_oauth_from_store():
     assert counting.counts.get("/.well-known/oauth-protected-resource") == 1
     # Measured before this change on the same fixture/profile: 32 requests.
     # The three shared documents are now read once each instead of twice.
-    previous_requests = 32
-    assert report.metrics["requests"] <= previous_requests - 3
+    # Exactly ONE more request was introduced by the 0.3.0 checks:
+    # CORE-OPERABILITY-008's soft-404 probe (a fixed extra request every scan
+    # makes to a path that cannot exist). `/.well-known/ucp` is also fetched
+    # on this "api" profile (count == 1, asserted below), but NOT because of
+    # CORE-OPERABILITY-011: it's CORE-OPERABILITY-009 (required, scored,
+    # profile-unrestricted — it walks a fixed document-name list looking for
+    # any 429/Retry-After) that reads it, and CORE-OPERABILITY-011 itself now
+    # never forces a UCP or OpenAPI fetch of its own (`store.gathered(...)`,
+    # not `store.get(...)` — see `test_operability_011_never_forces_its_own_fetch`
+    # below) — removing that forced read left this full-registry count
+    # unchanged, since -009 (and, for OpenAPI, the `machine_links` gatherer
+    # pulled in by CORE-OPERABILITY-004/CORE-ACCESS-007) already fetch both
+    # documents on every profile regardless of -011.
+    assert counting.counts.get("/.well-known/ucp") == 1
+    previous_requests = 33
+    assert report.metrics["requests"] <= previous_requests
+
+
+def test_operability_011_never_forces_its_own_fetch():
+    """CORE-OPERABILITY-011 is experimental and unscored — evaluating it in
+    isolation (no other check that would independently gather `ucp`/`openapi`
+    for this profile) must add zero requests of its own. Runs ONLY
+    `DiscoveryLinkage` against a bare store — not `scan()` — because in a
+    full registry scan `CORE-OPERABILITY-009` and the `machine_links`
+    gatherer (pulled in by `CORE-OPERABILITY-004`/`CORE-ACCESS-007`) already
+    fetch both documents on every profile regardless of -011, which is
+    exactly why the full-scan request count above is unaffected by this
+    fix."""
+    from scovant_core.checks.operability.core_operability_011 import DiscoveryLinkage
+
+    forbidden_paths = {"/.well-known/ucp", "/openapi.json", "/openapi.yaml",
+                        "/.well-known/openapi.json", "/swagger.json", "/api-docs"}
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path in forbidden_paths:
+            raise AssertionError(f"CORE-OPERABILITY-011 must never fetch {request.url.path} itself")
+        if request.url.path == "/":
+            return httpx.Response(200, content=b"<!doctype html><html><body>hi</body></html>",
+                                   headers={"content-type": "text/html"})
+        return httpx.Response(404, text="not found")
+
+    store, ctx = _scan(make_client(_handler), options=ScanOptions(profile="api"))
+    result = DiscoveryLinkage().run(store, ctx)
+    assert result.status is not None  # the check ran to completion, not skipped
+    # No later check populated these either — `gathered()` never triggers a
+    # fetch, so an absent record here proves -011 read them without forcing one.
+    assert store.gathered("ucp") is None
+    assert store.gathered("openapi") is None
 
 
 def test_known_surfaces_are_not_probed():

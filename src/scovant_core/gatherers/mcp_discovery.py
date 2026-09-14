@@ -83,10 +83,12 @@ def gather_mcp_discovery(client: SecureClient, ctx: ScanContext, store: Evidence
         status = None
         content = None
         truncated = False
+        retry_after = None
     else:
         status = res.status
         content = res.text if status == 200 else None
         truncated = bool(res.truncated) and bool(content)
+        retry_after = res.headers.get("retry-after") if status == 429 else None
 
     discovery = check_mcp_discovery(content, status or 0)
     # the probe adapter (not `client.httpx`): redirect-following, size-capped
@@ -105,5 +107,8 @@ def gather_mcp_discovery(client: SecureClient, ctx: ScanContext, store: Evidence
     # Two documents contribute: `/.well-known/mcp.json` (`res`, above) and
     # the server-card probe (`card`, which may itself have read up to two
     # candidate URLs) — true when EITHER was cut off at its own cap.
-    return {"discovery": discovery, "server_card": discovery["server_card"], "status": status,
-            "truncated": truncated or card["truncated"]}
+    out = {"discovery": discovery, "server_card": discovery["server_card"], "status": status,
+           "truncated": truncated or card["truncated"]}
+    if status == 429:
+        out["retry_after"] = retry_after
+    return out

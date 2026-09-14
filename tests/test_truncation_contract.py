@@ -34,7 +34,7 @@ BODY_READING = {
     "agent_discovery", "agent_payments", "_http", "http", "llms", "machine_rep", "markdown",
     "mcp_discovery", "mcp_metadata", "oauth_metadata", "oauth", "openapi", "pages",
     "policy_pages", "reference_integrity", "robots_txt", "security_txt", "sitemap",
-    "sitemap_urls", "ucp",
+    "sitemap_urls", "soft_404", "ucp",
 }
 
 # Gatherers where a real, per-call truncation signal is either unavailable

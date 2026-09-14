@@ -27,6 +27,7 @@ class ScanContext:
     resolved_profile: str = "auto"
     profile_confidence: float = 0.0
     notes: list[str] = field(default_factory=list)
+    scan_id: str = ""
 
     def set_final_url(self, url: str) -> None:
         self.final_url = url

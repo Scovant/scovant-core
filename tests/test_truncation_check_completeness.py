@@ -68,6 +68,34 @@ EXEMPT_CHECKS: dict[str, str] = {
         "wiring it through here is a deliberate open item, not a claim of "
         "independence."
     ),
+    "CORE-OPERABILITY-008": (
+        "Unknown paths return 404. Reads only the soft-404 probe record's "
+        "`status`/`final_url`/`redirected`/`error` — a real HTTP status code, "
+        "never the probed page's body."
+    ),
+    "CORE-OPERABILITY-009": (
+        "Rate limiting is signalled. Reads only response `status` and the "
+        "`Retry-After` header off already-gathered records — status codes and "
+        "headers, never a body."
+    ),
+    "CORE-OPERABILITY-010": (
+        "Challenge pages are not served as 200. Reads only `status` and the "
+        "`bot_protection` classification of the entry response and sampled "
+        "pages — a status code plus a header/heuristic classification, never "
+        "body content itself."
+    ),
+    "CORE-ACCESS-011": (
+        "llms.txt utility. Its own truncation is already disclosed by "
+        "CORE-ACCESS-009, which reads the same `llms` gatherer record and is "
+        "PARTICIPATING; this check draws no independent body evidence beyond "
+        "what -009 already covers, so double-declaring the same cut here "
+        "would be redundant rather than a real omission."
+    ),
+    "CORE-OPERABILITY-011": (
+        "Discovery linkage. Reads only surface presence flags (from already-"
+        "gathered records) and internal-link/reference URL lists — URLs, "
+        "never document bytes that could have been cut off by the fetch cap."
+    ),
 }
 
 

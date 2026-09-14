@@ -16,5 +16,6 @@ from scovant_core.gatherers import (  # noqa: F401
     robots_txt,
     security_txt,
     sitemap_urls,
+    soft_404,
     ucp,
 )

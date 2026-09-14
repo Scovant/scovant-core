@@ -72,6 +72,7 @@ def gather_machine_links(client: SecureClient, ctx: ScanContext, store: Evidence
     # The llms gatherer already resolved every llms.txt reference. Re-fetching
     # the same URLs here would double the request count for no new evidence.
     llms_statuses = {r["url"]: r["status"] for r in (llms.get("references") or [])}
+    llms_retry_after = {r["url"]: r.get("retry_after") for r in (llms.get("references") or [])}
 
     seen: set[str] = set()
     ordered: list[tuple[str, str]] = []
@@ -86,14 +87,21 @@ def gather_machine_links(client: SecureClient, ctx: ScanContext, store: Evidence
     refs = []
     for url, source in ordered:
         if source == "canonical" and url == ctx.final_url:
-            refs.append({"url": url, "source": source, "status": http["status"], "ok": True})
+            ref = {"url": url, "source": source, "status": http["status"], "ok": True}
+            if http["status"] == 429:
+                ref["retry_after"] = (http.get("headers") or {}).get("retry-after")
+            refs.append(ref)
             continue
 
+        retry_after = None
         if url in llms_statuses:
             status = llms_statuses[url]
+            retry_after = llms_retry_after.get(url)
         else:
             res = client.try_fetch(url, kind="text")
             status = None if isinstance(res, FetchError) else res.status
+            if not isinstance(res, FetchError) and res.status == 429:
+                retry_after = res.headers.get("retry-after")
 
         ref = {"url": url, "source": source, "status": status}
         if source == "mcp_endpoint":
@@ -105,6 +113,8 @@ def gather_machine_links(client: SecureClient, ctx: ScanContext, store: Evidence
             ref["ok"] = None
         else:
             ref["ok"] = 200 <= status < 400
+        if status == 429:
+            ref["retry_after"] = retry_after
         refs.append(ref)
 
     return {"refs": refs}

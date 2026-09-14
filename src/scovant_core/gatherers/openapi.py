@@ -112,6 +112,7 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
     # or last: any real read failure anywhere in the run always outranks a
     # clean 404/410 seen elsewhere.
     error_status: int | None = None
+    error_retry_after: str | None = None
     saw_soft_html = False
     saw_absent = False
     truncated = False
@@ -140,6 +141,8 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
             continue
         if error_status is None:
             error_status = res.status
+            if res.status == 429:
+                error_retry_after = res.headers.get("retry-after")
 
     if found_url:
         status: int | None = 200
@@ -157,8 +160,11 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
         status = None
         last_served_as_html = False
 
-    return {"found_url": found_url, "parseable": parseable, "json_parseable": json_parseable,
-            "openapi_version": openapi_version,
-            "candidates": candidates, "served_as_html": served_as_html,
-            "status": status, "last_served_as_html": last_served_as_html,
-            "truncated": truncated}
+    out = {"found_url": found_url, "parseable": parseable, "json_parseable": json_parseable,
+           "openapi_version": openapi_version,
+           "candidates": candidates, "served_as_html": served_as_html,
+           "status": status, "last_served_as_html": last_served_as_html,
+           "truncated": truncated}
+    if status == 429:
+        out["retry_after"] = error_retry_after
+    return out

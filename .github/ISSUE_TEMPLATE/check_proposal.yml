@@ -1,0 +1,33 @@
+name: Check proposal
+description: Propose a new check for the ruleset.
+title: "[check]: "
+labels: ["check-proposal"]
+body:
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What evidence would the check read?
+      description: The concrete, machine-readable signal on a page or at the domain level (a header, a file, a markup pattern, a probe response). Not a subjective judgment.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does it matter to agents?
+      description: What does the absence or presence of this evidence actually change for an AI agent trying to use the site?
+    validations:
+      required: true
+  - type: textarea
+    id: cloud-overlap
+    attributes:
+      label: What does Scovant Cloud already measure here, if anything?
+      description: Helps avoid proposing a duplicate of an existing check, or one that only makes sense with Cloud's authenticated/simulation-based evidence.
+    validations:
+      required: false
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed id / category / weight
+      description: A suggested check id (e.g. `CORE-ACCESS-011`), category, and whether it should be experimental or scored on landing.
+    validations:
+      required: false

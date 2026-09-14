@@ -59,13 +59,13 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> api (requested auto, confidence 90%)</p>
-<p><strong>Core version:</strong> 0.2.1</p>
-<p>20 PASS, 6 WARN, 0 FAIL, 19 N/A, 0 ERROR (45 checks)</p>
+<p><strong>Core version:</strong> 0.3.0</p>
+<p>23 PASS, 6 WARN, 0 FAIL, 21 N/A, 0 ERROR (50 checks)</p>
 </section>
 <section id="score">
 <h2>Scovant Core Static Signal Score</h2>
-<p style="font-size:2.5rem;font-weight:700;">89 / 100</p>
-<p><strong>Grade:</strong> B &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
+<p style="font-size:2.5rem;font-weight:700;">90 / 100</p>
+<p><strong>Grade:</strong> A &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: absent · webmcp: absent · ucp: not_checked · llms_txt: absent · openapi: present · oauth: present · content_signal: absent · security_txt: present</p>
 <p><strong>Standards:</strong> AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 2 pass, 1 warn · SHOULD 6/12 measured — 4 pass, 2 warn · MAY 1/3 measured — 1 pass — Mapping: docs/standards/agentready.md</p>
 </section>
@@ -77,7 +77,7 @@ a { color: #0969da; }
 <tr><td>Machine Understanding</td><td>25</td><td>81</td><td>8 / 8</td></tr>
 <tr><td>Agent Interfaces</td><td>20</td><td>100</td><td>6 / 6</td></tr>
 <tr><td>Trust &amp; Commerce</td><td>15</td><td>75</td><td>8 / 8</td></tr>
-<tr><td>Operability &amp; Efficiency</td><td>15</td><td>82</td><td>11 / 11</td></tr>
+<tr><td>Operability &amp; Efficiency</td><td>15</td><td>88</td><td>16 / 16</td></tr>
 </table>
 </section>
 <section id="findings">
@@ -107,6 +107,8 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-002</code></td><td>Redirect chain complexity</td><td>info</td><td>The entry URL redirects 0 time(s) before settling.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-004</code></td><td>Broken machine-consumable endpoints</td><td>info</td><td>All 4 checked machine-consumable reference(s) resolve.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-005</code></td><td>Agent parse cost</td><td>info</td><td>The entry page&#x27;s estimated parse cost is ~38 tokens (low).</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-008</code></td><td>Unknown paths return 404</td><td>info</td><td>Unknown paths answer with a real 404.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-010</code></td><td>Challenge pages are not served as 200</td><td>info</td><td>No challenge page is served with HTTP 200.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-001</code></td><td>Contact/support discoverability</td><td>info</td><td>A contact or support link was found on the entry page.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-006</code></td><td>security.txt discoverability</td><td>info</td><td>A valid security.txt was found with a contact method.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-ACCESS-009</code></td><td>llms.txt presence and integrity</td><td>info</td><td>No llms.txt is published.</td></tr>
@@ -121,14 +123,16 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-007</code></td><td>Breadcrumbs</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-011</code></td><td>Image alt coverage</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-OPERABILITY-006</code></td><td>Form/control labels</td><td>info</td><td>Not applicable to the api profile.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-OPERABILITY-009</code></td><td>Rate limiting is signalled</td><td>info</td><td>No 429 response was observed during this scan.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-002</code></td><td>Shipping policy discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-003</code></td><td>Returns/refund policy discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-007</code></td><td>Pricing discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 </table>
 <h3>Experimental (not scored)</h3><ul>
 <li><code>CORE-INTERFACE-009</code> (PASS) — An agent discovery surface is published (a2a_card).</li>
+<li><code>CORE-OPERABILITY-011</code> (PASS) — All 1 present machine surface(s) are linked from something an agent reads.</li>
 </ul>
-<p>N/A: <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code></p>
+<p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code></p>
 </section>
 <section id="evidence">
 <h2>Evidence</h2>
@@ -383,6 +387,27 @@ a { color: #0969da; }
   &quot;token_chars_ratio&quot;: 4
 }</code></pre>
 </details>
+<details><summary><code>CORE-OPERABILITY-008</code> — Unknown paths return 404</summary>
+<pre><code>{
+  &quot;final_url&quot;: &quot;https://example.com/scovant-core-probe-9b580505&quot;,
+  &quot;probed_url&quot;: &quot;https://example.com/scovant-core-probe-9b580505&quot;,
+  &quot;redirected&quot;: false,
+  &quot;served_html&quot;: false,
+  &quot;status&quot;: 404
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-009</code> — Rate limiting is signalled</summary>
+<pre><code>{
+  &quot;observed&quot;: []
+}</code></pre>
+</details>
+<details><summary><code>CORE-OPERABILITY-010</code> — Challenge pages are not served as 200</summary>
+<pre><code>{
+  &quot;honest_challenges&quot;: 0,
+  &quot;pages&quot;: [],
+  &quot;pages_checked&quot;: 4
+}</code></pre>
+</details>
 <details><summary><code>CORE-TRUST-001</code> — Contact/support discoverability</summary>
 <pre><code>{
   &quot;contact_url&quot;: &quot;https://example.com/contact&quot;,
@@ -453,6 +478,9 @@ a { color: #0969da; }
 <li>Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.</li>
 <li>`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.</li>
 <li>Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.</li>
+<li>One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.</li>
+<li>Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.</li>
+<li>Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).</li>
 <li>Only the entry page&#x27;s anchors are scanned; a contact method reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.</li>
@@ -525,13 +553,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.2.1</dd>
+<dt>core_version</dt><dd>0.3.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
-<dt>ruleset_version</dt><dd>2026.09</dd>
-<dt>ruleset_digest</dt><dd>ea4ada4fffbf</dd>
+<dt>ruleset_version</dt><dd>2026.10</dd>
+<dt>ruleset_digest</dt><dd>994a69bc7f12</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.2.1 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.3.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

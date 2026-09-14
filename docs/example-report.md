@@ -20,10 +20,10 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 | Access & Discovery | 25 | 100 | 25 / 25 |
 | Agent Interfaces | 20 | 100 | 5 / 5 |
 | Machine Understanding | 25 | 100 | 23 / 23 |
-| Operability & Efficiency | 15 | 100 | 11 / 11 |
+| Operability & Efficiency | 15 | 100 | 16 / 16 |
 | Trust & Commerce | 15 | 100 | 15 / 15 |
 
-45 checks: 37 PASS, 0 WARN, 0 FAIL, 8 N/A, 0 ERROR
+50 checks: 40 PASS, 1 WARN, 0 FAIL, 9 N/A, 0 ERROR
 
 ## Top findings
 
@@ -31,7 +31,7 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 
 ## Findings
 
-### PASS (35)
+### PASS (37)
 
 - **CORE-ACCESS-001** — HTTPS reachability (info): HTTPS entry URL answered 200.
 
@@ -520,6 +520,36 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 
   </details>
 
+- **CORE-OPERABILITY-008** — Unknown paths return 404 (info): Unknown paths answer with a real 404.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "final_url": "https://example.com/scovant-core-probe-9b580505",
+    "probed_url": "https://example.com/scovant-core-probe-9b580505",
+    "redirected": false,
+    "served_html": false,
+    "status": 404
+  }
+  ```
+
+  </details>
+
+- **CORE-OPERABILITY-010** — Challenge pages are not served as 200 (info): No challenge page is served with HTTP 200.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "honest_challenges": 0,
+    "pages": [],
+    "pages_checked": 4
+  }
+  ```
+
+  </details>
+
 - **CORE-TRUST-001** — Contact/support discoverability (info): A contact or support link was found on the entry page.
 
   <details><summary>evidence</summary>
@@ -622,14 +652,16 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 
   </details>
 
-### N/A (5)
+### N/A (6)
 
-`CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-OPERABILITY-006`
+`CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-OPERABILITY-006`, `CORE-OPERABILITY-009`
 
 ## Experimental (not scored)
 
+- **CORE-ACCESS-011** (PASS) — llms.txt links useful same-origin pages and carries no misplaced policy or template text.
 - **CORE-INTERFACE-008** (PASS) — A UCP profile is published and valid.
 - **CORE-MACHINE-012** (PASS) — The structured price matches a visible price on the page.
+- **CORE-OPERABILITY-011** (WARN) — 3 of 3 machine surface(s) are not linked from anything an agent reads: llms_txt, mcp, ucp.
 
 N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
 
@@ -644,6 +676,6 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
 
 ## Provenance
 
-Core 0.2.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.3.0 · ruleset 2026.10 (digest `994a69bc7f12`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=docs&utm_campaign=oss)

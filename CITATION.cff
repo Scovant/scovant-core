@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use Scovant Core in research, benchmarks or comparisons, please cite it."
+type: software
+title: "Scovant Core"
+abstract: "Open-source, evidence-first scanner for passive AI agent readiness signals on websites."
+authors:
+  - name: "Scovant"
+version: "0.3.0"
+date-released: "2026-09-14"
+license: Apache-2.0
+repository-code: "https://github.com/Scovant/scovant-core"
+url: "https://scovant.com/open-source"
+keywords: [ai-agents, agent-readiness, agentic-web, mcp, webmcp, llms-txt, robots-txt, structured-data]

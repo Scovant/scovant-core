@@ -95,6 +95,8 @@ def check_markdown_negotiation(client: httpx.Client, domain: str) -> dict[str, A
         result["vary"] = resp.headers.get("vary")
         result["looks_markdown"] = _looks_markdown(content_type, resp.text[:1024])
         result["body_looks_markdown"] = _body_looks_markdown(resp.text[:1024])
+        if resp.status_code == 429:
+            result["retry_after"] = resp.headers.get("retry-after")
         if _probe_text_exists(resp) and "text/markdown" in (content_type or ""):
             result["negotiation"] = True
             tokens = resp.headers.get("x-markdown-tokens")

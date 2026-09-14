@@ -26,5 +26,8 @@ def gather_ucp(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -> 
     served_as_html = is_soft_200_html(status, res.content_type, res.text, document="openapi")
     text = res.text if status == 200 and not served_as_html else None
     truncated = bool(res.truncated) and bool(text)
-    return {**check_ucp_profile(text, status), "status": status, "served_as_html": served_as_html,
-            "truncated": truncated}
+    out = {**check_ucp_profile(text, status), "status": status, "served_as_html": served_as_html,
+           "truncated": truncated}
+    if status == 429:
+        out["retry_after"] = res.headers.get("retry-after")
+    return out

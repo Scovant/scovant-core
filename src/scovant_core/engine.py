@@ -111,6 +111,12 @@ def scan(
     clock = clock or _now
     started = clock()
     ctx = ScanContext(url, options)
+    # Resolved once here (not re-derived when the Report is built) so the
+    # soft_404 gatherer's probe path — keyed on `ctx.scan_id` — and the
+    # Report's own `scan_id` field always agree; recomputing a random
+    # fallback in two places would let them silently diverge.
+    resolved_scan_id = scan_id or f"local-{secrets.token_hex(8)}"
+    ctx.scan_id = resolved_scan_id
     # The address block is lifted ONLY for the entry URL's own host — never
     # for a redirect hop or any link the scan discovers on another host (see
     # `SecurityPolicy.private_hosts` and docs/security.md § Private-network
@@ -182,7 +188,7 @@ def scan(
     report = Report(
         core_version=scovant_core.__version__,
         ruleset_version=RULESET_VERSION,
-        scan_id=scan_id or f"local-{secrets.token_hex(8)}",
+        scan_id=resolved_scan_id,
         started_at=started,
         completed_at=clock(),
         target=Target(

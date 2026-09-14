@@ -2,7 +2,7 @@
 
 ## Score
 
-**Scovant Core Static Signal Score:** 35 / 100 · grade F · coverage 100%
+**Scovant Core Static Signal Score:** 38 / 100 · grade F · coverage 100%
 **Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** commerce (requested auto, confidence 85%)
 
@@ -17,9 +17,9 @@
 | Machine Understanding | 25 | 41 | 22 / 22 |
 | Agent Interfaces | 20 | n/a | 0 / 0 |
 | Trust & Commerce | 15 | 42 | 12 / 12 |
-| Operability & Efficiency | 15 | 50 | 13 / 13 |
+| Operability & Efficiency | 15 | 64 | 18 / 18 |
 
-45 checks: 1 PASS, 23 WARN, 8 FAIL, 13 N/A, 0 ERROR
+50 checks: 4 PASS, 24 WARN, 8 FAIL, 14 N/A, 0 ERROR
 
 ## Top findings
 
@@ -543,7 +543,7 @@
 
   </details>
 
-### PASS (1)
+### PASS (3)
 
 - **CORE-OPERABILITY-005** — Agent parse cost (info): The entry page's estimated parse cost is ~37 tokens (low).
 
@@ -566,13 +566,45 @@
 
   </details>
 
-### N/A (9)
+- **CORE-OPERABILITY-008** — Unknown paths return 404 (info): Unknown paths answer with a real 404.
 
-`CORE-ACCESS-006`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-MACHINE-007`, `CORE-TRUST-007`
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "final_url": "https://example.com/scovant-core-probe-9b580505",
+    "probed_url": "https://example.com/scovant-core-probe-9b580505",
+    "redirected": false,
+    "served_html": false,
+    "status": 404
+  }
+  ```
+
+  </details>
+
+- **CORE-OPERABILITY-010** — Challenge pages are not served as 200 (info): No challenge page is served with HTTP 200.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "honest_challenges": 0,
+    "pages": [],
+    "pages_checked": 2
+  }
+  ```
+
+  </details>
+
+### N/A (10)
+
+`CORE-ACCESS-006`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-MACHINE-007`, `CORE-OPERABILITY-009`, `CORE-TRUST-007`
 
 ## Experimental (not scored)
 
+- **CORE-ACCESS-011** (PASS) — llms.txt links useful same-origin pages and carries no misplaced policy or template text.
 - **CORE-INTERFACE-008** (WARN) — A UCP profile is published but fails validation.
+- **CORE-OPERABILITY-011** (WARN) — 2 of 2 machine surface(s) are not linked from anything an agent reads: llms_txt, ucp.
 
 N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`
 
@@ -587,7 +619,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERA
 
 ## Provenance
 
-Core 0.2.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.3.0 · ruleset 2026.10 (digest `994a69bc7f12`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

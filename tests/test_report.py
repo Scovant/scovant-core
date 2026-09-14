@@ -149,7 +149,7 @@ def test_render_text_shows_evaluated_over_applicable_check_counts_per_category()
     report = _scan()
     text = render_text(report)
     line = next(ln for ln in text.splitlines() if ln.startswith("Operability & Efficiency"))
-    assert line.endswith("(5/5)")
+    assert line.endswith("(7/7)")
     for ln in text.splitlines():
         if ln.startswith("Access & Discovery"):
             assert "(10/10)" in ln

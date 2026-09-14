@@ -2,7 +2,7 @@
 
 ## Score
 
-**Scovant Core Static Signal Score:** 89 / 100 · grade B · coverage 100%
+**Scovant Core Static Signal Score:** 90 / 100 · grade A · coverage 100%
 **Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** api (requested auto, confidence 90%)
 
@@ -17,9 +17,9 @@
 | Machine Understanding | 25 | 81 | 8 / 8 |
 | Agent Interfaces | 20 | 100 | 6 / 6 |
 | Trust & Commerce | 15 | 75 | 8 / 8 |
-| Operability & Efficiency | 15 | 82 | 11 / 11 |
+| Operability & Efficiency | 15 | 88 | 16 / 16 |
 
-45 checks: 20 PASS, 6 WARN, 0 FAIL, 19 N/A, 0 ERROR
+50 checks: 23 PASS, 6 WARN, 0 FAIL, 21 N/A, 0 ERROR
 
 ## Top findings
 
@@ -110,7 +110,7 @@
 
 - **CORE-TRUST-005** — Terms/conditions discoverability (medium): No terms/conditions page was found linked from the entry page.
   - Remediation: Publish a terms/conditions page and link it from the entry page's nav or footer.
-### PASS (19)
+### PASS (21)
 
 - **CORE-ACCESS-001** — HTTPS reachability (info): HTTPS entry URL answered 200.
 
@@ -401,6 +401,36 @@
 
   </details>
 
+- **CORE-OPERABILITY-008** — Unknown paths return 404 (info): Unknown paths answer with a real 404.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "final_url": "https://example.com/scovant-core-probe-9b580505",
+    "probed_url": "https://example.com/scovant-core-probe-9b580505",
+    "redirected": false,
+    "served_html": false,
+    "status": 404
+  }
+  ```
+
+  </details>
+
+- **CORE-OPERABILITY-010** — Challenge pages are not served as 200 (info): No challenge page is served with HTTP 200.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "honest_challenges": 0,
+    "pages": [],
+    "pages_checked": 4
+  }
+  ```
+
+  </details>
+
 - **CORE-TRUST-001** — Contact/support discoverability (info): A contact or support link was found on the entry page.
 
   <details><summary>evidence</summary>
@@ -430,15 +460,16 @@
 
   </details>
 
-### N/A (15)
+### N/A (16)
 
-`CORE-ACCESS-009`, `CORE-ACCESS-010`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-MACHINE-001`, `CORE-MACHINE-004`, `CORE-MACHINE-005`, `CORE-MACHINE-006`, `CORE-MACHINE-007`, `CORE-MACHINE-011`, `CORE-OPERABILITY-006`, `CORE-TRUST-002`, `CORE-TRUST-003`, `CORE-TRUST-007`
+`CORE-ACCESS-009`, `CORE-ACCESS-010`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-MACHINE-001`, `CORE-MACHINE-004`, `CORE-MACHINE-005`, `CORE-MACHINE-006`, `CORE-MACHINE-007`, `CORE-MACHINE-011`, `CORE-OPERABILITY-006`, `CORE-OPERABILITY-009`, `CORE-TRUST-002`, `CORE-TRUST-003`, `CORE-TRUST-007`
 
 ## Experimental (not scored)
 
 - **CORE-INTERFACE-009** (PASS) — An agent discovery surface is published (a2a_card).
+- **CORE-OPERABILITY-011** (PASS) — All 1 present machine surface(s) are linked from something an agent reads.
 
-N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`
+N/A: `CORE-ACCESS-011`, `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`
 
 ## Not tested by Scovant Core
 
@@ -451,7 +482,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-MACHINE-012`, `CORE-OPERA
 
 ## Provenance
 
-Core 0.2.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.3.0 · ruleset 2026.10 (digest `994a69bc7f12`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

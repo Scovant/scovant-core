@@ -161,6 +161,35 @@ def test_example_report_attributes_its_cta_to_the_docs_medium_not_cli():
     assert "utm_medium=cli" not in text
 
 
+@skip_needs_golden_fixture
+def test_readme_example_output_matches_the_text_renderer():
+    """README.md's "Example output" ```text``` block must be exactly
+    `render_text`'s output over the same `commerce-good` golden fixture
+    `docs/example-report.md` is generated from — never hand-typed, so it
+    can't go stale the way it did before the 0.3.0 fix wave (the block still
+    showed pre-0.3.0 tallies: 37/0/8, no CORE-ACCESS-011/CORE-OPERABILITY-011
+    findings)."""
+    import json
+
+    from scovant_core.models import Report
+    from scovant_core.report.text import render_text
+
+    golden = (
+        Path(_docs_module.__file__).resolve().parents[2]
+        / "fixtures" / "sites" / "expected" / "commerce-good.json"
+    )
+    report = Report.model_validate(json.loads(golden.read_text(encoding="utf-8")))
+    expected = render_text(report).rstrip("\n")
+
+    readme = (PKG_ROOT / "README.md").read_text(encoding="utf-8")
+    m = re.search(r"```text\n(.*?)\n```", readme, re.DOTALL)
+    assert m, "README.md must carry a ```text``` example-output block"
+    assert m.group(1) == expected, (
+        "README.md's example-output block has drifted from the text renderer "
+        "— regenerate it (see docs/example-report.md's own generation pattern)"
+    )
+
+
 def test_main_rejects_an_unknown_flag():
     assert main(["--nope"]) == 2
 

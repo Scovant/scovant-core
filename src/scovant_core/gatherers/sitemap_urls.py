@@ -48,7 +48,9 @@ def gather_sitemap(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
         # — both just leave `exists: False`. Probe once more so a downstream
         # check can tell the two apart instead of reporting a confident
         # negative about a document it never actually read.
-        probe = client.try_fetch(f"{ctx.origin}/sitemap.xml", kind="sitemap")
+        probe_url = f"{ctx.origin}/sitemap.xml"
+        probe = client.try_fetch(probe_url, kind="sitemap")
+        out["probed_url"] = probe_url
         if isinstance(probe, FetchError):
             out["probe_error"] = probe.kind
         else:
@@ -57,12 +59,16 @@ def gather_sitemap(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
                 probe.status, probe.content_type, probe.text, document="sitemap",
             )
             out["body_truncated"] = out["body_truncated"] or (bool(probe.truncated) and probe.text != "")
+            if probe.status == 429:
+                out["retry_after"] = probe.headers.get("retry-after")
         return out
     res = client.try_fetch(found["url"], kind="sitemap_index" if found["kind"] == "sitemapindex" else "sitemap")
     if isinstance(res, FetchError):
         return out
     out["probe_status"] = res.status
     out["body_truncated"] = out["body_truncated"] or (bool(res.truncated) and res.text != "")
+    if res.status == 429:
+        out["retry_after"] = res.headers.get("retry-after")
     if is_soft_200_html(res.status, res.content_type, res.text, document="sitemap"):
         # A catch-all router answered with an HTML page, not a sitemap. That is
         # an ABSENT sitemap, not a malformed one — reporting "invalid XML"

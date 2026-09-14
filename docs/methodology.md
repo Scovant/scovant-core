@@ -23,6 +23,12 @@ four carry the same score, findings, and evidence — only the presentation
 differs. See the README's "JSON, Markdown and HTML output" section for
 examples.
 
+**HTTP 200 is not success.** Core probes one path that cannot exist and
+expects a real 404 (CORE-OPERABILITY-008), requires a `Retry-After` on any
+429 it happens to observe (-009), and treats a bot-challenge page served
+with HTTP 200 as a defect (-010) — the three clauses of AgentReady v1.0's
+`AR-READ-02`.
+
 ## What Core does not measure
 
 Core never opens a browser, never executes JavaScript, never authenticates,
@@ -192,23 +198,23 @@ Minimum evidence coverage: 60%. Below this coverage, no score is emitted (`INSUF
 
 ## v0.1 category coverage
 
-v0.1 ships 45 checks in total (5 of them `experimental` — evaluated and
-reported, but excluded from the score until calibrated and promoted; see
-`docs/checks.md`), distributed like this — *checks / summed local weight*
-per category, counting experimental checks in both columns:
+Ruleset 2026.10 ships 50 checks in total (7 of them `experimental` —
+evaluated and reported, but excluded from the score until calibrated and
+promoted; see `docs/checks.md`), distributed like this — *checks / summed
+local weight* per category, counting experimental checks in both columns:
 
 | Category | Checks / local weight | Category weight |
 |---|---|---:|
-| Access & Discovery | 10 / 25 | 25 |
+| Access & Discovery | 11 / 26 | 25 |
 | Machine Understanding | 12 / 26 | 25 |
 | Agent Interfaces | 9 / 20 | 20 |
 | Trust & Commerce | 7 / 15 | 15 |
-| Operability & Efficiency | 7 / 15 | 15 |
+| Operability & Efficiency | 11 / 23 | 15 |
 
 Every category now carries enough checks that a single verdict rarely
 decides the whole category on its own — Trust & Commerce and Operability &
 Efficiency, the thinnest in v0.1's first draft (one check each), now carry
-seven apiece. Several Machine Understanding and Trust & Commerce checks are
+seven or more apiece. Several Machine Understanding and Trust & Commerce checks are
 profile-restricted (e.g. Product/Offer/identifier checks apply only to the
 `commerce` profile), so a given scan's *applicable* set within a category is
 usually smaller than its full local-weight total above — the `(n/N)`

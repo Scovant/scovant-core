@@ -1,4 +1,4 @@
-"""CORE-ACCESS-001..010: Access & Discovery checks."""
+"""CORE-ACCESS-001..011: Access & Discovery checks."""
 from __future__ import annotations
 
 from scovant_core.checks.access.core_access_001 import HttpsReachability
@@ -11,6 +11,7 @@ from scovant_core.checks.access.core_access_007 import CanonicalIntegrity
 from scovant_core.checks.access.core_access_008 import Indexability
 from scovant_core.checks.access.core_access_009 import LlmsTxtIntegrity
 from scovant_core.checks.access.core_access_010 import ContentSignalDeclaration
+from scovant_core.checks.access.core_access_011 import LlmsTxtUtility
 
 ACCESS_CHECKS = [
     HttpsReachability(),
@@ -23,6 +24,7 @@ ACCESS_CHECKS = [
     Indexability(),
     LlmsTxtIntegrity(),
     ContentSignalDeclaration(),
+    LlmsTxtUtility(),
 ]
 
 __all__ = ["ACCESS_CHECKS"]

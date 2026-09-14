@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Scovant/scovant-core/security/policy
+    about: Please do not report security issues in public GitHub issues — see SECURITY.md.
+  - name: Commercial support
+    url: https://scovant.com
+    about: For hosted scanning, integration help, or anything not fit for a public issue.

@@ -2,7 +2,7 @@
 
 ## Score
 
-**Scovant Core Static Signal Score:** 80 / 100 · grade B · coverage 100%
+**Scovant Core Static Signal Score:** 81 / 100 · grade B · coverage 100%
 **Scope:** CANONICAL · **Status:** OK · **Errors:** 0
 **Profile:** saas (requested auto, confidence 80%)
 
@@ -17,9 +17,9 @@
 | Machine Understanding | 25 | 92 | 12 / 12 |
 | Agent Interfaces | 20 | 50 | 4 / 4 |
 | Trust & Commerce | 15 | 100 | 11 / 11 |
-| Operability & Efficiency | 15 | 81 | 13 / 13 |
+| Operability & Efficiency | 15 | 86 | 18 / 18 |
 
-45 checks: 20 PASS, 8 WARN, 0 FAIL, 17 N/A, 0 ERROR
+50 checks: 22 PASS, 8 WARN, 0 FAIL, 20 N/A, 0 ERROR
 
 ## Top findings
 
@@ -185,7 +185,7 @@
 
   </details>
 
-### PASS (20)
+### PASS (22)
 
 - **CORE-ACCESS-001** — HTTPS reachability (info): HTTPS entry URL answered 200.
 
@@ -445,6 +445,36 @@
 
   </details>
 
+- **CORE-OPERABILITY-008** — Unknown paths return 404 (info): Unknown paths answer with a real 404.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "final_url": "https://example.com/scovant-core-probe-9b580505",
+    "probed_url": "https://example.com/scovant-core-probe-9b580505",
+    "redirected": false,
+    "served_html": false,
+    "status": 404
+  }
+  ```
+
+  </details>
+
+- **CORE-OPERABILITY-010** — Challenge pages are not served as 200 (info): No challenge page is served with HTTP 200.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "honest_challenges": 0,
+    "pages": [],
+    "pages_checked": 5
+  }
+  ```
+
+  </details>
+
 - **CORE-TRUST-001** — Contact/support discoverability (info): A contact or support link was found on the entry page.
 
   <details><summary>evidence</summary>
@@ -519,15 +549,15 @@
 
   </details>
 
-### N/A (12)
+### N/A (13)
 
-`CORE-ACCESS-009`, `CORE-ACCESS-010`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-MACHINE-004`, `CORE-MACHINE-005`, `CORE-MACHINE-006`, `CORE-MACHINE-011`, `CORE-TRUST-002`, `CORE-TRUST-003`
+`CORE-ACCESS-009`, `CORE-ACCESS-010`, `CORE-INTERFACE-001`, `CORE-INTERFACE-002`, `CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-MACHINE-004`, `CORE-MACHINE-005`, `CORE-MACHINE-006`, `CORE-MACHINE-011`, `CORE-OPERABILITY-009`, `CORE-TRUST-002`, `CORE-TRUST-003`
 
 ## Experimental (not scored)
 
 _Experimental checks: not scored (run with --experimental)_
 
-N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`
+N/A: `CORE-ACCESS-011`, `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`, `CORE-OPERABILITY-011`
 
 ## Not tested by Scovant Core
 
@@ -540,7 +570,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-INTERFACE-009`, `CORE-MAC
 
 ## Provenance
 
-Core 0.2.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.3.0 · ruleset 2026.10 (digest `994a69bc7f12`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

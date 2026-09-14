@@ -1,0 +1,34 @@
+name: False positive / false negative
+description: A check fired (or stayed silent) on a real site when it should not have.
+title: "[false-positive]: "
+labels: ["false-positive"]
+body:
+  - type: input
+    id: check-id
+    attributes:
+      label: Check id
+      placeholder: "CORE-ACCESS-003"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      description: The public URL that was scanned. If the site is private, describe the relevant markup/headers instead.
+    validations:
+      required: false
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Report evidence
+      description: The check's entry from the scan report (verdict, evidence, confidence).
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: why-wrong
+    attributes:
+      label: Why is the verdict wrong?
+      description: What did the check see, and what should it have concluded instead?
+    validations:
+      required: true

@@ -23,13 +23,16 @@ def test_registry_is_valid():
     assert re.fullmatch(r"\d{4}\.\d{2}", RULESET_VERSION) and re.fullmatch(r"[0-9a-f]{12}", RULESET_DIGEST)
 
 
-def test_registry_has_forty_five():
-    # The six Operability & Efficiency checks
-    # (CORE-OPERABILITY-001/002/003/005/006/007) complete the registry.
+def test_registry_has_fifty():
+    # Ruleset 2026.10 adds five checks over the 2026.09 registry: the three
+    # required HTTP-semantics checks (CORE-OPERABILITY-008/009/010) plus two
+    # experimental discoverability/utility checks (CORE-ACCESS-011,
+    # CORE-OPERABILITY-011).
     ids = {c.id for c in CHECKS}
     expected = {
         "CORE-ACCESS-001", "CORE-ACCESS-002", "CORE-ACCESS-003", "CORE-ACCESS-004", "CORE-ACCESS-005",
         "CORE-ACCESS-006", "CORE-ACCESS-007", "CORE-ACCESS-008", "CORE-ACCESS-009", "CORE-ACCESS-010",
+        "CORE-ACCESS-011",
         "CORE-MACHINE-001", "CORE-MACHINE-002", "CORE-MACHINE-003", "CORE-MACHINE-004", "CORE-MACHINE-005",
         "CORE-MACHINE-006", "CORE-MACHINE-007", "CORE-MACHINE-008", "CORE-MACHINE-009", "CORE-MACHINE-010",
         "CORE-MACHINE-011", "CORE-MACHINE-012",
@@ -39,21 +42,26 @@ def test_registry_has_forty_five():
         "CORE-TRUST-001", "CORE-TRUST-002", "CORE-TRUST-003", "CORE-TRUST-004", "CORE-TRUST-005",
         "CORE-TRUST-006", "CORE-TRUST-007",
         "CORE-OPERABILITY-001", "CORE-OPERABILITY-002", "CORE-OPERABILITY-003", "CORE-OPERABILITY-004",
-        "CORE-OPERABILITY-005", "CORE-OPERABILITY-006", "CORE-OPERABILITY-007",
+        "CORE-OPERABILITY-005", "CORE-OPERABILITY-006", "CORE-OPERABILITY-007", "CORE-OPERABILITY-008",
+        "CORE-OPERABILITY-009", "CORE-OPERABILITY-010", "CORE-OPERABILITY-011",
     }
     assert ids == expected
-    assert len(CHECKS) == 45
+    assert len(CHECKS) == 50
+    assert RULESET_VERSION == "2026.10"
     validate_registry()
 
 
 def test_experimental_set_is_exact():
-    # D2: exactly these five checks are experimental — emerging protocols
-    # (INTERFACE-004/-008/-009, MACHINE-012) or fragile heuristics
-    # (OPERABILITY-007) — visible in reports but excluded from the score
-    # unless `--experimental`.
+    # D2: exactly these seven checks are experimental — emerging protocols
+    # (INTERFACE-004/-008/-009, MACHINE-012), fragile heuristics
+    # (OPERABILITY-007), and the two 2026.10 additions whose measurement is
+    # declared/link-based rather than a direct observation
+    # (ACCESS-011 llms.txt utility, OPERABILITY-011 discovery linkage) —
+    # visible in reports but excluded from the score unless `--experimental`.
     expected = {
         "CORE-INTERFACE-004", "CORE-INTERFACE-008", "CORE-INTERFACE-009",
         "CORE-MACHINE-012", "CORE-OPERABILITY-007",
+        "CORE-ACCESS-011", "CORE-OPERABILITY-011",
     }
     experimental_ids = {c.id for c in CHECKS if c.experimental}
     assert experimental_ids == expected

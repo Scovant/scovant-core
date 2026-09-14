@@ -174,7 +174,7 @@ def gather_pages(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -
                 continue
             res_status, html, headers = res.status, res.text, res.headers
             page_truncated = bool(res.truncated) and html != ""
-        pages.append({
+        page = {
             "url": pick["url"], "status": res_status, "html": html,
             "bot_protection": detect_bot_protection(res_status or 0, headers, html, "browser") if html else None,
             # A non-2xx response (e.g. a 500) is not parsed as content — its
@@ -183,7 +183,10 @@ def gather_pages(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -
             if html and res_status is not None and 200 <= res_status < 300 else None,
             "error": None,
             "truncated": page_truncated,
-        })
+        }
+        if res_status == 429:
+            page["retry_after"] = headers.get("retry-after")
+        pages.append(page)
     # This gatherer fetches MANY documents (one per selected page); the
     # top-level flag is true when ANY of them was truncated.
     return {"pages": pages, "selection": selection,

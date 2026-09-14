@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from scovant_core.context import ScanContext
 from scovant_core.evidence import EvidenceStore, register_gatherer
+from scovant_core.parsers.bot_protection import detect_bot_protection
 from scovant_core.security.client import FetchError, SecureClient
 
 
@@ -12,8 +13,13 @@ def gather_http(client: SecureClient, ctx: ScanContext, store: EvidenceStore) ->
         ctx.set_final_url(ctx.input_url)
         return {"input_url": ctx.input_url, "final_url": None, "status": None, "headers": {},
                 "redirect_chain": [], "html": "", "bytes": 0, "truncated": False,
-                "error": {"kind": res.kind, "message": res.message}}
+                "bot_protection": None, "error": {"kind": res.kind, "message": res.message}}
     ctx.set_final_url(res.final_url)
-    return {"input_url": ctx.input_url, "final_url": res.final_url, "status": res.status,
-            "headers": res.headers, "redirect_chain": res.redirect_chain, "html": res.text,
-            "bytes": res.bytes_len, "truncated": res.truncated, "error": None}
+    out = {"input_url": ctx.input_url, "final_url": res.final_url, "status": res.status,
+           "headers": res.headers, "redirect_chain": res.redirect_chain, "html": res.text,
+           "bytes": res.bytes_len, "truncated": res.truncated,
+           "bot_protection": detect_bot_protection(res.status, res.headers, res.text, "browser"),
+           "error": None}
+    if res.status == 429:
+        out["retry_after"] = res.headers.get("retry-after")
+    return out

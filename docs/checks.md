@@ -18,6 +18,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 | CORE-ACCESS-008 | Indexability | 3 | all | high | no |
 | CORE-ACCESS-009 | llms.txt presence and integrity | 2 | all | low | no |
 | CORE-ACCESS-010 | Content-Signal declaration | 2 | all | low | no |
+| CORE-ACCESS-011 | llms.txt utility | 1 | all | info | yes |
 
 ### CORE-ACCESS-001 — HTTPS reachability
 
@@ -150,6 +151,18 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **References:**
 
 - <https://contentsignals.org/>
+
+### CORE-ACCESS-011 — llms.txt utility
+
+**Why it matters:** An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility.
+
+**Limitations:** Heuristics over the file text; a WARN is a prompt to review the file, not a defect. A bare `Disallow: /` in the robots.txt general (default) group does not itself count as an AI-crawler declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. Experimental: never scored.
+
+**Cloud extension:** Scovant Cloud compares llms.txt against what agents actually fetch.
+
+**References:**
+
+- <https://llmstxt.org/>
 
 ## Machine Understanding
 
@@ -565,6 +578,10 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 | CORE-OPERABILITY-005 | Agent parse cost | 3 | all | medium | no |
 | CORE-OPERABILITY-006 | Form/control labels | 2 | commerce, saas | medium | no |
 | CORE-OPERABILITY-007 | Machine reference integrity | 2 | all | high | yes |
+| CORE-OPERABILITY-008 | Unknown paths return 404 | 2 | all | medium | no |
+| CORE-OPERABILITY-009 | Rate limiting is signalled | 1 | all | low | no |
+| CORE-OPERABILITY-010 | Challenge pages are not served as 200 | 3 | all | high | no |
+| CORE-OPERABILITY-011 | Discovery linkage | 2 | all | low | yes |
 
 ### CORE-OPERABILITY-001 — Server-rendered core content
 
@@ -656,3 +673,56 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **References:**
 
 - <https://llmstxt.org/>
+
+### CORE-OPERABILITY-008 — Unknown paths return 404
+
+**Why it matters:** An agent that receives HTTP 200 for a path that does not exist cannot tell a missing page from a real one; it may read an error template as content or cache a phantom URL.
+
+**Limitations:** One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.
+
+**Standards:** AR-READ-02
+
+**Cloud extension:** Scovant Cloud probes several unknown paths per host and per section, and re-checks over time.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc9110#name-404-not-found>
+
+### CORE-OPERABILITY-009 — Rate limiting is signalled
+
+**Why it matters:** A 429 without Retry-After leaves an agent guessing when to come back; with it, a well-behaved agent backs off exactly as long as the server asks.
+
+**Limitations:** Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.
+
+**Standards:** AR-READ-02
+
+**Cloud extension:** Scovant Cloud observes rate-limit behaviour across its crawl and agent runs over time.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc6585#section-4>
+- <https://www.rfc-editor.org/rfc/rfc9110#name-retry-after>
+
+### CORE-OPERABILITY-010 — Challenge pages are not served as 200
+
+**Why it matters:** A human-verification page returned with HTTP 200 is read by an agent as the page's content: it will summarise, quote or cache the challenge as if it were the site.
+
+**Limitations:** Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).
+
+**Cloud extension:** Scovant Cloud classifies WAF and challenge behaviour across identities and over time.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc9110#name-403-forbidden>
+
+### CORE-OPERABILITY-011 — Discovery linkage
+
+**Why it matters:** A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. This measures declared, link-based discoverability — whether a real agent finds it is Scovant Cloud's measurement.
+
+**Limitations:** Only llms.txt, OpenAPI, MCP and UCP are considered (a markdown-mirror surface and Link-header attribution are not yet wired into the Core evidence pipeline, so they cannot be checked). This check never fetches OpenAPI or UCP itself — it reads them only if another applicable check for this profile already gathered that evidence (OpenAPI: `CORE-INTERFACE-005`, profiles api/saas; UCP: `CORE-INTERFACE-008`, profile commerce). On any other profile, an unfetched OpenAPI/UCP surface is treated as not probed on this profile (counted as absent), never actively probed to find out — an unscored experimental check must never add its own network requests. Exactly two link sources are walked: the anchor links on the entry page itself, and the `machine_links` reference inventory — whose entries are sourced from the canonical URL, a policy-page link, the sitemap document URL itself, the declared OpenAPI spec, an MCP endpoint, or an llms.txt reference — matched only when one of those reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL itself, not a URL it lists). Experimental: never scored.
+
+**Cloud extension:** Scovant Cloud measures real agent discovery success across providers.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc8288>

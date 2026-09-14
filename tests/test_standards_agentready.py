@@ -131,3 +131,9 @@ def test_coverage_is_in_report_metrics_and_rendered(load_expected):
     assert line.startswith("AgentReady v1.0 (descriptive, not scored): MUST ")
     for out in (render_text(r), render_markdown(r), render_html(r)):
         assert "AgentReady v1.0 (descriptive, not scored)" in out and "docs/standards/agentready.md" in out
+
+
+def test_read_02_is_exact_with_three_operability_checks():
+    m = next(m for m in MAPPING if m.requirement_id == "AR-READ-02")
+    assert m.relationship == "EXACT" and m.core_checks == ("CORE-OPERABILITY-004", "CORE-OPERABILITY-008", "CORE-OPERABILITY-009")
+    assert mapping_summary()["exact"] == 3 and mapping_summary()["partial"] == 6

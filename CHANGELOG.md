@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.3.0] - 2026-09-14
+
+`ruleset_version` 2026.09 → **2026.10**: three required checks were added, so
+scores are NOT comparable with 0.2.x. `ruleset_digest` changed.
+
+### Added
+- Required HTTP-semantics checks (category Operability): CORE-OPERABILITY-008
+  "Unknown paths return 404" (one probe of a path that cannot exist — a 200
+  HTML answer is a soft-404), -009 "Rate limiting is signalled" (any observed
+  429 must carry Retry-After; N/A when no 429 was seen — Core never provokes
+  one), -010 "Challenge pages are not served as 200".
+- Experimental (unscored) checks: CORE-ACCESS-011 "llms.txt utility" and
+  CORE-OPERABILITY-011 "Discovery linkage".
+- AgentReady mapping: AR-READ-02 is now EXACT (measured by -004, -008, -009).
+- CITATION.cff, SUPPORT.md, CODEOWNERS, issue and pull-request templates.
+
+### Changed
+- Methodology: "HTTP 200 is not success" paragraph; seven experimental checks.
+
 ## [0.2.1] - 2026-09-14
 
 `ruleset_version` unchanged (`2026.09`); `ruleset_digest` unchanged — scores fully

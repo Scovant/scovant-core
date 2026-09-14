@@ -22,26 +22,29 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.2.1" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.2.1/constraints/constraints-0.2.1.txt
+    pip install "scovant-core==0.3.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.3.0/constraints/constraints-0.3.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
 
 ## Example output
 
-Running `scovant scan https://example.com` against a well-instrumented
-commerce site produces text output shaped like this (real output, generated
-from the `commerce-good` test fixture — a site with nothing to report, so
-"Top findings" is empty; any FAIL/WARN would be listed there). The `(n/N)`
-beside each category is how many of that category's applicable checks were
-actually evaluated — see `docs/methodology.md` for how the categories'
-depth varies in v0.1. The "Experimental (not scored)" block lists any
+Running `scovant scan https://example.com --experimental` against a
+well-instrumented commerce site produces text output shaped like this (real
+output, rendered — never from a live scan — from the `commerce-good` test
+fixture; a site with nothing to report on the SCORED checks, so "Top
+findings" is empty; any FAIL/WARN among those would be listed there). The
+`(n/N)` beside each category is how many of that category's applicable
+checks were actually evaluated — see `docs/methodology.md` for how the
+categories' depth varies. The "Experimental (not scored)" block lists every
 experimental check that evaluated to something other than `N/A` on this
-scan, plus a compact "N/A: ..." line naming the experimental checks that
-had nothing to evaluate — so every check the header counts is named
-somewhere, never merely counted. These never affect the Static Signal
-Score; pass `--experimental` to also run the one experimental check
-(`CORE-OPERABILITY-007`) gated behind that flag.
+scan (including a WARN, as below — experimental findings are still shown,
+just never scored), plus a compact "N/A: ..." line naming the experimental
+checks that had nothing to evaluate — so every check the header counts is
+named somewhere, never merely counted. These never affect the Static Signal
+Score; pass `--experimental` to also run the experimental checks gated
+behind that flag (omit it and they're skipped entirely, not evaluated as
+N/A).
 
 ```text
 SCOVANT CORE
@@ -49,21 +52,35 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.2.1
+Core version: 0.3.0
 
 Static Signal Score       100 / 100   A
+Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
+
+Capabilities detected (descriptive, not scored)
+  mcp: present
+  webmcp: absent
+  ucp: present
+  llms_txt: present
+  openapi: not_checked
+  oauth: not_checked
+  content_signal: present
+  security_txt: present
+
+AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 3 pass · SHOULD 5/12 measured — 5 pass · MAY none measured (0/3)
+  Mapping: docs/standards/agentready.md
 
 Access & Discovery        100   (10/10)
 Machine Understanding     100   (11/11)
 Agent Interfaces          100   (2/2)
 Trust & Commerce          100   (7/7)
-Operability & Efficiency  100   (5/5)
+Operability & Efficiency  100   (7/7)
 
-45 checks
-37 PASS
-0 WARN
+50 checks
+40 PASS
+1 WARN
 0 FAIL
-8 N/A
+9 N/A
 0 ERROR
 
 Top findings
@@ -72,11 +89,17 @@ Top findings
 
 Experimental (not scored)
 ──────────────────────────────────────────────
+PASS  CORE-ACCESS-011
+      llms.txt links useful same-origin pages and carries no misplaced policy or template text.
+
 PASS  CORE-INTERFACE-008
       A UCP profile is published and valid.
 
 PASS  CORE-MACHINE-012
       The structured price matches a visible price on the page.
+
+WARN  CORE-OPERABILITY-011
+      3 of 3 machine surface(s) are not linked from anything an agent reads: llms_txt, mcp, ucp.
 
 N/A: CORE-INTERFACE-004, CORE-INTERFACE-009, CORE-OPERABILITY-007
 
@@ -95,12 +118,14 @@ https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss
 
 ## What Core checks
 
-45 deterministic checks across 5 categories (5 of the 45 are experimental —
+50 deterministic checks across 5 categories (7 of the 50 are experimental —
 they run and report but never affect the score; see below):
 
-- **Access & Discovery** (10) — HTTPS reachability, robots.txt, AI crawler
+- **Access & Discovery** (11) — HTTPS reachability, robots.txt, AI crawler
   policy, training-vs-search crawler separation, sitemap availability and
-  freshness, canonical URLs, indexability, llms.txt, Content-Signal
+  freshness, canonical URLs, indexability, llms.txt, Content-Signal, and
+  (experimental) llms.txt utility (useful links, no misplaced policy text,
+  not a template)
 - **Machine Understanding** (12) — JSON-LD parseability, Organization and
   WebSite/WebPage entities, Product/Offer structured data, product
   identifier count, breadcrumbs, metadata quality, heading structure,
@@ -114,30 +139,34 @@ they run and report but never affect the score; see below):
   Skills)
 - **Trust & Commerce** (7) — contact/support, shipping, returns/refund,
   privacy, terms, `security.txt`, and pricing discoverability
-- **Operability & Efficiency** (7) — server-rendered core content,
+- **Operability & Efficiency** (11) — server-rendered core content,
   redirect-chain complexity, cache validators, broken machine-consumable
-  endpoints, agent parse cost, form/control labels, and (experimental,
-  `--experimental` only) machine-reference integrity
+  endpoints, agent parse cost, form/control labels, unknown paths return a
+  real 404, rate-limiting (429) is signalled with `Retry-After`, bot-
+  challenge pages are not served as HTTP 200, and (experimental,
+  `--experimental` only) machine-reference integrity and discovery linkage
 
 ### Experimental checks
 
-Five checks ship `experimental`: they evaluate and appear in every report,
+Seven checks ship `experimental`: they evaluate and appear in every report,
 but their weight is excluded from the Static Signal Score until they have
 been calibrated against real-world traffic and promoted.
 
 | ID | Title |
 |---|---|
+| `CORE-ACCESS-011` | llms.txt utility |
 | `CORE-INTERFACE-004` | WebMCP tool declaration quality |
 | `CORE-INTERFACE-008` | UCP profile validity |
 | `CORE-INTERFACE-009` | Agent discovery surface presence |
 | `CORE-MACHINE-012` | Visible vs. structured price |
 | `CORE-OPERABILITY-007` | Machine reference integrity |
+| `CORE-OPERABILITY-011` | Discovery linkage |
 
 `CORE-OPERABILITY-007` is additionally gated on the `--experimental` flag
 itself — it is the only check whose gatherer (`reference_integrity`) makes
 any network request at all beyond the ordinary scan, so a plain `scovant
 scan` never resolves an external package registry or DNS name for it. The
-other four evaluate on every scan; they simply never move the score.
+other six evaluate on every scan; they simply never move the score.
 
 See [`docs/checks.md`](docs/checks.md) for the full catalog — every check's
 id, weight, applicable profile, and why it matters — generated straight
@@ -186,7 +215,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.2.1` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.3.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -306,7 +335,7 @@ shell command. Claude Desktop (`claude_desktop_config.json`) and Cursor
 
 | Tool | Description |
 | --- | --- |
-| `scan_site` | Run all 45 checks against one public URL, return the JSON report |
+| `scan_site` | Run all 50 checks against one public URL, return the JSON report |
 | `get_core_score` | Run the scan, return only the Static Signal Score summary |
 | `list_checks` | List every check with category, weight, profiles, experimental flag |
 | `explain_check` | Explain one check: why it matters, limitations, Cloud extension, references |

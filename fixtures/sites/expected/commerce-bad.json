@@ -22,9 +22,9 @@
       "weight": 25
     },
     "operability": {
-      "applicable_weight": 13.0,
-      "evaluated_weight": 13.0,
-      "score": 50.0,
+      "applicable_weight": 18.0,
+      "evaluated_weight": 18.0,
+      "score": 63.9,
       "title": "Operability & Efficiency",
       "weight": 15
     },
@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.2.1",
+  "core_version": "0.3.0",
   "findings": [
     {
       "category": "access",
@@ -301,6 +301,29 @@
       "title": "Content-Signal declaration",
       "weight": 2,
       "why_it_matters": "Content-Signal lets a site state search/AI-input/AI-training intent per dimension instead of leaving agents to guess from Disallow rules alone."
+    },
+    {
+      "category": "access",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud compares llms.txt against what agents actually fetch.",
+      "confidence": "high",
+      "evidence": {
+        "generic_template": false,
+        "links": 1,
+        "no_useful_references": false,
+        "policy_misuse": false,
+        "same_origin_links": 1
+      },
+      "experimental": true,
+      "id": "CORE-ACCESS-011",
+      "limitations": "Heuristics over the file text; a WARN is a prompt to review the file, not a defect. A bare `Disallow: /` in the robots.txt general (default) group does not itself count as an AI-crawler declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. Experimental: never scored.",
+      "remediation": "",
+      "severity": "info",
+      "status": "PASS",
+      "summary": "llms.txt links useful same-origin pages and carries no misplaced policy or template text.",
+      "title": "llms.txt utility",
+      "weight": 1,
+      "why_it_matters": "An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility."
     },
     {
       "category": "interfaces",
@@ -923,6 +946,115 @@
       "why_it_matters": "A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it."
     },
     {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud probes several unknown paths per host and per section, and re-checks over time.",
+      "confidence": "high",
+      "evidence": {
+        "final_url": "https://example.com/scovant-core-probe-9b580505",
+        "probed_url": "https://example.com/scovant-core-probe-9b580505",
+        "redirected": false,
+        "served_html": false,
+        "status": 404
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-008",
+      "limitations": "One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.",
+      "remediation": "",
+      "severity": "info",
+      "status": "PASS",
+      "summary": "Unknown paths answer with a real 404.",
+      "title": "Unknown paths return 404",
+      "weight": 2,
+      "why_it_matters": "An agent that receives HTTP 200 for a path that does not exist cannot tell a missing page from a real one; it may read an error template as content or cache a phantom URL."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud observes rate-limit behaviour across its crawl and agent runs over time.",
+      "confidence": "high",
+      "evidence": {
+        "observed": []
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-009",
+      "limitations": "Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.",
+      "remediation": "",
+      "severity": "info",
+      "status": "N/A",
+      "summary": "No 429 response was observed during this scan.",
+      "title": "Rate limiting is signalled",
+      "weight": 1,
+      "why_it_matters": "A 429 without Retry-After leaves an agent guessing when to come back; with it, a well-behaved agent backs off exactly as long as the server asks."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud classifies WAF and challenge behaviour across identities and over time.",
+      "confidence": "high",
+      "evidence": {
+        "honest_challenges": 0,
+        "pages": [],
+        "pages_checked": 2
+      },
+      "experimental": false,
+      "id": "CORE-OPERABILITY-010",
+      "limitations": "Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).",
+      "remediation": "",
+      "severity": "info",
+      "status": "PASS",
+      "summary": "No challenge page is served with HTTP 200.",
+      "title": "Challenge pages are not served as 200",
+      "weight": 3,
+      "why_it_matters": "A human-verification page returned with HTTP 200 is read by an agent as the page's content: it will summarise, quote or cache the challenge as if it were the site."
+    },
+    {
+      "category": "operability",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud measures real agent discovery success across providers.",
+      "confidence": "high",
+      "evidence": {
+        "linked": 0,
+        "present": 2,
+        "surfaces": {
+          "llms_txt": {
+            "linked_from": [],
+            "present": true,
+            "url": "https://example.com/llms.txt"
+          },
+          "mcp": {
+            "linked_from": [],
+            "present": false,
+            "url": null
+          },
+          "openapi": {
+            "linked_from": [],
+            "present": false,
+            "url": null
+          },
+          "ucp": {
+            "linked_from": [],
+            "present": true,
+            "url": "https://example.com/.well-known/ucp"
+          }
+        },
+        "unlinked": [
+          "llms_txt",
+          "ucp"
+        ]
+      },
+      "experimental": true,
+      "id": "CORE-OPERABILITY-011",
+      "limitations": "Only llms.txt, OpenAPI, MCP and UCP are considered (a markdown-mirror surface and Link-header attribution are not yet wired into the Core evidence pipeline, so they cannot be checked). This check never fetches OpenAPI or UCP itself — it reads them only if another applicable check for this profile already gathered that evidence (OpenAPI: `CORE-INTERFACE-005`, profiles api/saas; UCP: `CORE-INTERFACE-008`, profile commerce). On any other profile, an unfetched OpenAPI/UCP surface is treated as not probed on this profile (counted as absent), never actively probed to find out — an unscored experimental check must never add its own network requests. Exactly two link sources are walked: the anchor links on the entry page itself, and the `machine_links` reference inventory — whose entries are sourced from the canonical URL, a policy-page link, the sitemap document URL itself, the declared OpenAPI spec, an MCP endpoint, or an llms.txt reference — matched only when one of those reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL itself, not a URL it lists). Experimental: never scored.",
+      "remediation": "Link llms.txt, OpenAPI, MCP and UCP documents from the entry page (e.g. a footer link), or reference them from the canonical URL, a policy page, or the OpenAPI spec.",
+      "severity": "low",
+      "status": "WARN",
+      "summary": "2 of 2 machine surface(s) are not linked from anything an agent reads: llms_txt, ucp.",
+      "title": "Discovery linkage",
+      "weight": 2,
+      "why_it_matters": "A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. This measures declared, link-based discoverability — whether a real agent finds it is Scovant Cloud's measurement."
+    },
+    {
       "category": "trust",
       "check_version": "1.0",
       "cloud_extension": "Scovant Cloud checks contact reachability across the full sampled page set, not only the entry page.",
@@ -1094,7 +1226,7 @@
         "verdict": "blocked"
       }
     },
-    "bytes_fetched": 1164,
+    "bytes_fetched": 1191,
     "entry_error": null,
     "error_count": 0,
     "gather_error_details": [],
@@ -1109,7 +1241,7 @@
       "ucp": "invalid",
       "webmcp": "absent"
     },
-    "requests": 23,
+    "requests": 26,
     "standards": {
       "agentready_v1": {
         "by_tier": {
@@ -1170,7 +1302,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.2.1",
+    "core_version": "0.3.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -1183,13 +1315,13 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "ea4ada4fffbf",
-    "ruleset_version": "2026.09",
+    "ruleset_digest": "994a69bc7f12",
+    "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.2.1 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.3.0 (+https://github.com/Scovant/scovant-core)"
   },
-  "ruleset_version": "2026.09",
+  "ruleset_version": "2026.10",
   "scan_id": "local-golden",
   "schema_version": "1.0",
   "score": {
@@ -1198,7 +1330,7 @@
     "name": "Scovant Core Static Signal Score",
     "scope": "CANONICAL",
     "status": "OK",
-    "value": 35
+    "value": 38
   },
   "started_at": "2026-09-04T00:00:00Z",
   "target": {

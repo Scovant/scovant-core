@@ -1,0 +1,43 @@
+name: Bug report
+description: Something crashed, exited with the wrong code, or behaved unexpectedly.
+title: "[bug]: "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Core version
+      description: Output of `scovant --version` or `python -c "import scovant_core; print(scovant_core.__version__)"`.
+      placeholder: "0.2.1"
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact command (or library call) you ran.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the full error output / traceback if there is one.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: report-snippet
+    attributes:
+      label: Report JSON snippet
+      description: If the bug is in a scan report, paste the relevant `checks[]` entry or `metrics` block (redact anything you don't want to share publicly).
+      render: json
+    validations:
+      required: false
