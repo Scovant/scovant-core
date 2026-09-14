@@ -8,19 +8,37 @@ from pathlib import Path
 
 import pytest
 
+import scovant_core.docs as _docs_module
 from scovant_core.docs import main, render_checks, render_example, render_weights_table
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = PKG_ROOT / "docs" / "example-report.md"
 
 if not (PKG_ROOT / "README.md").exists():
-    # test-core-isolated copies only tests/ + fixtures/ into the isolated run
-    # (see test_no_cloud_imports.py) — README.md/docs/ live at the package
-    # root and are deliberately absent there. These tests pin the committed
-    # repo tree to its generator functions; they only make sense running
-    # from within the checked-out repo, not from an installed-package dir
-    # with no repo tree alongside it.
+    # test-core-isolated copies tests/ + fixtures/ + docs/ + README.md (see
+    # ci.yml's test-core-isolated step and test_no_cloud_imports.py) — but
+    # only alongside the tests, never at the package root. These tests pin
+    # the committed repo tree to its generator functions; they only make
+    # sense running from within the checked-out repo, not from an
+    # installed-package dir with no repo tree alongside it.
     pytestmark = pytest.mark.skip(reason="package docs/README not present (isolated run)")
+
+# render_example() locates the `commerce-good` golden fixture relative to
+# docs.py's OWN installed location (`Path(__file__).resolve().parents[2]`),
+# not relative to this test file — and the wheel's `[tool.hatch.build.targets.wheel]`
+# deliberately ships only `src/scovant_core` (fixtures/docs are sdist-only,
+# dev tooling). In the isolated job, scovant-core is installed non-editably
+# into the venv's site-packages, so that path can never resolve there even
+# though we copied fixtures/ alongside the tests — this is a real gap in
+# what the installed package can do, not a copy-list omission.
+_golden_fixture_reachable = (
+    Path(_docs_module.__file__).resolve().parents[2]
+    / "fixtures" / "sites" / "expected" / "commerce-good.json"
+).is_file()
+skip_needs_golden_fixture = pytest.mark.skipif(
+    not _golden_fixture_reachable,
+    reason="commerce-good golden fixture not shipped alongside the installed package (isolated run)",
+)
 
 README_SECTIONS = (
     "Definition",
@@ -81,15 +99,46 @@ def test_cloud_matrix_matches_core_vs_cloud_doc():
             rows.append(line)
         elif in_table and line.strip() == "":
             break
-    parsed = tuple(tuple(c.strip() for c in r.strip("|").split("|")) for r in rows)
+    # The doc's sub-heading row wraps its capability cell in Markdown `**…**`
+    # bold markup (so it renders bold on GitHub); CORE_VS_CLOUD carries that
+    # cell's plain text (HTML rendering applies its own <strong> instead —
+    # see report/html.py). Strip a cell-wrapping "**" pair before comparing.
+    def _unbold(cell: str) -> str:
+        return cell[2:-2] if cell.startswith("**") and cell.endswith("**") else cell
+
+    parsed = tuple(tuple(_unbold(c.strip()) for c in r.strip("|").split("|")) for r in rows)
     assert parsed == CORE_VS_CLOUD
 
 
+def test_core_boundary_sentence_matches_readme_and_doc():
+    from scovant_core.report._cloud_matrix import CORE_BOUNDARY
+
+    readme = (PKG_ROOT / "README.md").read_text(encoding="utf-8")
+    doc = (PKG_ROOT / "docs" / "core-vs-cloud.md").read_text(encoding="utf-8")
+
+    readme_lines = readme.splitlines()
+    heading_idx = readme_lines.index("## Core vs Cloud")
+    # The sentence is the first non-blank line after the heading.
+    readme_sentence = next(
+        line for line in readme_lines[heading_idx + 1:] if line.strip()
+    )
+
+    # docs/core-vs-cloud.md's own first line is its `#` title; the boundary
+    # sentence is the first non-blank line after it.
+    doc_lines = doc.splitlines()
+    doc_sentence = next(line for line in doc_lines[1:] if line.strip())
+
+    assert readme_sentence == CORE_BOUNDARY
+    assert doc_sentence == CORE_BOUNDARY
+
+
+@skip_needs_golden_fixture
 def test_committed_example_matches_the_generator():
     assert EXAMPLE.read_text(encoding="utf-8") == render_example(), \
         "run: python -m scovant_core.docs --example"
 
 
+@skip_needs_golden_fixture
 def test_example_is_rendered_from_the_golden_fixture_not_a_live_site():
     text = render_example()
     assert "commerce-good" in text

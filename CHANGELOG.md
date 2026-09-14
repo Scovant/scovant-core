@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.2.1] - 2026-09-14
+
+`ruleset_version` unchanged (`2026.09`); `ruleset_digest` unchanged — scores fully
+comparable with 0.2.0 and 0.1.x. Descriptive additions only.
+
+### Added
+- AgentReady v1.0 mapping (https://agentready.org/, MIT): every check declares the
+  requirements it measures (`standards`), every report carries
+  `metrics.standards.agentready_v1` (per-tier measured/pass/warn/fail — descriptive,
+  never scored) and a one-line summary; `docs/standards/agentready.md` is generated
+  from the mapping. AgentReady defines requirements, not weights; no third-party
+  score is reproduced.
+
+### Changed
+- Positioning: "Scovant Core measures passive, machine-facing signals. Scovant Cloud
+  verifies how real agents actually behave, across providers, browser runtimes,
+  security layers and time."
+
 ## [0.2.0] - 2026-09-14
 
 `ruleset_version` unchanged (`2026.09`); `ruleset_digest` unchanged — scores

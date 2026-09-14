@@ -59,7 +59,7 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/step4</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.2.0</p>
+<p><strong>Core version:</strong> 0.2.1</p>
 <p>1 PASS, 23 WARN, 8 FAIL, 13 N/A, 0 ERROR (45 checks)</p>
 </section>
 <section id="score">
@@ -67,6 +67,7 @@ a { color: #0969da; }
 <p style="font-size:2.5rem;font-weight:700;">35 / 100</p>
 <p><strong>Grade:</strong> F &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: absent · webmcp: absent · ucp: invalid · llms_txt: invalid · openapi: not_checked · oauth: not_checked · content_signal: invalid · security_txt: invalid</p>
+<p><strong>Standards:</strong> AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 warn, 2 fail · SHOULD 4/12 measured — 3 warn, 1 fail · MAY none measured (0/3) — Mapping: docs/standards/agentready.md</p>
 </section>
 <section id="categories">
 <h2>Categories</h2>
@@ -564,6 +565,7 @@ a { color: #0969da; }
 <tr><td>UCP profile validity</td><td>✅ (experimental)</td><td>✅</td></tr>
 <tr><td>Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills)</td><td>✅ (experimental)</td><td>✅</td></tr>
 <tr><td>Core Score</td><td>✅</td><td>—</td></tr>
+<tr><td><strong>Cloud = observed, reproducible, cross-provider, longitudinal</strong></td><td>—</td><td>—</td></tr>
 <tr><td>Cloud&#x27;s full compatibility score</td><td>❌</td><td>✅</td></tr>
 <tr><td>Cloud&#x27;s full production ruleset</td><td>❌</td><td>✅</td></tr>
 <tr><td>Observed WAF/bot-firewall behavior</td><td>❌</td><td>✅</td></tr>
@@ -583,7 +585,7 @@ a { color: #0969da; }
 <tr><td>Hosted, shareable reports</td><td>❌</td><td>✅</td></tr>
 <tr><td>Contextual fix plan</td><td>❌</td><td>✅</td></tr>
 </table>
-<p>Core measures what a site declares. Cloud measures what real agents actually experience.</p>
+<p>Scovant Core measures passive, machine-facing signals. Scovant Cloud verifies how real agents actually behave, across providers, browser runtimes, security layers and time.</p>
 </section>
 <section id="methodology">
 <h2>Methodology</h2>
@@ -596,13 +598,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.2.0</dd>
+<dt>core_version</dt><dd>0.2.1</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.09</dd>
 <dt>ruleset_digest</dt><dd>ea4ada4fffbf</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.2.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.2.1 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

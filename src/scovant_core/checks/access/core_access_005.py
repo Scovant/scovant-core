@@ -16,6 +16,7 @@ class SitemapAvailability(CoreCheck):
     why_it_matters = "A sitemap is the most reliable way for a crawler to discover a site's full page inventory without following every link."
     limitations = "Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated."
     cloud_extension = "Scovant Cloud validates every child sitemap in an index and samples the full URL count."
+    standards = ("AR-FIND-03",)
 
     def evaluate(self, store, ctx):
         sitemap = store.get("sitemap_urls")

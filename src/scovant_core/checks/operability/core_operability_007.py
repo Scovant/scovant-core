@@ -30,6 +30,7 @@ class MachineReferenceIntegrity(CoreCheck):
     why_it_matters = "A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it."
     limitations = "Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken."
     cloud_extension = "Scovant Cloud resolves a larger reference surface on a recurring schedule and tracks resolution drift over time."
+    standards = ("AR-READ-06",)
 
     def evaluate(self, store, ctx):
         gathered = store.get("reference_integrity")

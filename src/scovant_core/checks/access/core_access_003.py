@@ -20,6 +20,7 @@ class AiSearchCrawlerPolicy(CoreCheck):
     why_it_matters = "Search and answer engines only surface pages their crawlers are declared allowed to fetch."
     limitations = "Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed."
     cloud_extension = "Scovant Cloud observes whether these crawlers are actually admitted or challenged."
+    standards = ("AR-FIND-01",)
 
     def evaluate(self, store, ctx):
         robots = store.get("robots_txt")

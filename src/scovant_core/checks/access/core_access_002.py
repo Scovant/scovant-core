@@ -18,6 +18,7 @@ class RobotsTxtAvailability(CoreCheck):
     why_it_matters = "robots.txt is the first document a crawler checks; a broken or unreachable one forces every crawler to guess."
     limitations = "Only reachability and syntax are checked; per-agent policy is evaluated by the other CORE-ACCESS checks."
     cloud_extension = "Scovant Cloud fetches robots.txt from multiple regions to catch geo-inconsistent policies."
+    standards = ("AR-FIND-01",)
 
     def evaluate(self, store, ctx):
         robots = store.get("robots_txt")

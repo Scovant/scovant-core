@@ -19,6 +19,7 @@ class McpDiscoveryPresence(CoreCheck):
     )
     limitations = "Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found."
     cloud_extension = "Scovant Cloud performs a live MCP handshake and enumerates the tool list, not just discovery-file presence."
+    standards = ("AR-ACT-03",)
 
     def evaluate(self, store, ctx):
         mcp = store.get("mcp_discovery")

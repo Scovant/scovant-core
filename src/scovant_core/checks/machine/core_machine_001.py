@@ -15,6 +15,7 @@ class JsonLdParseability(CoreCheck):
     why_it_matters = "A structured-data block an agent's parser cannot read is worse than no block: it promises machine-readable data and then withholds it."
     limitations = "Only well-formed-JSON parseability is checked; schema.org vocabulary correctness is not validated."
     cloud_extension = "Scovant Cloud validates JSON-LD against the schema.org vocabulary, not just JSON syntax."
+    standards = ("AR-READ-08",)
 
     def evaluate(self, store, ctx):
         pages = store.get("pages")["pages"]

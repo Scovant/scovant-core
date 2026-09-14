@@ -41,6 +41,7 @@ class BrokenMachineEndpoints(CoreCheck):
     why_it_matters = "A declared machine reference that 404s wastes an agent's time and budget following a dead link the site itself pointed it at."
     limitations = "Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake."
     cloud_extension = "Scovant Cloud checks a much larger set of machine-consumable endpoints and revisits them on a schedule."
+    standards = ("AR-READ-02",)
 
     def evaluate(self, store, ctx):
         refs = store.get("machine_links")["refs"]

@@ -36,6 +36,7 @@ class CoreCheck(ABC):
     check_version: str = "1.0"
     experimental: bool = False
     references: tuple[str, ...] = ()
+    standards: tuple[str, ...] = ()
     why_it_matters: str = ""
     limitations: str = (
         "Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic."

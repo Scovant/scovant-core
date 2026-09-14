@@ -62,6 +62,7 @@ class AgentDiscoverySurfacePresence(CoreCheck):
         "never reports WARN or ERROR."
     )
     cloud_extension = "Scovant Cloud validates each discovered surface's own schema, not just that a document is present."
+    standards = ("AR-READ-06", "AR-ACT-04")
 
     def evaluate(self, store, ctx):
         surface = store.get("agent_discovery_surface")

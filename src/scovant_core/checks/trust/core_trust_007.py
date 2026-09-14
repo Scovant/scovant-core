@@ -29,6 +29,7 @@ class PricingDiscoverability(CoreCheck):
     )
     limitations = "Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages."
     cloud_extension = "Scovant Cloud checks pricing across the full sampled page set and renders client-side pricing widgets to verify agent-visibility."
+    standards = ("AR-READ-03",)
 
     def evaluate(self, store, ctx):
         policy = store.get("policy_pages")

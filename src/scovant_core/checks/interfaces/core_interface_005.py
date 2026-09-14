@@ -17,6 +17,7 @@ class OpenApiDiscovery(CoreCheck):
     why_it_matters = "A discoverable OpenAPI document lets an agent understand and call this API's surface directly instead of reverse-engineering it from prose docs."
     limitations = "Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed."
     cloud_extension = "Scovant Cloud validates the full OpenAPI document against the spec, not just that one parses."
+    standards = ("AR-ACT-02",)
 
     def evaluate(self, store, ctx):
         openapi = store.get("openapi")

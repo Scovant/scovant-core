@@ -7,8 +7,9 @@ import html
 import json
 
 from scovant_core.models import CheckResult, CheckStatus, Report
-from scovant_core.report._cloud_matrix import CORE_VS_CLOUD
+from scovant_core.report._cloud_matrix import CORE_BOUNDARY, CORE_VS_CLOUD
 from scovant_core.report._common import (
+    STANDARDS_FOOTER,
     capabilities_lines,
     evaluated_experimental,
     grouped_by_status,
@@ -16,6 +17,7 @@ from scovant_core.report._common import (
     na_experimental,
     profile_note,
     scored_experimental,
+    standards_line,
     status_counts,
     status_note,
 )
@@ -138,6 +140,7 @@ def _score_section(r: Report) -> list[str]:
         f"<p><strong>Capabilities detected</strong> (descriptive, not scored): "
         f"{e(' · '.join(capabilities_lines(r)))}</p>"
     )
+    out.append(f"<p><strong>Standards:</strong> {e(standards_line(r))} — {e(STANDARDS_FOOTER)}</p>")
     out.append("</section>")
     return out
 
@@ -253,12 +256,12 @@ def _cloud_comparison_section() -> list[str]:
     out = ['<section id="cloud-comparison">', "<h2>Core vs Cloud</h2>", "<table>"]
     out.append("<tr><th>Capability</th><th>Core</th><th>Cloud</th></tr>")
     for capability, core, cloud in CORE_VS_CLOUD:
-        out.append(f"<tr><td>{e(capability)}</td><td>{e(core)}</td><td>{e(cloud)}</td></tr>")
+        cap_cell = f"<strong>{e(capability)}</strong>" if core == "—" and cloud == "—" else e(
+            capability
+        )
+        out.append(f"<tr><td>{cap_cell}</td><td>{e(core)}</td><td>{e(cloud)}</td></tr>")
     out.append("</table>")
-    out.append(
-        "<p>Core measures what a site declares. Cloud measures what real agents actually "
-        "experience.</p>"
-    )
+    out.append(f"<p>{e(CORE_BOUNDARY)}</p>")
     out.append("</section>")
     return out
 

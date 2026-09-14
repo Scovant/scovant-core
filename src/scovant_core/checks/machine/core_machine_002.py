@@ -25,6 +25,7 @@ class OrganizationEntity(CoreCheck):
     why_it_matters = "An agent trying to identify who operates a site (for trust, citation, or contact) needs a machine-readable Organization entity, not just a human-facing 'About' page."
     limitations = "Only the schema_org nodes on the sampled pages are checked; an Organization declared elsewhere on the site is not evaluated."
     cloud_extension = "Scovant Cloud validates Organization data against the full schema.org vocabulary, not just presence of name/url."
+    standards = ("AR-READ-08",)
 
     def evaluate(self, store, ctx):
         pages = store.get("pages")["pages"]

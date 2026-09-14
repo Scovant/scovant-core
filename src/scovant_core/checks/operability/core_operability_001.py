@@ -26,6 +26,7 @@ class ServerRenderedCoreContent(CoreCheck):
     )
     limitations = "Static-HTML signal only: the raw fetched response is inspected, never rendered in a browser, so a site that hydrates real content very quickly may still be flagged here."
     cloud_extension = "Scovant Cloud renders a sample of pages in a real headless browser and compares the rendered content against the static fetch."
+    standards = ("AR-READ-01", "AR-READ-03")
 
     def evaluate(self, store, ctx):
         pages = store.get("pages")["pages"]

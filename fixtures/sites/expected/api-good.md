@@ -7,6 +7,7 @@
 **Profile:** api (requested auto, confidence 90%)
 
 **Capabilities detected** (descriptive, not scored): mcp: absent · webmcp: absent · ucp: not_checked · llms_txt: absent · openapi: present · oauth: present · content_signal: absent · security_txt: present
+**Standards:** AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 2 pass, 1 warn · SHOULD 6/12 measured — 4 pass, 2 warn · MAY 1/3 measured — 1 pass — Mapping: docs/standards/agentready.md
 
 ## Categories
 
@@ -450,7 +451,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-MACHINE-012`, `CORE-OPERA
 
 ## Provenance
 
-Core 0.2.0 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.2.1 · ruleset 2026.09 (digest `ea4ada4fffbf`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

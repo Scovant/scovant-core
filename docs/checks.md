@@ -37,6 +37,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only reachability and syntax are checked; per-agent policy is evaluated by the other CORE-ACCESS checks.
 
+**Standards:** AR-FIND-01
+
 **Cloud extension:** Scovant Cloud fetches robots.txt from multiple regions to catch geo-inconsistent policies.
 
 **References:**
@@ -48,6 +50,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** Search and answer engines only surface pages their crawlers are declared allowed to fetch.
 
 **Limitations:** Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed.
+
+**Standards:** AR-FIND-01
 
 **Cloud extension:** Scovant Cloud observes whether these crawlers are actually admitted or challenged.
 
@@ -73,6 +77,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated.
 
+**Standards:** AR-FIND-03
+
 **Cloud extension:** Scovant Cloud validates every child sitemap in an index and samples the full URL count.
 
 **References:**
@@ -84,6 +90,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** A stale or suspiciously uniform lastmod signal gives a crawler no reliable way to prioritise re-crawling changed pages.
 
 **Limitations:** Only ISO 8601 date-formatted lastmod values are parsed; malformed dates are ignored, not penalised.
+
+**Standards:** AR-FIND-03
 
 **Cloud extension:** Scovant Cloud cross-checks lastmod against observed page changes over time.
 
@@ -109,6 +117,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only the entry page's own robots meta tag and X-Robots-Tag header are checked.
 
+**Standards:** AR-FIND-01
+
 **Cloud extension:** Scovant Cloud checks indexability across every sampled page.
 
 **References:**
@@ -120,6 +130,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** A well-formed llms.txt gives agents a curated map of the pages worth reading; a broken one sends them to dead links.
 
 **Limitations:** Absence is not penalised; the convention is emerging. Reference checks are HTTP status only.
+
+**Standards:** AR-READ-07
 
 **Cloud extension:** Scovant Cloud checks the supply-chain integrity of packages and hosts referenced from llms.txt.
 
@@ -162,6 +174,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only well-formed-JSON parseability is checked; schema.org vocabulary correctness is not validated.
 
+**Standards:** AR-READ-08
+
 **Cloud extension:** Scovant Cloud validates JSON-LD against the schema.org vocabulary, not just JSON syntax.
 
 **References:**
@@ -174,6 +188,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only the schema_org nodes on the sampled pages are checked; an Organization declared elsewhere on the site is not evaluated.
 
+**Standards:** AR-READ-08
+
 **Cloud extension:** Scovant Cloud validates Organization data against the full schema.org vocabulary, not just presence of name/url.
 
 **References:**
@@ -185,6 +201,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** A WebSite or WebPage entity anchors the rest of a site's structured data to a concrete machine-readable resource.
 
 **Limitations:** Only the schema_org nodes on the sampled pages are checked.
+
+**Standards:** AR-READ-08
 
 **Cloud extension:** Scovant Cloud checks WebSite/WebPage declarations across the full crawl, not just the sampled pages.
 
@@ -321,6 +339,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.
 
+**Standards:** AR-ACT-03
+
 **Cloud extension:** Scovant Cloud performs a live MCP handshake and enumerates the tool list, not just discovery-file presence.
 
 **References:**
@@ -332,6 +352,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** An agent choosing among declared MCP servers needs a name, a URL, a transport, and a real description for each one — a bare, undescribed entry forces the agent to guess how to connect and why it should bother.
 
 **Limitations:** Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check.
+
+**Standards:** AR-ACT-03
 
 **Cloud extension:** Scovant Cloud performs a live handshake against each declared server and checks the declaration against the server's own runtime-reported identity.
 
@@ -369,6 +391,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed.
 
+**Standards:** AR-ACT-02
+
 **Cloud extension:** Scovant Cloud validates the full OpenAPI document against the spec, not just that one parses.
 
 **References:**
@@ -381,6 +405,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only the conventional /.well-known/oauth-authorization-server path is probed.
 
+**Standards:** AR-ACT-01
+
 **Cloud extension:** Scovant Cloud exercises the discovered endpoints against a live OAuth flow, not just that the metadata document parses.
 
 **References:**
@@ -392,6 +418,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** An agent that receives a 401 from a protected API needs RFC 9728 protected-resource metadata to discover which authorization server to talk to, instead of dead-ending.
 
 **Limitations:** Only the conventional /.well-known/oauth-protected-resource path is probed.
+
+**Standards:** AR-ACT-01
 
 **Cloud extension:** Scovant Cloud exercises the discovered authorization server against a live OAuth flow, not just that the metadata document parses.
 
@@ -417,6 +445,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document could not be fetched or did not parse is indistinguishable here from one that is absent; this check therefore never reports WARN or ERROR.
 
+**Standards:** AR-READ-06, AR-ACT-04
+
 **Cloud extension:** Scovant Cloud validates each discovered surface's own schema, not just that a document is present.
 
 **References:**
@@ -441,6 +471,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** An agent acting on a user's behalf needs a way to escalate to a human — a contact, support, or mailto link — when it hits a case it cannot resolve itself.
 
 **Limitations:** Only the entry page's anchors are scanned; a contact method reachable only from a deeper page is not found.
+
+**Standards:** AR-READ-03
 
 **Cloud extension:** Scovant Cloud checks contact reachability across the full sampled page set, not only the entry page.
 
@@ -514,6 +546,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages.
 
+**Standards:** AR-READ-03
+
 **Cloud extension:** Scovant Cloud checks pricing across the full sampled page set and renders client-side pricing widgets to verify agent-visibility.
 
 **References:**
@@ -537,6 +571,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** Most agent HTTP clients never execute JavaScript — if the core content only appears after client-side rendering, an agent reading the raw response sees an empty shell.
 
 **Limitations:** Static-HTML signal only: the raw fetched response is inspected, never rendered in a browser, so a site that hydrates real content very quickly may still be flagged here.
+
+**Standards:** AR-READ-01, AR-READ-03
 
 **Cloud extension:** Scovant Cloud renders a sample of pages in a real headless browser and compares the rendered content against the static fetch.
 
@@ -574,6 +610,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Limitations:** Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.
 
+**Standards:** AR-READ-02
+
 **Cloud extension:** Scovant Cloud checks a much larger set of machine-consumable endpoints and revisits them on a schedule.
 
 **References:**
@@ -610,6 +648,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **Why it matters:** A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it.
 
 **Limitations:** Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken.
+
+**Standards:** AR-READ-06
 
 **Cloud extension:** Scovant Cloud resolves a larger reference surface on a recurring schedule and tracks resolution drift over time.
 

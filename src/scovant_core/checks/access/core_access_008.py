@@ -16,6 +16,7 @@ class Indexability(CoreCheck):
     why_it_matters = "A page that declares noindex tells every compliant crawler, agents included, to leave it out of any index."
     limitations = "Only the entry page's own robots meta tag and X-Robots-Tag header are checked."
     cloud_extension = "Scovant Cloud checks indexability across every sampled page."
+    standards = ("AR-FIND-01",)
 
     def evaluate(self, store, ctx):
         http = store.get("http")

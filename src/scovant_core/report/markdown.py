@@ -5,6 +5,7 @@ import json
 
 from scovant_core.models import CheckStatus, Report
 from scovant_core.report._common import (
+    STANDARDS_FOOTER,
     capabilities_lines,
     evaluated_experimental,
     grouped_by_status,
@@ -12,6 +13,7 @@ from scovant_core.report._common import (
     na_experimental,
     profile_note,
     scored_experimental,
+    standards_line,
     status_counts,
     status_note,
     top_findings,
@@ -52,6 +54,7 @@ def _score_block(r: Report) -> list[str]:
         )
     lines.append("")
     lines.append("**Capabilities detected** (descriptive, not scored): " + " · ".join(capabilities_lines(r)))
+    lines.append(f"**Standards:** {standards_line(r)} — {STANDARDS_FOOTER}")
     return lines
 
 

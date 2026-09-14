@@ -37,6 +37,7 @@ class McpServerDeclarationQuality(CoreCheck):
     )
     limitations = "Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check."
     cloud_extension = "Scovant Cloud performs a live handshake against each declared server and checks the declaration against the server's own runtime-reported identity."
+    standards = ("AR-ACT-03",)
 
     def evaluate(self, store, ctx):
         mcp = store.get("mcp_discovery")

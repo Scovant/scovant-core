@@ -14,6 +14,7 @@ class LlmsTxtIntegrity(CoreCheck):
     why_it_matters = "A well-formed llms.txt gives agents a curated map of the pages worth reading; a broken one sends them to dead links."
     limitations = "Absence is not penalised; the convention is emerging. Reference checks are HTTP status only."
     cloud_extension = "Scovant Cloud checks the supply-chain integrity of packages and hosts referenced from llms.txt."
+    standards = ("AR-READ-07",)
 
     def evaluate(self, store, ctx):
         llms = store.get("llms")

@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.2.0",
+  "core_version": "0.2.1",
   "findings": [
     {
       "category": "access",
@@ -1109,7 +1109,55 @@
       "ucp": "invalid",
       "webmcp": "absent"
     },
-    "requests": 23
+    "requests": 23,
+    "standards": {
+      "agentready_v1": {
+        "by_tier": {
+          "MAY": {
+            "fail": 0,
+            "measured": 0,
+            "pass": 0,
+            "requirements": 3,
+            "warn": 0
+          },
+          "MUST": {
+            "fail": 2,
+            "measured": 3,
+            "pass": 0,
+            "requirements": 3,
+            "warn": 1
+          },
+          "SHOULD": {
+            "fail": 1,
+            "measured": 4,
+            "pass": 0,
+            "requirements": 12,
+            "warn": 3
+          }
+        },
+        "requirements": {
+          "AR-ACT-01": "not_measured",
+          "AR-ACT-02": "not_measured",
+          "AR-ACT-03": "not_measured",
+          "AR-ACT-04": "not_measured",
+          "AR-ACT-05": "not_measured",
+          "AR-ACT-06": "not_measured",
+          "AR-FIND-01": "fail",
+          "AR-FIND-02": "not_measured",
+          "AR-FIND-03": "fail",
+          "AR-READ-01": "warn",
+          "AR-READ-02": "fail",
+          "AR-READ-03": "warn",
+          "AR-READ-04": "not_measured",
+          "AR-READ-05": "not_measured",
+          "AR-READ-06": "not_measured",
+          "AR-READ-07": "warn",
+          "AR-READ-08": "warn",
+          "AR-READ-09": "not_measured"
+        },
+        "version": "1.0"
+      }
+    }
   },
   "not_tested": [
     "Observed WAF access",
@@ -1122,7 +1170,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.2.0",
+    "core_version": "0.2.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -1139,7 +1187,7 @@
     "ruleset_version": "2026.09",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.2.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.2.1 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.09",
   "scan_id": "local-golden",

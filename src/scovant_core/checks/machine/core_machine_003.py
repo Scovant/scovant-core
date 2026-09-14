@@ -26,6 +26,7 @@ class WebSiteOrPageEntity(CoreCheck):
     why_it_matters = "A WebSite or WebPage entity anchors the rest of a site's structured data to a concrete machine-readable resource."
     limitations = "Only the schema_org nodes on the sampled pages are checked."
     cloud_extension = "Scovant Cloud checks WebSite/WebPage declarations across the full crawl, not just the sampled pages."
+    standards = ("AR-READ-08",)
 
     def evaluate(self, store, ctx):
         pages = store.get("pages")["pages"]

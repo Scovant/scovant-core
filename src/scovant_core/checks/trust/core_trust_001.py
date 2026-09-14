@@ -16,6 +16,7 @@ class ContactDiscoverability(CoreCheck):
     why_it_matters = "An agent acting on a user's behalf needs a way to escalate to a human — a contact, support, or mailto link — when it hits a case it cannot resolve itself."
     limitations = "Only the entry page's anchors are scanned; a contact method reachable only from a deeper page is not found."
     cloud_extension = "Scovant Cloud checks contact reachability across the full sampled page set, not only the entry page."
+    standards = ("AR-READ-03",)
 
     def evaluate(self, store, ctx):
         pages = store.get("pages")["pages"]

@@ -100,6 +100,29 @@ def capabilities_lines(report: Report) -> list[str]:
     return [f"{p}: {adoption.get(p, 'not_checked')}" for p in PROTOCOLS]
 
 
+def standards_line(report: Report) -> str:
+    """One descriptive line per third-party standard (AgentReady v1.0 today);
+    never a score. Zero counts are omitted; a tier with nothing measured
+    reads `none measured`."""
+    from scovant_core.standards.agentready import AGENTREADY_VERSION, TIERS
+    cov = (report.metrics.get("standards") or {}).get("agentready_v1") or {}
+    by_tier = cov.get("by_tier") or {}
+    parts = []
+    for tier in TIERS:
+        t = by_tier.get(tier)
+        if not t:
+            continue
+        if t["measured"] == 0:
+            parts.append(f"{tier} none measured (0/{t['requirements']})")
+            continue
+        counts = ", ".join(f"{t[k]} {k}" for k in ("pass", "warn", "fail") if t[k])
+        parts.append(f"{tier} {t['measured']}/{t['requirements']} measured — {counts}")
+    return f"AgentReady v{cov.get('version', AGENTREADY_VERSION)} (descriptive, not scored): " + " · ".join(parts)
+
+
+STANDARDS_FOOTER = "Mapping: docs/standards/agentready.md"
+
+
 def grouped_by_status(findings: list[CheckResult]) -> dict[CheckStatus, list[CheckResult]]:
     """Findings bucketed by status, FAIL/WARN/ERROR/PASS/N-A order, id-sorted
     within each bucket."""

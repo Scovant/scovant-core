@@ -1,6 +1,6 @@
 # Scovant Core vs Scovant Cloud
 
-Scovant Core measures what a site declares. Scovant Cloud measures what real agents actually experience.
+Scovant Core measures passive, machine-facing signals. Scovant Cloud verifies how real agents actually behave, across providers, browser runtimes, security layers and time.
 
 Core identifies itself as `ScovantCore/<version>` and never presents as ScovantBot, the Scovant Cloud crawler identity.
 
@@ -25,6 +25,7 @@ This is a technical comparison, not a marketing one: everything below traces to 
 | UCP profile validity | ✅ (experimental) | ✅ |
 | Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills) | ✅ (experimental) | ✅ |
 | Core Score | ✅ | — |
+| **Cloud = observed, reproducible, cross-provider, longitudinal** | — | — |
 | Cloud's full compatibility score | ❌ | ✅ |
 | Cloud's full production ruleset | ❌ | ✅ |
 | Observed WAF/bot-firewall behavior | ❌ | ✅ |

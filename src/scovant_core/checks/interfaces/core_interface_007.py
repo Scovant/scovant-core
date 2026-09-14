@@ -22,6 +22,7 @@ class OAuthProtectedResourceMetadata(CoreCheck):
     )
     limitations = "Only the conventional /.well-known/oauth-protected-resource path is probed."
     cloud_extension = "Scovant Cloud exercises the discovered authorization server against a live OAuth flow, not just that the metadata document parses."
+    standards = ("AR-ACT-01",)
 
     def evaluate(self, store, ctx):
         oauth = store.get("oauth_metadata")

@@ -31,6 +31,7 @@ class SitemapFreshness(CoreCheck):
     why_it_matters = "A stale or suspiciously uniform lastmod signal gives a crawler no reliable way to prioritise re-crawling changed pages."
     limitations = "Only ISO 8601 date-formatted lastmod values are parsed; malformed dates are ignored, not penalised."
     cloud_extension = "Scovant Cloud cross-checks lastmod against observed page changes over time."
+    standards = ("AR-FIND-03",)
 
     def evaluate(self, store, ctx):
         sitemap = store.get("sitemap_urls")

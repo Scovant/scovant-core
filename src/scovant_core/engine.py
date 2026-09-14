@@ -24,6 +24,7 @@ from scovant_core.scoring import CANONICAL_MIN_COVERAGE, EVIDENCE_MIN_COVERAGE, 
 from scovant_core.security.client import SecureClient
 from scovant_core.security.policy import CORE_USER_AGENT, SecurityPolicy
 from scovant_core.security.url_safety import display_url, redact_message, redact_report_strings
+from scovant_core.standards.agentready import agentready_coverage
 
 __all__ = ["NOT_TESTED", "UnknownSelector", "scan", "user_agent_for", "validate_selectors"]
 
@@ -207,6 +208,7 @@ def scan(
             "error_count": error_count,
             "ai_crawler_policy": ai_crawler_policy,
             "protocol_adoption": protocol_adoption(results),
+            "standards": {"agentready_v1": agentready_coverage(results)},
         },
         not_tested=list(NOT_TESTED),
         provenance={

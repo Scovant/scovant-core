@@ -22,7 +22,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.2.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.2.0/constraints/constraints-0.2.0.txt
+    pip install "scovant-core==0.2.1" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.2.1/constraints/constraints-0.2.1.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -49,7 +49,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.2.0
+Core version: 0.2.1
 
 Static Signal Score       100 / 100   A
 
@@ -156,9 +156,16 @@ never observes real traffic, so it cannot tell you:
 - Multi-model reliability
 - Regression stability over time
 
+## Standards
+
+Scovant Core maps its checks to **AgentReady v1.0** (<https://agentready.org/>, MIT), the open
+baseline standard for agent-facing website signals. AgentReady defines requirements, not weights;
+Core reports which requirements its checks measure (`metrics.standards.agentready_v1` in every
+report) and never reproduces any third-party score. Mapping: `docs/standards/agentready.md`.
+
 ## Core vs Cloud
 
-Scovant Core tells you what the website exposes. Scovant Cloud tells you what real AI agents actually experience.
+Scovant Core measures passive, machine-facing signals. Scovant Cloud verifies how real agents actually behave, across providers, browser runtimes, security layers and time.
 
 See [`docs/core-vs-cloud.md`](docs/core-vs-cloud.md) for the full capability
 matrix and concrete "Core can determine / cannot determine / Cloud can
@@ -179,7 +186,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.2.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.2.1` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
