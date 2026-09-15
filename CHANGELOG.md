@@ -13,7 +13,7 @@ pages), so `ruleset_digest` changes and a re-scan of an affected site may
 differ.
 
 ### Fixed
-- Public CI: five mypy errors; coverage was measured on a non-editable install; cli-smoke no longer asserts a literal score (it checks status/scope/grade and a score floor via `tests/_smoke_assert.py`); Action smoke was missing `trusted-target`.
+- Public CI: five mypy errors; coverage was measured on a non-editable install; cli-smoke no longer asserts a literal score (it checks status/scope/grade and a score floor via `tests/_smoke_assert.py`); Action smoke was missing `trusted-target`, and — once that was fixed — its last assertion still asserted the step summary from a DIFFERENT step's `$GITHUB_STEP_SUMMARY` (GitHub gives every step its own, separate summary file, so that read was always an empty file); it now re-renders the summary via `scovant_core.action summary` against the action's own raw JSON report (`$RUNNER_TEMP/core.json`) into a file this step owns.
 - CORE-OPERABILITY-008 distinguishes an application shell (WARN) from a real soft-404 (FAIL).
 
 ### Added

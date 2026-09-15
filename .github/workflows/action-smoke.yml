@@ -40,4 +40,14 @@ jobs:
           set -euo pipefail
           (( "${{ steps.scan.outputs.score }}" >= 85 ))
           [[ "${{ steps.scan.outputs.grade }}" == "A" ]]
-          grep -q "Static Signal Score:" "$GITHUB_STEP_SUMMARY"
+          # The action's own "out" step already wrote the step summary — but
+          # into ITS OWN step's summary file. GitHub gives every step a
+          # fresh, separate GITHUB_STEP_SUMMARY, so reading that variable
+          # from THIS step is always empty. Re-render the summary here, from
+          # the same raw report the action produced (RUNNER_TEMP/core.json,
+          # the action's own convention — see action.yml's "out" step), into
+          # a file this step owns, by ASSIGNING a fresh value to the
+          # variable rather than reading the inherited (empty) one.
+          own_summary="$RUNNER_TEMP/assert-outputs-summary.md"
+          GITHUB_STEP_SUMMARY="$own_summary" python -m scovant_core.action summary "$RUNNER_TEMP/core.json"
+          grep -q "Static Signal Score:" "$own_summary"
