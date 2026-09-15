@@ -156,6 +156,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility.
 
+**Status:** experimental · scored: no · reason: An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility. · promotion: ≥ 500 canonical scans with an llms.txt present; a false-positive review of the summary-length and placeholder heuristics; a documented link between the utility signal and agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump.
+
 **Limitations:** Heuristics over the file text; a WARN is a prompt to review the file, not a defect. A bare `Disallow: /` in the robots.txt general (default) group does not itself count as an AI-crawler declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. Experimental: never scored.
 
 **Cloud extension:** Scovant Cloud compares llms.txt against what agents actually fetch.
@@ -324,6 +326,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy.
 
+**Status:** experimental · scored: no · reason: An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy. · promotion: ≥ 300 canonical scans of commerce product pages, sampling more than the first product page found; a false-positive review of the visible-price regex across non-Latin digits and currency formats it does not yet match; a measured visible-versus-structured disagreement rate stable across two consecutive corpus snapshots; then a scored weight and a RULESET_VERSION bump.
+
 **Limitations:** This is a fragile heuristic: the visible-price regex only matches a narrow set of currency-marked formats, and it compares only the first product page found.
 
 **Cloud extension:** Scovant Cloud checks visible-vs-structured price agreement across the full sampled catalog and a broader set of currency formats.
@@ -390,6 +394,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered.
 
+**Status:** experimental · scored: no · reason: A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered. · promotion: ≥ 300 canonical scans of sites that statically register at least one WebMCP tool; a false-positive review of the static `registerTool(` extraction against tools enumerated at runtime, so a dynamically-built declaration is not counted as a missing one; a WebMCP tool-declaration shape that stayed stable across two consecutive specification revisions; then a scored weight and a RULESET_VERSION bump.
+
 **Limitations:** Static extraction of `registerTool(` calls in already-fetched HTML on the sampled pages; a runtime-only or dynamically-constructed tool definition is not seen.
 
 **Cloud extension:** Scovant Cloud enumerates WebMCP tools live in a real browser, seeing runtime-only definitions this static scan cannot.
@@ -444,6 +450,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy.
 
+**Status:** experimental · scored: no · reason: An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy. · promotion: ≥ 200 canonical scans of commerce sites publishing a UCP profile; a UCP specification at a stable, versioned schema with a settled well-known path; a false-positive review of the HTML-catch-all-versus-real-absence split, so a catch-all page never reads as a published profile; then a scored weight and a RULESET_VERSION bump.
+
 **Limitations:** Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found.
 
 **Cloud extension:** Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow.
@@ -455,6 +463,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 ### CORE-INTERFACE-009 — Agent discovery surface presence
 
 **Why it matters:** A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there.
+
+**Status:** experimental · scored: no · reason: A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there. · promotion: ≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, together with a decided status vocabulary for partially-unread surfaces; a documented link between a published discovery surface and agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump.
 
 **Limitations:** Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document could not be fetched or did not parse is indistinguishable here from one that is absent; this check therefore never reports WARN or ERROR.
 
@@ -664,6 +674,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it.
 
+**Status:** experimental · scored: no · reason: A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it. · promotion: ≥ 250 canonical scans in which the lookup budget was not exhausted, so BROKEN/UNCLAIMED verdicts are known not to be budget artefacts; a false-positive review against registries that rate-limit or 404 legitimate packages; a documented causal link from an unclaimed reference to a real dependency-confusion outcome; then a scored weight and a RULESET_VERSION bump.
+
 **Limitations:** Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken.
 
 **Standards:** AR-READ-06
@@ -678,7 +690,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An agent that receives HTTP 200 for a path that does not exist cannot tell a missing page from a real one; it may read an error template as content or cache a phantom URL.
 
-**Limitations:** One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.
+**Limitations:** One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design. The shell heuristic errs on the lenient side: a very short 200 page that carries a script bundle is reported as an application shell (WARN) even when it is in fact a terse, genuinely server-rendered soft-404.
 
 **Standards:** AR-READ-02
 
@@ -718,6 +730,8 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 ### CORE-OPERABILITY-011 — Discovery linkage
 
 **Why it matters:** A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. This measures declared, link-based discoverability — whether a real agent finds it is Scovant Cloud's measurement.
+
+**Status:** experimental · scored: no · reason: A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. · promotion: ≥ 500 canonical scans with at least one machine surface present; the markdown-mirror surface and `Link`-header attribution wired into the Core evidence pipeline, so an ‘unlinked’ verdict is a property of the site rather than of what Core happens to gather; a false-positive review of exact-URL matching against equivalent surface URLs spelled differently; then a scored weight and a RULESET_VERSION bump.
 
 **Limitations:** Only llms.txt, OpenAPI, MCP and UCP are considered (a markdown-mirror surface and Link-header attribution are not yet wired into the Core evidence pipeline, so they cannot be checked). This check never fetches OpenAPI or UCP itself — it reads them only if another applicable check for this profile already gathered that evidence (OpenAPI: `CORE-INTERFACE-005`, profiles api/saas; UCP: `CORE-INTERFACE-008`, profile commerce). On any other profile, an unfetched OpenAPI/UCP surface is treated as not probed on this profile (counted as absent), never actively probed to find out — an unscored experimental check must never add its own network requests. Exactly two link sources are walked: the anchor links on the entry page itself, and the `machine_links` reference inventory — whose entries are sourced from the canonical URL, a policy-page link, the sitemap document URL itself, the declared OpenAPI spec, an MCP endpoint, or an llms.txt reference — matched only when one of those reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL itself, not a URL it lists). Experimental: never scored.
 

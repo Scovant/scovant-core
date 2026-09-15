@@ -8,7 +8,7 @@ from scovant_core.models import Category, CheckStatus, Severity
 
 
 def linkage(surfaces_present: dict[str, str | None], sources: dict[str, set[str]]) -> dict:
-    out = {}
+    out: dict[str, dict] = {}
     for name, url in surfaces_present.items():
         if not url:
             out[name] = {"present": False, "url": None, "linked_from": []}
@@ -42,6 +42,13 @@ class DiscoveryLinkage(CoreCheck):
         "reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the "
         "sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL "
         "itself, not a URL it lists). Experimental: never scored."
+    )
+    promotion_criteria = (
+        "≥ 500 canonical scans with at least one machine surface present; the markdown-mirror "
+        "surface and `Link`-header attribution wired into the Core evidence pipeline, so an "
+        "‘unlinked’ verdict is a property of the site rather than of what Core happens to gather; "
+        "a false-positive review of exact-URL matching against equivalent surface URLs spelled "
+        "differently; then a scored weight and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud measures real agent discovery success across providers."
 

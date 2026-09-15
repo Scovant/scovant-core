@@ -1,0 +1,20 @@
+{
+  "check": "CORE-OPERABILITY-009",
+  "routes": {
+    "/": {
+      "status": 429,
+      "body": "Too many requests. Slow down.",
+      "headers": {
+        "retry-after": "30"
+      }
+    }
+  },
+  "expected": {
+    "status": "PASS",
+    "evidence_keys": [
+      "observed",
+      "count"
+    ],
+    "summary_contains": "Retry-After"
+  }
+}

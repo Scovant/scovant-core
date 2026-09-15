@@ -29,6 +29,13 @@ class MachineReferenceIntegrity(CoreCheck):
     references = ("https://llmstxt.org/",)
     why_it_matters = "A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it."
     limitations = "Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken."
+    promotion_criteria = (
+        "≥ 250 canonical scans in which the lookup budget was not exhausted, so BROKEN/UNCLAIMED "
+        "verdicts are known not to be budget artefacts; a false-positive review against registries "
+        "that rate-limit or 404 legitimate packages; a documented causal link from an unclaimed "
+        "reference to a real dependency-confusion outcome; then a scored weight and a RULESET_VERSION "
+        "bump."
+    )
     cloud_extension = "Scovant Cloud resolves a larger reference surface on a recurring schedule and tracks resolution drift over time."
     standards = ("AR-READ-06",)
 

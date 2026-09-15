@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.3.1] - 2026-09-15
+
+The scored set, weights and `RULESET_VERSION` (2026.10) are unchanged. Two
+detector fixes below can change individual verdicts (CORE-OPERABILITY-008
+application-shell WARN; CORE-OPERABILITY-010 on 200-served access-denied
+pages), so `ruleset_digest` changes and a re-scan of an affected site may
+differ.
+
+### Fixed
+- Public CI: five mypy errors; coverage was measured on a non-editable install; cli-smoke no longer asserts a literal score (it checks status/scope/grade and a score floor via `tests/_smoke_assert.py`); Action smoke was missing `trusted-target`.
+- CORE-OPERABILITY-008 distinguishes an application shell (WARN) from a real soft-404 (FAIL).
+
+### Added
+- `scripts/ci_parity.sh` + contract tests (CI parity, action ⇄ smoke workflow).
+- `fixtures/http-semantics/` — 12 named positive/negative cases for OPERABILITY-008/-009/-010, including an Akamai sensor-only case (a bot-sensor script alone is never treated as a challenge; the denial verdict is decided from response text, the sensor only corroborates it).
+- `promotion_criteria` on every experimental check, rendered in `docs/checks.md`.
+- Methodology: experimental process, "How Scovant Core validates new checks", community-contribution trust statement.
+- Ruleset-freeze rule and a scored-set pin test.
+
+### Changed
+- `constraints/constraints-0.3.1.txt` bumps `uvicorn` 0.52.4 → 0.53.0.
+- Bot-protection detection gains an Akamai denial detector: a denial page's own text is now enough to classify it, even without a recognizable Akamai sensor marker. This changes verdicts for some Akamai-fronted denial pages from unclassified to correctly detected — expect new true positives, not regressions.
+
 ## [0.3.0] - 2026-09-14
 
 `ruleset_version` 2026.09 → **2026.10**: three required checks were added, so

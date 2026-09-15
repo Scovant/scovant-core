@@ -59,7 +59,7 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/step4</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.3.0</p>
+<p><strong>Core version:</strong> 0.3.1</p>
 <p>4 PASS, 24 WARN, 8 FAIL, 14 N/A, 0 ERROR (50 checks)</p>
 </section>
 <section id="score">
@@ -552,7 +552,7 @@ a { color: #0969da; }
 <li>Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.</li>
 <li>`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.</li>
 <li>Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.</li>
-<li>One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.</li>
+<li>One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design. The shell heuristic errs on the lenient side: a very short 200 page that carries a script bundle is reported as an application shell (WARN) even when it is in fact a terse, genuinely server-rendered soft-404.</li>
 <li>Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.</li>
 <li>Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).</li>
 <li>Only the entry page&#x27;s anchors are scanned; a contact method reachable only from a deeper page is not found.</li>
@@ -627,13 +627,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.3.0</dd>
+<dt>core_version</dt><dd>0.3.1</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>994a69bc7f12</dd>
+<dt>ruleset_digest</dt><dd>ab5851b14f6a</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.3.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.3.1 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 import httpx
 import pytest
@@ -16,6 +17,57 @@ from scovant_core.context import ScanContext, ScanOptions
 from scovant_core.evidence import EvidenceStore, EvidenceUnavailable, GatherError
 from scovant_core.models import Category, CheckStatus, Severity
 from tests.conftest import make_client
+
+# Ruleset freeze (CONTRIBUTING.md § Ruleset freeze): the scored (non-experimental)
+# check set for ruleset 2026.10, generated once via
+#   python3 -c "from scovant_core.checks.registry import CHECKS; \
+#       print(sorted(c.id for c in CHECKS if not c.experimental))"
+# Never compute this inside the test — a literal is what makes the freeze real.
+SCORED_2026_10 = [
+    "CORE-ACCESS-001",
+    "CORE-ACCESS-002",
+    "CORE-ACCESS-003",
+    "CORE-ACCESS-004",
+    "CORE-ACCESS-005",
+    "CORE-ACCESS-006",
+    "CORE-ACCESS-007",
+    "CORE-ACCESS-008",
+    "CORE-ACCESS-009",
+    "CORE-ACCESS-010",
+    "CORE-INTERFACE-001",
+    "CORE-INTERFACE-002",
+    "CORE-INTERFACE-003",
+    "CORE-INTERFACE-005",
+    "CORE-INTERFACE-006",
+    "CORE-INTERFACE-007",
+    "CORE-MACHINE-001",
+    "CORE-MACHINE-002",
+    "CORE-MACHINE-003",
+    "CORE-MACHINE-004",
+    "CORE-MACHINE-005",
+    "CORE-MACHINE-006",
+    "CORE-MACHINE-007",
+    "CORE-MACHINE-008",
+    "CORE-MACHINE-009",
+    "CORE-MACHINE-010",
+    "CORE-MACHINE-011",
+    "CORE-OPERABILITY-001",
+    "CORE-OPERABILITY-002",
+    "CORE-OPERABILITY-003",
+    "CORE-OPERABILITY-004",
+    "CORE-OPERABILITY-005",
+    "CORE-OPERABILITY-006",
+    "CORE-OPERABILITY-008",
+    "CORE-OPERABILITY-009",
+    "CORE-OPERABILITY-010",
+    "CORE-TRUST-001",
+    "CORE-TRUST-002",
+    "CORE-TRUST-003",
+    "CORE-TRUST-004",
+    "CORE-TRUST-005",
+    "CORE-TRUST-006",
+    "CORE-TRUST-007",
+]
 
 
 def test_registry_is_valid():
@@ -65,6 +117,41 @@ def test_experimental_set_is_exact():
     }
     experimental_ids = {c.id for c in CHECKS if c.experimental}
     assert experimental_ids == expected
+
+
+def test_scored_set_is_exact():
+    """Ruleset freeze (CONTRIBUTING § Ruleset freeze): the scored set changes only
+    in a dedicated, calibrated PR that also bumps RULESET_VERSION."""
+    scored = sorted(c.id for c in CHECKS if not c.experimental)
+    assert RULESET_VERSION == "2026.10"
+    assert scored == SCORED_2026_10, (
+        "scored check set changed — this needs its own calibrated PR and a RULESET_VERSION bump "
+        "(see CONTRIBUTING.md § Ruleset freeze)"
+    )
+
+
+def test_experimental_checks_declare_promotion_criteria():
+    """An unscored experimental check must state what it would take to score it —
+    otherwise "experimental" is an indefinite parking space, not a stage."""
+    missing = [c.id for c in CHECKS if c.experimental and not c.promotion_criteria.strip()]
+    assert missing == [], f"experimental checks without promotion_criteria: {missing}"
+
+
+def test_promotion_criteria_are_distinct_per_check():
+    texts = [c.promotion_criteria.strip() for c in CHECKS if c.experimental]
+    assert len(set(texts)) == len(texts), "promotion_criteria must be specific to each check"
+
+
+def test_scored_checks_declare_no_promotion_criteria():
+    extra = [c.id for c in CHECKS if not c.experimental and c.promotion_criteria.strip()]
+    assert extra == [], f"scored checks must not carry promotion_criteria: {extra}"
+
+
+def test_checks_md_lists_promotion_criteria_for_every_experimental_check():
+    md = (Path(__file__).resolve().parents[1] / "docs" / "checks.md").read_text(encoding="utf-8")
+    for c in CHECKS:
+        if c.experimental:
+            assert c.promotion_criteria in md, c.id
 
 
 def test_every_check_has_docs_fields():

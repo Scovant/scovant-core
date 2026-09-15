@@ -1,0 +1,20 @@
+{
+  "check": "CORE-OPERABILITY-010",
+  "routes": {
+    "/": {
+      "status": 503,
+      "body_file": "index.html",
+      "headers": {
+        "retry-after": "600"
+      }
+    }
+  },
+  "expected": {
+    "status": "N/A",
+    "evidence_keys": [
+      "pages",
+      "honest_challenges"
+    ],
+    "summary_contains": "honest"
+  }
+}

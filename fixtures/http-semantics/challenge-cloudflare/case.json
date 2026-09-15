@@ -1,0 +1,21 @@
+{
+  "check": "CORE-OPERABILITY-010",
+  "routes": {
+    "/": {
+      "status": 200,
+      "body_file": "index.html",
+      "headers": {
+        "cf-ray": "0000000000000000-FRA"
+      }
+    }
+  },
+  "expected": {
+    "status": "FAIL",
+    "severity": "high",
+    "evidence_keys": [
+      "pages",
+      "pages_checked"
+    ],
+    "summary_contains": "challenge"
+  }
+}

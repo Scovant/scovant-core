@@ -29,6 +29,13 @@ class WebMcpToolQuality(CoreCheck):
         "Static extraction of `registerTool(` calls in already-fetched HTML on the sampled "
         "pages; a runtime-only or dynamically-constructed tool definition is not seen."
     )
+    promotion_criteria = (
+        "≥ 300 canonical scans of sites that statically register at least one WebMCP tool; "
+        "a false-positive review of the static `registerTool(` extraction against tools enumerated "
+        "at runtime, so a dynamically-built declaration is not counted as a missing one; a WebMCP "
+        "tool-declaration shape that stayed stable across two consecutive specification revisions; "
+        "then a scored weight and a RULESET_VERSION bump."
+    )
     cloud_extension = "Scovant Cloud enumerates WebMCP tools live in a real browser, seeing runtime-only definitions this static scan cannot."
 
     def evaluate(self, store, ctx):

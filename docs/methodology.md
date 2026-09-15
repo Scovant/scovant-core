@@ -247,6 +247,91 @@ There are two coverage floors, not one:
   full scan at ≥85% coverage with zero errored checks reaches `status: OK`
   and a letter grade.
 
+## Experimental checks: measure first, score later
+
+A check ships experimental when its signal is real but its *calibration* is
+not yet defensible — an emerging protocol whose shape is still moving, or a
+heuristic whose false-positive rate has not been measured on a real corpus.
+Experimental checks run and are reported (`--experimental`), but they are
+excluded from the score entirely: they cannot move a value, a grade, or the
+coverage denominator. Scoring a signal we cannot yet defend would be worse
+than not measuring it.
+
+Every experimental check publishes four fields in
+[`checks.md`](checks.md), on a `**Status:**` line under its description:
+
+| Field | Meaning |
+|---|---|
+| status | `experimental` — visible in reports, gated behind `--experimental`. |
+| scored | Always `no` while experimental. |
+| reason | Why the check exists at all — the signal it claims to measure. |
+| promotion criteria | What it would take to make this check scored — written per check, in `CoreCheck.promotion_criteria`. |
+
+What running a check unscored buys is the same for all of them: a distribution
+of the signal across real sites, and the false positives that distribution
+exposes.
+
+The per-check promotion criteria are specific, but all of them are instances
+of the same five general requirements:
+
+1. **Sufficient corpus.** Enough canonical scans of sites where the check
+   actually applies to know the signal's real distribution, not an anecdote.
+2. **False-positive review.** Each heuristic reviewed against sites it flags,
+   so a known false-positive class is fixed or documented before it can cost
+   anyone points.
+3. **Documented causal relationship.** A stated, defensible link between the
+   signal and agent behaviour — not "this looks like it should matter".
+4. **Stable semantics.** The thing being measured no longer changes shape
+   underneath the check (for emerging protocols: a settled, versioned
+   specification).
+5. **Versioned scoring impact.** Promotion lands in its own calibrated change
+   that assigns the weight and bumps `RULESET_VERSION`, because scores before
+   and after are not comparable.
+
+A check that cannot meet these is not promoted. Staying experimental
+indefinitely, or being removed, are both acceptable outcomes; quietly
+scoring it is not.
+
+## How Scovant Core validates new checks
+
+Every check — experimental or scored — goes through the same seven steps:
+
+1. **Proposed check.** A stated claim about what evidence means, with the
+   limitation of a passive scanner written down first.
+2. **Controlled positive fixtures.** Fixtures where the condition is
+   unambiguously present, so a PASS/FAIL verdict has a known right answer.
+3. **Controlled negative fixtures.** Fixtures that look like the condition
+   but are not it — the ones that catch a check firing on the wrong
+   evidence.
+4. **Real-site corpus.** The check is run across real sites to see what the
+   signal's distribution actually is, rather than what the fixtures suggest.
+5. **False-positive review.** Flagged sites are inspected by hand; each
+   false-positive class is either fixed or written into the check's
+   `limitations`.
+6. **Experimental (unscored) period.** The check ships visible but excluded
+   from the score, gathering evidence against the promotion criteria above.
+7. **Promotion to a scored rule.** A dedicated, calibrated change assigns the
+   weight and bumps `RULESET_VERSION`.
+
+[`fixtures/http-semantics/`](../fixtures/http-semantics) is the worked
+example of steps 2 and 3: alongside the positive cases (a real soft-404, a
+bot challenge, a maintenance page, a `429` with and without `Retry-After`)
+it carries the near-misses that must *not* be flagged as the same thing — an
+SPA shell that is not a soft-404, a genuine `404`, a normal login page, a
+cookie-consent interstitial, and a sensor-only page that carries a
+fingerprinting script but no refusal text.
+
+## Contributed measurements
+
+Scovant Core can optionally contribute a scan result to the community index
+(`--contribute`, off by default; see the README for the exact payload).
+Those results are treated as unverified discovery signals only.
+Client-provided scores are never incorporated directly into authoritative Scovant research datasets
+— a contributed domain is independently re-evaluated by Scovant-controlled
+infrastructure before inclusion. A
+contribution tells us *where to look*; it is never itself the measurement
+that gets published.
+
 ## Scan scope and score status
 
 Every report carries `Score.scope` (a property of the **selection**) and

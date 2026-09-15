@@ -2,9 +2,15 @@
 
 ## Definition
 
-Scovant Core is an open-source passive scanner for machine-facing website signals used by AI agents. It checks crawler policy, structured data, agent discovery surfaces, protocol metadata, commerce signals and basic operability.
+Scovant Core is an open-source, evidence-first scanner for passive AI-agent readiness signals on websites.
 
 Scovant Core measures what a site declares. Scovant Cloud measures what real agents actually experience.
+
+Core does NOT execute real agents.
+
+It reads what the site already exposes on request: robots/crawler policy,
+structured data, llms.txt, machine-readable discovery, MCP metadata, WebMCP
+declaration, commerce metadata, HTTP semantics, and its own usage in CI.
 
 > A high Core Score does not prove that autonomous agents can complete real workflows on the site.
 
@@ -22,7 +28,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.3.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.3.0/constraints/constraints-0.3.0.txt
+    pip install "scovant-core==0.3.1" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.3.1/constraints/constraints-0.3.1.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -52,7 +58,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.3.0
+Core version: 0.3.1
 
 Static Signal Score       100 / 100   A
 Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
@@ -215,7 +221,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.3.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.3.1` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -388,6 +394,12 @@ What is sent (exactly these fields, nothing else):
 What is never sent: no page HTML, no evidence, no URLs beyond the domain
 itself, no IP address, no filesystem paths, no CLI flags beyond what's
 listed above. The request carries no cookies and never follows a redirect.
+
+A contribution is a client-provided measurement, and it is treated as one:
+unverified discovery signals only.
+Client-provided scores are never incorporated directly into authoritative Scovant research datasets
+— a contributed domain is independently re-evaluated by Scovant-controlled
+infrastructure before anything about it is published.
 
 `--contribute` is refused (exit 2) together with `--allow-private-networks`
 — only a target Core itself already confirmed public gets contributed. A

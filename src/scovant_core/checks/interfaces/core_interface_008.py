@@ -22,6 +22,12 @@ class UcpProfilePresence(CoreCheck):
         "profile naming this site's own services and capabilities, not just checkout copy."
     )
     limitations = "Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found."
+    promotion_criteria = (
+        "≥ 200 canonical scans of commerce sites publishing a UCP profile; a UCP specification "
+        "at a stable, versioned schema with a settled well-known path; a false-positive review of the "
+        "HTML-catch-all-versus-real-absence split, so a catch-all page never reads as a published "
+        "profile; then a scored weight and a RULESET_VERSION bump."
+    )
     cloud_extension = "Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow."
 
     def evaluate(self, store, ctx):

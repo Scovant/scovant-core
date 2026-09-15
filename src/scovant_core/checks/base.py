@@ -38,6 +38,10 @@ class CoreCheck(ABC):
     references: tuple[str, ...] = ()
     standards: tuple[str, ...] = ()
     why_it_matters: str = ""
+    # Experimental checks only (and required there — `tests/test_registry.py`):
+    # what it would take to make this check scored. Without it "experimental"
+    # is an indefinite parking space rather than a stage with an exit.
+    promotion_criteria: str = ""
     limitations: str = (
         "Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic."
     )

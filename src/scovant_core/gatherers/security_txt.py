@@ -22,6 +22,17 @@ _CONTACT_RE = re.compile(r"^\s*Contact\s*:", re.I | re.M)
 _EXPIRES_RE = re.compile(r"^\s*Expires\s*:\s*(.+?)\s*$", re.I | re.M)
 
 
+def _shape_out(*, last_status: int | None, last_retry_after: str | None,
+                last_served_as_html: bool) -> dict[str, object]:
+    out: dict[str, object] = {
+        "found_url": None, "status": last_status, "contact": False, "expires": None,
+        "expires_valid": None, "served_as_html": last_served_as_html, "truncated": False,
+    }
+    if last_status == 429:
+        out["retry_after"] = last_retry_after
+    return out
+
+
 def _parse_iso(value: str) -> datetime.date | None:
     value = value.strip()
     try:
@@ -77,10 +88,5 @@ def gather_security_txt(client: SecureClient, ctx: ScanContext, store: EvidenceS
             "truncated": bool(res.truncated) and res.text != "",
         }
 
-    out = {
-        "found_url": None, "status": last_status, "contact": False, "expires": None,
-        "expires_valid": None, "served_as_html": last_served_as_html, "truncated": False,
-    }
-    if last_status == 429:
-        out["retry_after"] = last_retry_after
-    return out
+    return _shape_out(last_status=last_status, last_retry_after=last_retry_after,
+                       last_served_as_html=last_served_as_html)

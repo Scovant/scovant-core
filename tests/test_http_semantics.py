@@ -13,9 +13,18 @@ HOME = "<!doctype html><html><head><title>Home</title></head><body><main><p>" + 
 CHALLENGE = "<!doctype html><html><head><title>Just a moment...</title></head><body><div id='cf-challenge-running'>Please verify you are human</div></body></html>"
 
 
-def _scan(handler):
+def _ctx() -> ScanContext:
+    """The scan context these tests scan with — a fixed scan id, because the
+    soft-404 probe path is derived from it. A caller that has to know the probe
+    path before the scan runs (tests/test_http_semantics_corpus.py) builds the
+    context here and hands it back to `_scan`, so the id is never re-typed."""
     ctx = ScanContext("https://example.com/", ScanOptions())
     ctx.scan_id = "t"
+    return ctx
+
+
+def _scan(handler, ctx: ScanContext | None = None):
+    ctx = ctx if ctx is not None else _ctx()
     store = EvidenceStore(make_client(handler), ctx)
     apply_profile(ctx, store)
     return store, ctx

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scovant-core"
-version = "0.3.0"
+version = "0.3.1"
 description = "Open-source, evidence-first scanner for passive AI-agent readiness signals."
 readme = "README.md"
 license = "Apache-2.0"
@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff==0.16.6", "jsonschema>=4.20,<5", "mypy>=1.10,<2", "twine>=5,<7", "pyyaml>=6,<7"]
+dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff==0.16.6", "jsonschema>=4.20,<5", "mypy==1.20.2", "twine>=5,<7", "pyyaml>=6,<7"]
 mcp = ["mcp>=1.28,<2"]
 
 [project.scripts]
@@ -64,6 +64,10 @@ markers = [
   "golden: byte-compared fixture reports",
   "mcp: needs the optional [mcp] extra",
 ]
+
+[tool.coverage.run]
+source = ["scovant_core"]
+relative_files = true
 
 [tool.ruff]
 line-length = 100

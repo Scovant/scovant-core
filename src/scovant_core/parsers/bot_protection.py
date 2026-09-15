@@ -25,6 +25,25 @@ _CAPTCHA_WIDGET_PATTERNS = [
     re.compile(r"cf-turnstile|challenges\.cloudflare\.com", re.I),
 ]
 
+# Akamai edge "Access Denied" page. UNLIKE the Cloudflare patterns above —
+# which are the text of a challenge page and therefore proof of a wall on
+# their own — the bot-manager sensor markers (`_abck`, the `/akam/<n>/`
+# sensor script) ride on EVERY response from an Akamai-fronted site,
+# successful ones included, so they can never decide the verdict. Only
+# DENIAL semantics do: the access-denied phrasing, or the edge error page's
+# dotted-hex reference id (`Reference #18.<hex>.<ts>.<hex>`), which ordinary
+# prose quoting "Reference #12." does not have. The sensor markers are kept
+# as corroboration — they name the provider once a denial is established.
+_AKAMAI_DENIAL_PATTERNS = [
+    re.compile(r"access\s+denied", re.I),
+    re.compile(r"you\s+(?:do\s+not|don'?t)\s+have\s+permission\s+to\s+access", re.I),
+    re.compile(r"reference\s*#\d+\.[0-9a-f]{6,}", re.I),
+]
+_AKAMAI_SENSOR_PATTERNS = [
+    re.compile(r"\b_abck\b"),
+    re.compile(r"/akam/\d+/", re.I),
+]
+
 # Bare-word CAPTCHA mentions — only meaningful on a small challenge/interstitial
 # page, NOT on a content-rich page that merely discusses captchas in copy.
 _CAPTCHA_BODY_PATTERNS = [
@@ -122,6 +141,19 @@ def detect_bot_protection(
                 "protection_type": "cloudflare",
                 "details": "Cloudflare browser challenge page detected",
             }, lower_headers)
+        # A denial phrase alone could be any server's 403 template, and a
+        # sensor marker alone is just an Akamai-fronted site working normally;
+        # only the two together (or the edge page's own dotted-hex reference,
+        # which is corroboration in itself) name an Akamai denial.
+        if any(pat.search(body) for pat in _AKAMAI_DENIAL_PATTERNS):
+            corroborated = any(pat.search(body) for pat in _AKAMAI_SENSOR_PATTERNS) \
+                or bool(_AKAMAI_DENIAL_PATTERNS[-1].search(body))
+            if corroborated:
+                return _augment_cf_fields({
+                    "blocked": True,
+                    "protection_type": "akamai",
+                    "details": "Akamai edge access-denied page detected",
+                }, lower_headers)
         for pat in _CAPTCHA_BODY_PATTERNS:
             if pat.search(body):
                 return _augment_cf_fields({

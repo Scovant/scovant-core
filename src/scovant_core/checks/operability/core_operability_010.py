@@ -12,6 +12,7 @@ class ChallengeServedAs200(CoreCheck):
     title = "Challenge pages are not served as 200"
     category = Category.OPERABILITY
     weight = 3
+    check_version = "1.1"
     severity_on_fail = Severity.HIGH
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-403-forbidden",)
     why_it_matters = "A human-verification page returned with HTTP 200 is read by an agent as the page's content: it will summarise, quote or cache the challenge as if it were the site."

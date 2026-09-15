@@ -1,0 +1,24 @@
+{
+  "check": "CORE-OPERABILITY-008",
+  "routes": {
+    "/": {
+      "status": 200,
+      "body_file": "index.html"
+    },
+    "@probe": {
+      "status": 200,
+      "body_file": "probe.html"
+    }
+  },
+  "expected": {
+    "status": "WARN",
+    "severity": "medium",
+    "evidence_keys": [
+      "probed_url",
+      "status",
+      "served_html",
+      "looks_spa_shell"
+    ],
+    "summary_contains": "application shell"
+  }
+}

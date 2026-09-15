@@ -71,3 +71,27 @@ def test_network_error_is_error():
         raise httpx.ConnectError("boom", request=request)
     store, ctx = _scan(handler)
     assert UnknownPathsReturn404().run(store, ctx).status is CheckStatus.ERROR
+
+
+SHELL_MOUNT = '<!doctype html><html><body><div id="root"></div><script src="/a.js"></script></body></html>'
+SHELL_BUNDLE_ONLY = '<!doctype html><html><body><div class="wrap"></div><script src="/a.js"></script></body></html>'
+
+
+def test_spa_shell_warns_instead_of_failing_as_a_soft_404():
+    store, ctx = _scan(_site(200, SHELL_MOUNT))
+    r = UnknownPathsReturn404().run(store, ctx)
+    assert r.status is CheckStatus.WARN and r.evidence["looks_spa_shell"] is True
+    assert "application shell" in r.summary and "soft-404" not in r.summary
+
+
+def test_spa_shell_is_also_recognised_without_a_named_mount_element():
+    # second limb: almost no visible text next to a script bundle
+    store, ctx = _scan(_site(200, SHELL_BUNDLE_ONLY))
+    assert UnknownPathsReturn404().run(store, ctx).status is CheckStatus.WARN
+
+
+def test_a_rendered_error_page_is_a_soft_404_not_a_shell():
+    from scovant_core.gatherers.soft_404 import looks_spa_shell
+    assert looks_spa_shell(HOME) is False
+    # a short page with no bundle at all is not a shell either
+    assert looks_spa_shell("<html><body><p>Not found</p></body></html>") is False

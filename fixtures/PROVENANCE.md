@@ -74,3 +74,28 @@ reporting it as a broken link.
 | sites/expected/commerce-bad.html | generated (golden) |
 | sites/expected/api-good.html | generated (golden) |
 | sites/expected/saas-mixed.html | generated (golden) |
+| http-semantics/429-with-retry-after/case.json | synthetic (429 carrying Retry-After — CORE-OPERABILITY-009 PASS) |
+| http-semantics/429-without-retry-after/case.json | synthetic (429 with no Retry-After — CORE-OPERABILITY-009 FAIL) |
+| http-semantics/age-gate/case.json | synthetic (age-confirmation interstitial — negative, no challenge) |
+| http-semantics/age-gate/index.html | synthetic (age-confirmation interstitial — negative, no challenge) |
+| http-semantics/akamai-sensor-only/case.json | synthetic (successful short page carrying only the bot-manager sensor script — negative: sensor presence is not a denial) |
+| http-semantics/akamai-sensor-only/index.html | synthetic (successful short page carrying only the bot-manager sensor script — negative: sensor presence is not a denial) |
+| http-semantics/challenge-akamai/case.json | synthetic (bot-manager access-denied interstitial served with 200 — CORE-OPERABILITY-010 FAIL) |
+| http-semantics/challenge-akamai/index.html | synthetic (bot-manager access-denied interstitial served with 200 — CORE-OPERABILITY-010 FAIL) |
+| http-semantics/challenge-cloudflare/case.json | synthetic (browser-challenge interstitial served with 200 — CORE-OPERABILITY-010 FAIL) |
+| http-semantics/challenge-cloudflare/index.html | synthetic (browser-challenge interstitial served with 200 — CORE-OPERABILITY-010 FAIL) |
+| http-semantics/cookie-consent/case.json | synthetic (consent dialog over real content — negative, no challenge) |
+| http-semantics/cookie-consent/index.html | synthetic (consent dialog over real content — negative, no challenge) |
+| http-semantics/login-normal/case.json | synthetic (ordinary sign-in form — negative, no challenge) |
+| http-semantics/login-normal/index.html | synthetic (ordinary sign-in form — negative, no challenge) |
+| http-semantics/maintenance/case.json | synthetic (honest 503 maintenance page — negative, not a 200 challenge) |
+| http-semantics/maintenance/index.html | synthetic (honest 503 maintenance page — negative, not a 200 challenge) |
+| http-semantics/normal-404/case.json | synthetic (probe answers a real 404 — CORE-OPERABILITY-008 PASS) |
+| http-semantics/normal-404/index.html | synthetic (probe answers a real 404 — CORE-OPERABILITY-008 PASS) |
+| http-semantics/normal-404/probe.html | synthetic (probe answers a real 404 — CORE-OPERABILITY-008 PASS) |
+| http-semantics/real-soft-404/case.json | synthetic (server-rendered error page returned with 200 — CORE-OPERABILITY-008 FAIL) |
+| http-semantics/real-soft-404/index.html | synthetic (server-rendered error page returned with 200 — CORE-OPERABILITY-008 FAIL) |
+| http-semantics/real-soft-404/probe.html | synthetic (server-rendered error page returned with 200 — CORE-OPERABILITY-008 FAIL) |
+| http-semantics/spa-shell/case.json | synthetic (empty client-router mount + script bundle returned with 200 — CORE-OPERABILITY-008 WARN) |
+| http-semantics/spa-shell/index.html | synthetic (empty client-router mount + script bundle returned with 200 — CORE-OPERABILITY-008 WARN) |
+| http-semantics/spa-shell/probe.html | synthetic (empty client-router mount + script bundle returned with 200 — CORE-OPERABILITY-008 WARN) |

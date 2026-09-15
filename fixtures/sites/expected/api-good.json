@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.3.0",
+  "core_version": "0.3.1",
   "findings": [
     {
       "category": "access",
@@ -896,7 +896,7 @@
     },
     {
       "category": "operability",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud probes several unknown paths per host and per section, and re-checks over time.",
       "confidence": "high",
       "evidence": {
@@ -908,7 +908,7 @@
       },
       "experimental": false,
       "id": "CORE-OPERABILITY-008",
-      "limitations": "One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design.",
+      "limitations": "One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design. The shell heuristic errs on the lenient side: a very short 200 page that carries a script bundle is reported as an application shell (WARN) even when it is in fact a terse, genuinely server-rendered soft-404.",
       "remediation": "",
       "severity": "info",
       "status": "PASS",
@@ -938,7 +938,7 @@
     },
     {
       "category": "operability",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud classifies WAF and challenge behaviour across identities and over time.",
       "confidence": "high",
       "evidence": {
@@ -1256,7 +1256,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.3.0",
+    "core_version": "0.3.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -1269,11 +1269,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "994a69bc7f12",
+    "ruleset_digest": "ab5851b14f6a",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.3.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.3.1 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",

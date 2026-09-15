@@ -21,6 +21,13 @@ class VisibleVsStructuredPrice(CoreCheck):
     references = ("https://schema.org/price",)
     why_it_matters = "An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy."
     limitations = "This is a fragile heuristic: the visible-price regex only matches a narrow set of currency-marked formats, and it compares only the first product page found."
+    promotion_criteria = (
+        "≥ 300 canonical scans of commerce product pages, sampling more than the first product page "
+        "found; a false-positive review of the visible-price regex across non-Latin digits and "
+        "currency formats it does not yet match; a measured visible-versus-structured disagreement "
+        "rate stable across two consecutive corpus snapshots; then a scored weight and a "
+        "RULESET_VERSION bump."
+    )
     cloud_extension = "Scovant Cloud checks visible-vs-structured price agreement across the full sampled catalog and a broader set of currency formats."
 
     def evaluate(self, store, ctx):

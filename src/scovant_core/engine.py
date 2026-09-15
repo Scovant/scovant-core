@@ -197,7 +197,7 @@ def scan(
             # is seeded with the input URL in that case so the gatherers have a
             # base to build origins from, but reporting it as the "final URL"
             # would claim we reached a page we never reached.
-            final_url=None if entry_error else display_url(ctx.final_url),
+            final_url=None if entry_error or ctx.final_url is None else display_url(ctx.final_url),
             requested_profile=options.profile,
             resolved_profile=ctx.resolved_profile,
             profile_confidence=ctx.profile_confidence,

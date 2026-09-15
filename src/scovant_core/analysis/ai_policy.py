@@ -17,7 +17,7 @@ def classify_policy(robots_text: str | None, url: str) -> dict:
         if not declared:
             out[name] = {"verdict": "undeclared", "allowed": list(tokens), "blocked": []}
             continue
-        allowed = [t for t in tokens if is_allowed(robots_text, t, url)]
+        allowed = [t for t in tokens if is_allowed(robots_text or "", t, url)]
         blocked = [t for t in tokens if t not in allowed]
         verdict = "allowed" if not blocked else ("blocked" if not allowed else "mixed")
         out[name] = {"verdict": verdict, "allowed": allowed, "blocked": blocked}

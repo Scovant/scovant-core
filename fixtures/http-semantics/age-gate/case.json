@@ -1,0 +1,18 @@
+{
+  "check": "CORE-OPERABILITY-010",
+  "routes": {
+    "/": {
+      "status": 200,
+      "body_file": "index.html",
+      "headers": {}
+    }
+  },
+  "expected": {
+    "status": "PASS",
+    "evidence_keys": [
+      "pages",
+      "pages_checked"
+    ],
+    "summary_contains": "No challenge page"
+  }
+}

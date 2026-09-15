@@ -428,6 +428,37 @@ class TestDetectBotProtection:
         assert result["blocked"] is True
         assert result["protection_type"] == "captcha"
 
+    # --- Akamai: a denial, never the mere presence of the bot-manager sensor ---
+    # `_abck` and the `/akam/<n>/` script ride on EVERY response from an
+    # Akamai-fronted site, so a verdict keyed on them would mark working pages
+    # as blocked — and Cloud scores that (BOT_PROTECTION_BLOCKING_AGENTS, x0.80
+    # on a third party's score), so these four negatives are load-bearing.
+    def test_akamai_access_denied_page_blocked(self):
+        body = ('<html><body><p>Access Denied. You do not have permission to access this resource.</p>'
+                '<p>Reference #18.0a1b2c3d.0000000000.0e1f2a3b</p>'
+                '<script src="/akam/13/0a1b2c3d"></script></body></html>')
+        result = detect_bot_protection(200, {}, body, "ai_crawler")
+        assert result["blocked"] is True
+        assert result["protection_type"] == "akamai"
+
+    def test_akamai_sensor_script_alone_is_not_a_block(self):
+        body = ('<html><body><main><h1>Widgets</h1><p>A short but successful page.</p></main>'
+                '<script src="/akam/13/0a1b2c3d"></script></body></html>')
+        assert detect_bot_protection(200, {}, body, "ai_crawler")["blocked"] is False
+
+    def test_akamai_sensor_cookie_alone_is_not_a_block(self):
+        body = '<html><body><p>Hello.</p><script>window._abck = "";</script></body></html>'
+        assert detect_bot_protection(200, {}, body, "ai_crawler")["blocked"] is False
+
+    def test_spa_shell_behind_akamai_is_not_a_block(self):
+        body = ('<html><body><div id="root"></div><script src="/akam/13/0a1b2c3d"></script>'
+                '<script src="/assets/app.js"></script></body></html>')
+        assert detect_bot_protection(200, {}, body, "ai_crawler")["blocked"] is False
+
+    def test_prose_quoting_a_plain_reference_number_is_not_a_block(self):
+        body = '<html><body><p>See Reference #12. for the return policy.</p></body></html>'
+        assert detect_bot_protection(200, {}, body, "ai_crawler")["blocked"] is False
+
     def test_403_has_protection_type(self):
         result = detect_bot_protection(403, {}, "Access Denied", "ai_crawler")
         assert result["protection_type"] is not None

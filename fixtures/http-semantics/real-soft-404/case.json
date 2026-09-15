@@ -1,0 +1,23 @@
+{
+  "check": "CORE-OPERABILITY-008",
+  "routes": {
+    "/": {
+      "status": 200,
+      "body_file": "index.html"
+    },
+    "@probe": {
+      "status": 200,
+      "body_file": "probe.html"
+    }
+  },
+  "expected": {
+    "status": "FAIL",
+    "severity": "medium",
+    "evidence_keys": [
+      "probed_url",
+      "status",
+      "served_html"
+    ],
+    "summary_contains": "soft-404"
+  }
+}

@@ -1,5 +1,5 @@
-# scovant-core 0.3.0 — exact runtime pins from a clean install (pip freeze).
-# Use: pip install "scovant-core==0.3.0" -c <this file>
+# scovant-core 0.3.1 — exact runtime pins from a clean install (pip freeze).
+# Use: pip install "scovant-core==0.3.1" -c <this file>
 annotated-types==0.8.0
 anyio==4.15.1
 attrs==26.1.0
@@ -37,4 +37,4 @@ tldextract==5.3.2
 typing-inspection==0.4.4
 typing_extensions==4.16.0
 urllib3==2.7.0
-uvicorn==0.52.4
+uvicorn==0.53.0

@@ -30,13 +30,17 @@ def _optional_section_has_no_links(raw: str) -> bool:
     return "](" not in section
 
 
+def _summary_is_short(raw: str) -> bool:
+    m = _SUMMARY_LINE_RE.search(raw)
+    return m is not None and len(m.group(1).strip()) < 20
+
+
 def llms_signals(raw: str, urls: list[str], origin: str, robots_ai_declared: bool, content_signal_declared: bool) -> dict:
     host = (urlsplit(origin).hostname or "").lower()
     same = [u for u in urls if (urlsplit(u).hostname or "").lower() == host]
     policy_text = bool(_POLICY_RE.search(raw) or _POLICY_PHRASE_RE.search(raw))
     optional_empty = _optional_section_has_no_links(raw)
-    m = _SUMMARY_LINE_RE.search(raw)
-    short_summary = bool(m) and len(m.group(1).strip()) < 20
+    short_summary = _summary_is_short(raw)
     placeholders = any(p in raw for p in _TEMPLATE_PHRASES)
     return {
         "links": len(urls), "same_origin_links": len(same),
@@ -61,6 +65,11 @@ class LlmsTxtUtility(CoreCheck):
         "declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI "
         "agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. "
         "Experimental: never scored."
+    )
+    promotion_criteria = (
+        "≥ 500 canonical scans with an llms.txt present; a false-positive review of the "
+        "summary-length and placeholder heuristics; a documented link between the utility signal and "
+        "agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud compares llms.txt against what agents actually fetch."
 

@@ -676,6 +676,6 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
 
 ## Provenance
 
-Core 0.3.0 · ruleset 2026.10 (digest `994a69bc7f12`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.3.1 · ruleset 2026.10 (digest `ab5851b14f6a`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=docs&utm_campaign=oss)

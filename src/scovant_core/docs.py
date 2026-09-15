@@ -20,6 +20,7 @@ the fixture, or the scoring model.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -40,6 +41,13 @@ _STANDARDS_PATH = _DOCS_PATH.parent / "standards" / "agentready.md"
 
 def _profiles_cell(profiles: frozenset[str] | None) -> str:
     return "all" if profiles is None else ", ".join(sorted(profiles))
+
+
+def _first_sentence(text: str) -> str:
+    """The `Status:` line quotes WHY a check exists in one sentence; the full
+    prose stays in the `Why it matters` line right above it, so this never
+    needs to be smart — just not to truncate mid-sentence."""
+    return re.split(r"(?<=[.!?])\s+", text.strip(), maxsplit=1)[0]
 
 
 def _checks_by_category() -> dict[Category, list]:
@@ -83,6 +91,15 @@ def render_checks() -> str:
             lines.append("")
             lines.append(f"**Why it matters:** {c.why_it_matters}")
             lines.append("")
+            if c.experimental:
+                # An experimental check must publish its own exit criteria, not
+                # just its experimental flag (`promotion_criteria` is required on
+                # every experimental check by `tests/test_registry.py`).
+                lines.append(
+                    f"**Status:** experimental · scored: no · reason: {_first_sentence(c.why_it_matters)}"
+                    f" · promotion: {c.promotion_criteria}"
+                )
+                lines.append("")
             lines.append(f"**Limitations:** {c.limitations}")
             lines.append("")
             if c.standards:

@@ -33,6 +33,7 @@ jobs:
         with:
           url: http://127.0.0.1:8765/
           allow-private-networks: 'true'
+          trusted-target: 'true'
           min-core-score: '85'
       - name: Assert outputs
         run: |

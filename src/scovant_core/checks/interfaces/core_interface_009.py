@@ -61,6 +61,13 @@ class AgentDiscoverySurfacePresence(CoreCheck):
         "parse is indistinguishable here from one that is absent; this check therefore "
         "never reports WARN or ERROR."
     )
+    promotion_criteria = (
+        "≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap "
+        "documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, "
+        "together with a decided status vocabulary for partially-unread surfaces; a documented link "
+        "between a published discovery surface and agent retrieval outcomes; then a scored weight and "
+        "a RULESET_VERSION bump."
+    )
     cloud_extension = "Scovant Cloud validates each discovered surface's own schema, not just that a document is present."
     standards = ("AR-READ-06", "AR-ACT-04")
 

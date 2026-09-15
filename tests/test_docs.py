@@ -197,9 +197,8 @@ def test_main_rejects_an_unknown_flag():
 def test_readme_contains_both_pinned_sentences_verbatim():
     readme = (PKG_ROOT / "README.md").read_text(encoding="utf-8")
     assert (
-        "Scovant Core is an open-source passive scanner for machine-facing website "
-        "signals used by AI agents. It checks crawler policy, structured data, agent "
-        "discovery surfaces, protocol metadata, commerce signals and basic operability."
+        "Scovant Core is an open-source, evidence-first scanner for passive AI-agent "
+        "readiness signals on websites."
     ) in readme
     assert (
         "A high Core Score does not prove that autonomous agents can complete real "
