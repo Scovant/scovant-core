@@ -29,8 +29,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff==0.16.6", "jsonschema>=4.20,<5", "mypy==1.20.2", "twine>=5,<7", "pyyaml>=6,<7"]
-mcp = ["mcp>=1.28,<2"]
+dev = ["pytest>=8,<10", "pytest-cov>=5,<8", "ruff==0.16.7", "jsonschema>=4.20,<5", "mypy==2.3.1", "twine>=5,<8", "pyyaml>=6,<7"]
+mcp = ["mcp>=1.28,<3"]
 
 [project.scripts]
 scovant = "scovant_core.cli:main"
