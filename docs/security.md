@@ -328,3 +328,36 @@ repository again only in the next sync commit.
 Email `security@scovant.com` or use GitHub's private vulnerability
 reporting on this repository. Please include a reproduction. See
 `SECURITY.md` for the full reporting policy and response timeline.
+
+## Verifying a release
+
+Every GitHub release on this repository carries `release-manifest.json`
+next to the wheel, sdist, `constraints-<version>.txt`, `sbom.json` and
+`THIRD_PARTY_LICENSES.md`. It records a SHA-256 and size for each of those
+files, the git tree of the source that was built, and the commit the
+release tag points at. To verify a download:
+
+```bash
+V=0.3.0
+gh release download "v$V" --repo Scovant/scovant-core --dir rel
+python3 - <<'EOF'
+import hashlib, json, pathlib, sys
+m = json.load(open("rel/release-manifest.json"))
+bad = False
+for name, rec in m["artifacts"].items():
+    data = pathlib.Path("rel", name).read_bytes()
+    ok = hashlib.sha256(data).hexdigest() == rec["sha256"] and len(data) == rec["size"]
+    print("OK " if ok else "BAD", name)
+    bad = bad or not ok
+sys.exit(1 if bad else 0)
+EOF
+git clone --branch "v$V" --depth 1 https://github.com/Scovant/scovant-core.git src
+test "$(git -C src rev-parse HEAD)"    = "$(python3 -c 'import json;print(json.load(open("rel/release-manifest.json"))["mirror"]["commit"])')" || { echo "MISMATCH: tag commit"; exit 1; }
+echo "tag commit matches"
+test "$(git -C src rev-parse HEAD^{tree})" = "$(python3 -c 'import json;print(json.load(open("rel/release-manifest.json"))["export"]["tree"])')" || { echo "MISMATCH: source tree"; exit 1; }
+echo "source tree matches"
+```
+
+`source.commit` is the upstream commit the export was cut from; it is a
+bare hash and is not resolvable from this repository. PyPI additionally
+publishes its own PEP 740 attestation for the same wheel and sdist.

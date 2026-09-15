@@ -44,9 +44,8 @@ from scovant_core.report.markdown import render_markdown
 
 __all__ = ["main", "INPUT_KEYS", "OUTPUT_KEYS"]
 
-# `action.yml`'s `inputs:` keys, in the order they appear there — the
-# monorepo sync test (`test_action_manifest_matches_readme_and_code`) parses
-# `action.yml` and asserts its input names equal this set, and equal the
+# `action.yml`'s `inputs:` keys, in the order they appear there. A test
+# parses `action.yml` and asserts its input names equal this set and the
 # README's inputs table, so the three can never quietly drift apart.
 INPUT_KEYS = (
     "url",

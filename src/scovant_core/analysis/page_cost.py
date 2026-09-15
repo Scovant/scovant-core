@@ -18,7 +18,7 @@ matter how bloated. This module re-extracts visible text from the raw
 (`extract_visible_text`'s script/style/nav/footer/head removal +
 whitespace collapse) — duplicated here rather than adding a `limit`
 parameter to the shared `parsers.html` module, which is synced verbatim
-with Scovant Cloud (`test_scovant_core_sync.py`) and whose 5000-char cap is
+with Scovant Cloud and whose 5000-char cap is
 a Cloud contract for its own (different) callers.
 """
 from __future__ import annotations

@@ -7,9 +7,8 @@ discipline as `checks.registry.ruleset_digest()`.
 pure — it reads only already-imported module state, no I/O. `render_weights_table()`
 renders the public scoring constants (`scoring.CATEGORY_WEIGHTS`,
 `scoring.MIN_COVERAGE`, `scoring.GRADES`) for `docs/methodology.md`, which embeds
-its output verbatim; `tests/test_docs.py` and the Cloud-side sync tripwire
-(`test_scovant_core_sync.py`) both pin the committed docs to these two
-functions' current output.
+its output verbatim; both a test and the Cloud-side sync
+tripwire pin the committed docs to these two functions' current output.
 
 Run `python -m scovant_core.docs` after any check/scoring change to
 regenerate `docs/checks.md`. `render_example()` renders the committed

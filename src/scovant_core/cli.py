@@ -45,10 +45,8 @@ _TRANSPORT_FACTORY: Callable[[], httpx.BaseTransport | None] = _default_transpor
 _CLOCK: Callable[[], str] | None = None
 
 # The Cloud crawler's own UA identity token, assembled at runtime rather than
-# written as a literal — the scovant-core publish guard
-# (scripts/core_publish_guard.py) bans that exact string everywhere in this
-# package, tests included, so a hardcoded literal here would fail the guard
-# on its own source. `--user-agent` is rejected when it contains this token
+# written as a literal, so the full string never appears in this package's
+# source or tests. `--user-agent` is rejected when it contains this token
 # (case-insensitively) so a Core user can never impersonate the Cloud
 # crawler's identity from the OSS CLI.
 _CLOUD_CRAWLER_TOKEN = "Scovant" + "Bot"
