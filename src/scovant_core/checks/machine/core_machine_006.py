@@ -12,6 +12,7 @@ class ProductIdentifierCount(CoreCheck):
     id = "CORE-MACHINE-006"
     title = "Product identifier count"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
     weight = 2
     severity_on_fail = Severity.MEDIUM

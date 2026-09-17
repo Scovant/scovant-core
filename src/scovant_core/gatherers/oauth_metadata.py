@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 from typing import Any
+from urllib.parse import urlsplit
 
 from scovant_core.context import ScanContext
 from scovant_core.evidence import EvidenceStore, register_gatherer
@@ -16,6 +17,16 @@ from ._soft_200 import is_soft_200_html
 
 _AS_PATH = "/.well-known/oauth-authorization-server"
 _PR_PATH = "/.well-known/oauth-protected-resource"
+
+
+def _origin(u: str) -> str:
+    """Scheme + authority, fully lower-cased — the ONE normalisation both
+    consistency comparisons below use. `ctx.origin` is built from the final
+    URL verbatim (`context.set_final_url`) and so preserves whatever case
+    the target was given in; comparing it raw against a normalised value
+    reported a spurious mismatch for `https://Example.com/`."""
+    p = urlsplit(u)
+    return f"{p.scheme}://{p.netloc}".lower()
 
 
 def _fetch_json_object(
@@ -49,6 +60,9 @@ def _fetch_json_object(
 def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -> dict:
     store.get("http")
     origin = ctx.origin or ""
+    # The scanned site's own origin, normalised the same way `_origin`
+    # normalises a document-declared URL (see `_origin`'s docstring).
+    _base = ctx.final_url or ctx.input_url
 
     as_url = f"{origin}{_AS_PATH}"
     as_status, as_html, as_data, as_truncated, as_retry_after = _fetch_json_object(client, as_url)
@@ -65,6 +79,7 @@ def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: Evidenc
         ),
         "served_as_html": as_html,
         "truncated": as_truncated,
+        "matches_issuer": (_origin(issuer) == _origin(as_url)) if isinstance(issuer, str) else None,
     }
     if as_status == 429:
         authorization_server["retry_after"] = as_retry_after
@@ -81,6 +96,12 @@ def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: Evidenc
         "authorization_servers": auth_servers if isinstance(auth_servers, list) else [],
         "served_as_html": pr_html,
         "truncated": pr_truncated,
+        "scopes_supported": [s for s in (pr_data or {}).get("scopes_supported", []) if isinstance(s, str)] if pr_data else [],
+        "jwks_uri": (pr_data or {}).get("jwks_uri") if isinstance((pr_data or {}).get("jwks_uri"), str) else None,
+        "resource_matches_origin": (
+            (_origin(resource) == _origin(_base)) if isinstance(resource, str) and _base else None
+        ),
+        "dpop_bound_access_tokens_required": bool((pr_data or {}).get("dpop_bound_access_tokens_required", False)),
     }
     if pr_status == 429:
         protected_resource["retry_after"] = pr_retry_after

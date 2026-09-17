@@ -13,6 +13,7 @@ class AiSearchCrawlerPolicy(CoreCheck):
     id = "CORE-ACCESS-003"
     title = "AI search crawler policy"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 4
     severity_on_fail = Severity.HIGH
     check_version = "1.1"

@@ -11,6 +11,7 @@ class ShippingPolicyDiscoverability(CoreCheck):
     id = "CORE-TRUST-002"
     title = "Shipping policy discoverability"
     category = Category.TRUST
+    verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
     weight = 2
     references = ("https://schema.org/DeliveryTimeSettings",)

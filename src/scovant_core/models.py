@@ -5,12 +5,19 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-REPORT_SCHEMA_VERSION = "1.0"
+REPORT_SCHEMA_VERSION = "1.1"
 SCORE_NAME = "Scovant Core Static Signal Score"
 SCORE_SHORT_NAME = "Core Score"
 SCORE_SUBSET_NAME = "Subset Diagnostic Score"
 SCAN_SCOPES = ("CANONICAL", "CUSTOM", "PARTIAL")
 SCORE_STATUSES = ("OK", "DEGRADED", "NOT_CANONICAL", "INSUFFICIENT_EVIDENCE")
+# How a check's evidence was obtained — DECLARED (a document/header the site
+# published) and PASSIVE_OBSERVED (an unauthenticated observation Core made
+# itself) are the only two Core ever emits; ACTIVE_SAFE and
+# SYNTHETIC_AUTHORIZED are reserved for a future, explicitly-consented probe
+# tier and must never appear on a Core-emitted CheckResult (see
+# `test_verification_mode_vocabulary`).
+VERIFICATION_MODES = ("DECLARED", "PASSIVE_OBSERVED", "ACTIVE_SAFE", "SYNTHETIC_AUTHORIZED")
 
 
 class CheckStatus(StrEnum):
@@ -41,6 +48,9 @@ class Category(StrEnum):
     INTERFACES = "interfaces"
     TRUST = "trust"
     OPERABILITY = "operability"
+    # Never scored (see scoring.SCORED_CATEGORIES) — passive security/trust
+    # signals only, surfaced through `Report.security`, not `Report.score`.
+    SECURITY = "security"
 
 
 CATEGORY_TITLES = {
@@ -49,6 +59,7 @@ CATEGORY_TITLES = {
     Category.INTERFACES: "Agent Interfaces",
     Category.TRUST: "Trust & Commerce",
     Category.OPERABILITY: "Operability & Efficiency",
+    Category.SECURITY: "Agentic Security & Trust",
 }
 
 
@@ -68,6 +79,13 @@ class CheckResult(BaseModel):
     remediation: str = ""
     experimental: bool = False
     check_version: str = "1.0"
+    # SECURITY-category fields only; "" / "PASSIVE_OBSERVED" / [] defaults
+    # keep every pre-1.1 check's `result()` call unchanged.
+    family_id: str = ""
+    verification_mode: str = "PASSIVE_OBSERVED"
+    security_domain: str = ""
+    fix_owner: str = ""
+    security_tags: list[str] = Field(default_factory=list)
 
 
 class CategoryScore(BaseModel):
@@ -100,6 +118,18 @@ class Score(BaseModel):
     scope: str = "CANONICAL"
 
 
+class SecuritySummary(BaseModel):
+    """The report's `security` block — counts over SECURITY-category
+    findings only. Never a score; see `scoring.SCORED_CATEGORIES` and
+    docs/security.md."""
+    scored: bool = False
+    label: str = "PASSIVE SIGNALS ONLY"
+    findings_by_severity: dict[str, int] = Field(default_factory=dict)
+    by_domain: dict[str, dict[str, int]] = Field(default_factory=dict)
+    not_tested: list[str] = Field(default_factory=list)
+    redaction_applied: bool = False
+
+
 class Report(BaseModel):
     schema_version: str = REPORT_SCHEMA_VERSION
     core_version: str
@@ -114,3 +144,4 @@ class Report(BaseModel):
     metrics: dict = Field(default_factory=dict)
     not_tested: list[str] = Field(default_factory=list)
     provenance: dict = Field(default_factory=dict)
+    security: SecuritySummary = Field(default_factory=SecuritySummary)

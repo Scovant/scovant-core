@@ -10,6 +10,7 @@ class SitemapAvailability(CoreCheck):
     id = "CORE-ACCESS-005"
     title = "Sitemap availability"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.sitemaps.org/protocol.html",)

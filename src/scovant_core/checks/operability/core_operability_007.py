@@ -23,6 +23,7 @@ class MachineReferenceIntegrity(CoreCheck):
     id = "CORE-OPERABILITY-007"
     title = "Machine reference integrity"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     experimental = True
     severity_on_fail = Severity.HIGH

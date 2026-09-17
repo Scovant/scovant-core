@@ -13,6 +13,7 @@ class ContentSignalDeclaration(CoreCheck):
     id = "CORE-ACCESS-010"
     title = "Content-Signal declaration"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://contentsignals.org/",)

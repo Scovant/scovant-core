@@ -27,6 +27,7 @@ class AgentParseCost(CoreCheck):
     id = "CORE-OPERABILITY-005"
     title = "Agent parse cost"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://platform.openai.com/docs/guides/text-generation",)

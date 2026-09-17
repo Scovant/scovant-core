@@ -31,7 +31,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from scovant_core.cli import _threshold_exit_code
-from scovant_core.models import CheckStatus, Report, Severity
+from scovant_core.models import Category, CheckStatus, Report, Severity
 from scovant_core.report._common import (
     scored_experimental,
     status_counts,
@@ -58,9 +58,18 @@ INPUT_KEYS = (
     "allow-private-networks",
     "trusted-target",
     "require-canonical",
+    "fail-on-security",
 )
 
-# `action.yml`'s `outputs:` keys, in the order §25 defines them.
+# `action.yml`'s `outputs:` keys, in the order §25 defines them, plus the
+# four security counts. `pass_count`/`warn_count`/`fail_count` are
+# READINESS-ONLY (SECURITY-category findings excluded) — `Report.security`
+# is never scored, so folding a security FAIL into the readiness `fail_count`
+# would silently change what that number means; `security_critical`/
+# `security_high` (from `Report.security.findings_by_severity`, FAIL+WARN)
+# and `security_fail_count`/`security_warn_count` (readiness-gate-shaped
+# counts, over SECURITY findings only) make the security population visible
+# on its own instead.
 OUTPUT_KEYS = (
     "score",
     "grade",
@@ -72,9 +81,14 @@ OUTPUT_KEYS = (
     "score_status",
     "scan_scope",
     "error_count",
+    "security_critical",
+    "security_high",
+    "security_fail_count",
+    "security_warn_count",
 )
 
 _FAIL_ON = ("fail", "warn", "never")
+_FAIL_ON_SECURITY = ("critical", "high", "medium", "never")
 _REPORT_FORMATS = ("html", "markdown")
 
 
@@ -131,6 +145,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "--require-canonical", action="store_true", dest="require_canonical",
         help="fail unless the scan is CANONICAL with score status OK",
     )
+    gate_p.add_argument(
+        "--fail-on-security", choices=_FAIL_ON_SECURITY, default="never", dest="fail_on_security",
+        help="exit 6 when a security finding FAILs at or above this severity (WARN never gates)",
+    )
 
     return parser
 
@@ -141,7 +159,14 @@ def render_summary(report: Report) -> str:
     s = report.score
     value = "—" if s.value is None else str(s.value)
     grade = s.grade or "—"
-    counts = status_counts(report.findings)
+    # Readiness-only, matching the `pass_count`/`warn_count`/`fail_count`
+    # outputs this Action publishes (see the OUTPUT_KEYS comment): one
+    # summary block must not count a population the outputs exclude.
+    # SECURITY findings get their own line below instead.
+    readiness = [f for f in report.findings if f.category != Category.SECURITY]
+    security = [f for f in report.findings if f.category == Category.SECURITY]
+    counts = status_counts(readiness)
+    security_counts = status_counts(security)
     scored = scored_experimental(report)
 
     critical = [
@@ -151,7 +176,12 @@ def render_summary(report: Report) -> str:
         and f.severity in (Severity.HIGH, Severity.CRITICAL)
         and (scored or not f.experimental)
     ]
-    critical_line = " | ".join(f"`{f.id}` — {f.summary}" for f in critical) or "none"
+    # SECURITY-category items are never scored (see `Report.security.scored`)
+    # but a high/critical-severity FAIL there is still worth a reviewer's
+    # eye — tagged, not silently folded into the readiness "Critical" count.
+    critical_line = " | ".join(
+        f"`{f.id}` — {'[security] ' if f.category == Category.SECURITY else ''}{f.summary}" for f in critical
+    ) or "none"
 
     top = top_findings(report.findings, scored)
     top_line = f"`{top[0].id}` — {top[0].summary}" if top else "none"
@@ -173,6 +203,15 @@ def render_summary(report: Report) -> str:
         f"{counts[CheckStatus.FAIL]} fail · {counts[CheckStatus.NA]} n/a · "
         f"{counts[CheckStatus.ERROR]} error",
         "",
+        # Never folded into the line above: security findings are never
+        # scored, and "not measured" is not the same statement as "0 fail".
+        "**Security (never scored):** " + (
+            f"{security_counts[CheckStatus.PASS]} pass · {security_counts[CheckStatus.WARN]} warn · "
+            f"{security_counts[CheckStatus.FAIL]} fail · {security_counts[CheckStatus.NA]} n/a · "
+            f"{security_counts[CheckStatus.ERROR]} error"
+            if security else "not measured (no security check ran)"
+        ),
+        "",
         f"**Critical:** {critical_line}",
         f"**Top issue:** {top_line}",
         "",
@@ -186,7 +225,14 @@ def render_summary(report: Report) -> str:
 def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
     report = _load_report(args.report_json)
     s = report.score
-    counts = status_counts(report.findings)
+    # Readiness-only: `Report.security` is never scored, so pass_count/
+    # warn_count/fail_count must never mix a security finding into a
+    # readiness population — see the OUTPUT_KEYS comment above.
+    readiness = [f for f in report.findings if f.category != Category.SECURITY]
+    counts = status_counts(readiness)
+    security = [f for f in report.findings if f.category == Category.SECURITY]
+    security_counts = status_counts(security)
+    sec_sev = report.security.findings_by_severity
     lines = [
         f"score={'' if s.value is None else s.value}",
         f"grade={s.grade or ''}",
@@ -198,6 +244,10 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
         f"score_status={s.status}",
         f"scan_scope={s.scope}",
         f"error_count={report.metrics.get('error_count', 0)}",
+        f"security_critical={sec_sev.get('critical', 0)}",
+        f"security_high={sec_sev.get('high', 0)}",
+        f"security_fail_count={security_counts[CheckStatus.FAIL]}",
+        f"security_warn_count={security_counts[CheckStatus.WARN]}",
     ]
     _append(env.get("GITHUB_OUTPUT"), "".join(f"{line}\n" for line in lines))
     return 0
@@ -223,7 +273,7 @@ def _cmd_gate(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa:
     report = _load_report(args.report_json)
     return _threshold_exit_code(
         report, min_score=args.min_score, fail_on=args.fail_on,
-        require_canonical=args.require_canonical,
+        require_canonical=args.require_canonical, fail_on_security=args.fail_on_security,
     )
 
 

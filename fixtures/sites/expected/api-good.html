@@ -59,8 +59,8 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> api (requested auto, confidence 90%)</p>
-<p><strong>Core version:</strong> 0.3.1</p>
-<p>23 PASS, 6 WARN, 0 FAIL, 21 N/A, 0 ERROR (50 checks)</p>
+<p><strong>Core version:</strong> 0.4.0</p>
+<p>31 PASS, 8 WARN, 1 FAIL, 26 N/A, 0 ERROR (66 checks)</p>
 </section>
 <section id="score">
 <h2>Scovant Core Static Signal Score</h2>
@@ -84,10 +84,13 @@ a { color: #0969da; }
 <h2>Findings</h2>
 <table>
 <tr><th>Status</th><th>ID</th><th>Title</th><th>Severity</th><th>Summary</th></tr>
+<tr><td><span class="badge badge-fail">FAIL</span></td><td><code>CORE-SECURITY-003</code></td><td>Content-Security-Policy / framing policy</td><td>medium</td><td>Neither Content-Security-Policy nor X-Frame-Options is sent.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-MACHINE-002</code></td><td>Organization entity</td><td>medium</td><td>No Organization entity was found on the sampled pages.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-MACHINE-003</code></td><td>WebSite/WebPage entity</td><td>low</td><td>No WebSite or WebPage entity was found on the sampled pages.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-OPERABILITY-001</code></td><td>Server-rendered core content</td><td>medium</td><td>The entry page&#x27;s static HTML carries only 155 chars of visible text (&lt; 200).</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-OPERABILITY-003</code></td><td>Cache validators</td><td>info</td><td>The entry response carries no cache validator (ETag, Last-Modified, or Cache-Control).</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-SECURITY-002</code></td><td>HSTS presence</td><td>low</td><td>No Strict-Transport-Security header.</td></tr>
+<tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-SECURITY-005</code></td><td>Referrer / MIME hygiene headers</td><td>low</td><td>Missing: referrer-policy, x-content-type-options.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-TRUST-004</code></td><td>Privacy policy discoverability</td><td>high</td><td>A privacy policy page was found but has too little text (135 chars) to be a real policy document.</td></tr>
 <tr><td><span class="badge badge-warn">WARN</span></td><td><code>CORE-TRUST-005</code></td><td>Terms/conditions discoverability</td><td>medium</td><td>No terms/conditions page was found linked from the entry page.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-ACCESS-001</code></td><td>HTTPS reachability</td><td>info</td><td>HTTPS entry URL answered 200.</td></tr>
@@ -109,6 +112,10 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-005</code></td><td>Agent parse cost</td><td>info</td><td>The entry page&#x27;s estimated parse cost is ~38 tokens (low).</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-008</code></td><td>Unknown paths return 404</td><td>info</td><td>Unknown paths answer with a real 404.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-OPERABILITY-010</code></td><td>Challenge pages are not served as 200</td><td>info</td><td>No challenge page is served with HTTP 200.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-SECURITY-001</code></td><td>HTTPS baseline</td><td>info</td><td>Served over https; http:// redirects to https.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-SECURITY-006</code></td><td>security.txt validity (RFC 9116)</td><td>info</td><td>security.txt is at the canonical location, has Contact and a future Expires.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-SECURITY-007</code></td><td>Credential-like value exposed in a machine-facing surface</td><td>info</td><td>No credential-like values in the gathered machine-facing surfaces.</td></tr>
+<tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-SECURITY-008</code></td><td>Internal network reference exposed</td><td>info</td><td>No internal network references found.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-001</code></td><td>Contact/support discoverability</td><td>info</td><td>A contact or support link was found on the entry page.</td></tr>
 <tr><td><span class="badge badge-pass">PASS</span></td><td><code>CORE-TRUST-006</code></td><td>security.txt discoverability</td><td>info</td><td>A valid security.txt was found with a contact method.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-ACCESS-009</code></td><td>llms.txt presence and integrity</td><td>info</td><td>No llms.txt is published.</td></tr>
@@ -124,6 +131,7 @@ a { color: #0969da; }
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-MACHINE-011</code></td><td>Image alt coverage</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-OPERABILITY-006</code></td><td>Form/control labels</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-OPERABILITY-009</code></td><td>Rate limiting is signalled</td><td>info</td><td>No 429 response was observed during this scan.</td></tr>
+<tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-SECURITY-004</code></td><td>Security-relevant cookie attributes</td><td>info</td><td>No cookies set on the entry response.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-002</code></td><td>Shipping policy discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-003</code></td><td>Returns/refund policy discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
 <tr><td><span class="badge badge-na">N/A</span></td><td><code>CORE-TRUST-007</code></td><td>Pricing discoverability</td><td>info</td><td>Not applicable to the api profile.</td></tr>
@@ -131,8 +139,12 @@ a { color: #0969da; }
 <h3>Experimental (not scored)</h3><ul>
 <li><code>CORE-INTERFACE-009</code> (PASS) — An agent discovery surface is published (a2a_card).</li>
 <li><code>CORE-OPERABILITY-011</code> (PASS) — All 1 present machine surface(s) are linked from something an agent reads.</li>
+<li><code>CORE-SECURITY-011</code> (PASS) — No indicators found.</li>
+<li><code>CORE-SECURITY-012</code> (PASS) — No indicators found.</li>
+<li><code>CORE-SECURITY-013</code> (PASS) — No indicators found.</li>
+<li><code>CORE-SECURITY-014</code> (PASS) — No indicators found.</li>
 </ul>
-<p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code></p>
+<p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code>, <code>CORE-SECURITY-009</code>, <code>CORE-SECURITY-010</code>, <code>CORE-SECURITY-015</code>, <code>CORE-SECURITY-016</code></p>
 </section>
 <section id="evidence">
 <h2>Evidence</h2>
@@ -275,10 +287,15 @@ a { color: #0969da; }
   &quot;authorization_servers&quot;: [
     &quot;https://example.com&quot;
   ],
+  &quot;dpop_bound_access_tokens_required&quot;: false,
   &quot;http_status&quot;: 200,
+  &quot;jwks_uri&quot;: null,
+  &quot;matches_issuer&quot;: true,
   &quot;parseable&quot;: true,
   &quot;resource&quot;: &quot;https://example.com/.well-known/oauth-protected-resource&quot;,
+  &quot;resource_matches_origin&quot;: true,
   &quot;resource_value&quot;: &quot;https://example.com&quot;,
+  &quot;scopes_supported&quot;: [],
   &quot;served_as_html&quot;: false
 }</code></pre>
 </details>
@@ -408,6 +425,61 @@ a { color: #0969da; }
   &quot;pages_checked&quot;: 4
 }</code></pre>
 </details>
+<details><summary><code>CORE-SECURITY-001</code> — HTTPS baseline</summary>
+<pre><code>{
+  &quot;downgrade_attempted&quot;: true,
+  &quot;downgrade_status&quot;: 301,
+  &quot;final_scheme&quot;: &quot;https&quot;,
+  &quot;redirected_to_https&quot;: true
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-002</code> — HSTS presence</summary>
+<pre><code>{
+  &quot;header&quot;: null,
+  &quot;max_age&quot;: null
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-003</code> — Content-Security-Policy / framing policy</summary>
+<pre><code>{
+  &quot;csp_present&quot;: false,
+  &quot;csp_report_only&quot;: false,
+  &quot;frame_ancestors&quot;: false,
+  &quot;x_frame_options&quot;: null
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-005</code> — Referrer / MIME hygiene headers</summary>
+<pre><code>{
+  &quot;missing&quot;: [
+    &quot;referrer-policy&quot;,
+    &quot;x-content-type-options&quot;
+  ],
+  &quot;referrer_policy&quot;: null,
+  &quot;x_content_type_options&quot;: null
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-006</code> — security.txt validity (RFC 9116)</summary>
+<pre><code>{
+  &quot;canonical_location&quot;: true,
+  &quot;canonical_uris&quot;: [],
+  &quot;contact&quot;: true,
+  &quot;expired&quot;: false,
+  &quot;expires&quot;: &quot;2030-01-01T00:00:00Z&quot;,
+  &quot;found_url&quot;: &quot;https://example.com/.well-known/security.txt&quot;
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-007</code> — Credential-like value exposed in a machine-facing surface</summary>
+<pre><code>{
+  &quot;hit_count&quot;: 0,
+  &quot;hits&quot;: [],
+  &quot;surfaces_scanned&quot;: 3
+}</code></pre>
+</details>
+<details><summary><code>CORE-SECURITY-008</code> — Internal network reference exposed</summary>
+<pre><code>{
+  &quot;hits&quot;: [],
+  &quot;surfaces_scanned&quot;: 3
+}</code></pre>
+</details>
 <details><summary><code>CORE-TRUST-001</code> — Contact/support discoverability</summary>
 <pre><code>{
   &quot;contact_url&quot;: &quot;https://example.com/contact&quot;,
@@ -439,6 +511,9 @@ a { color: #0969da; }
 <li><code>CORE-MACHINE-003</code> — Add JSON-LD with &quot;@type&quot;: &quot;WebSite&quot; or &quot;WebPage&quot;.</li>
 <li><code>CORE-OPERABILITY-001</code> — Server-render (or statically pre-render) the core content so an agent&#x27;s plain HTTP fetch sees it.</li>
 <li><code>CORE-OPERABILITY-003</code> — Add an ETag or Last-Modified header so agents can issue conditional GETs.</li>
+<li><code>CORE-SECURITY-002</code> — Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).</li>
+<li><code>CORE-SECURITY-003</code> — Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.</li>
+<li><code>CORE-SECURITY-005</code> — Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.</li>
 <li><code>CORE-TRUST-004</code> — Publish a privacy policy page and link it from the entry page&#x27;s nav or footer.</li>
 <li><code>CORE-TRUST-005</code> — Publish a terms/conditions page and link it from the entry page&#x27;s nav or footer.</li>
 </ul>
@@ -481,6 +556,8 @@ a { color: #0969da; }
 <li>One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design. The shell heuristic errs on the lenient side: a very short 200 page that carries a script bundle is reported as an application shell (WARN) even when it is in fact a terse, genuinely server-rendered soft-404.</li>
 <li>Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.</li>
 <li>Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).</li>
+<li>Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.</li>
+<li>Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.</li>
 <li>Only the entry page&#x27;s anchors are scanned; a contact method reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.</li>
 <li>Only a same-origin link discovered from the entry page&#x27;s nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.</li>
@@ -489,6 +566,49 @@ a { color: #0969da; }
 <li>Only the conventional /.well-known/security.txt and legacy /security.txt paths are probed.</li>
 <li>Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages.</li>
 </ul>
+</section>
+<section id="agentic-security">
+<h2>Agentic Security &amp; Trust</h2>
+<p><span class="badge badge-na">PASSIVE SIGNALS ONLY</span></p>
+<table>
+<tr><th>Signal</th><th>Value</th></tr>
+<tr><td>Critical</td><td>0</td></tr>
+<tr><td>High</td><td>0</td></tr>
+<tr><td>Medium</td><td>1</td></tr>
+<tr><td>Low</td><td>2</td></tr>
+<tr><td>Web baseline</td><td>PASS 1  WARN 2  FAIL 1</td></tr>
+<tr><td>Disclosure</td><td>PASS 1  WARN 0  FAIL 0</td></tr>
+<tr><td>Data exposure</td><td>PASS 2  WARN 0  FAIL 0</td></tr>
+<tr><td>Prompt surface</td><td>PASS 4  WARN 0  FAIL 0</td></tr>
+</table>
+<ul>
+<li>Observed authorization: NOT TESTED</li>
+<li>Verified agent identity: NOT TESTED</li>
+<li>Prompt-injection resilience: NOT TESTED</li>
+<li>Tool invocation safety: NOT TESTED</li>
+</ul>
+<details><summary><code>CORE-SECURITY-002</code> (SEC-WEB-002) — HSTS presence <span class="badge badge-na">PASSIVE_OBSERVED</span></summary>
+<p><strong>Status:</strong> WARN &middot; <strong>Severity:</strong> low &middot; <strong>Confidence:</strong> high</p>
+<p><strong>Fix owner:</strong> edge_cdn &middot; <strong>Domain:</strong> web_baseline</p>
+<p>No Strict-Transport-Security header.</p>
+<p><strong>Remediation:</strong> Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).</p>
+<p><strong>Limitations:</strong> Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.</p>
+</details>
+<details><summary><code>CORE-SECURITY-003</code> (SEC-WEB-003) — Content-Security-Policy / framing policy <span class="badge badge-na">PASSIVE_OBSERVED</span></summary>
+<p><strong>Status:</strong> FAIL &middot; <strong>Severity:</strong> medium &middot; <strong>Confidence:</strong> high</p>
+<p><strong>Fix owner:</strong> frontend &middot; <strong>Domain:</strong> web_baseline</p>
+<p>Neither Content-Security-Policy nor X-Frame-Options is sent.</p>
+<p><strong>Remediation:</strong> Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.</p>
+<p><strong>Limitations:</strong> Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.</p>
+</details>
+<details><summary><code>CORE-SECURITY-005</code> (SEC-WEB-005) — Referrer / MIME hygiene headers <span class="badge badge-na">PASSIVE_OBSERVED</span></summary>
+<p><strong>Status:</strong> WARN &middot; <strong>Severity:</strong> low &middot; <strong>Confidence:</strong> high</p>
+<p><strong>Fix owner:</strong> edge_cdn &middot; <strong>Domain:</strong> web_baseline</p>
+<p>Missing: referrer-policy, x-content-type-options.</p>
+<p><strong>Remediation:</strong> Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.</p>
+<p><strong>Limitations:</strong> Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.</p>
+</details>
+<p>This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.</p>
 </section>
 <section id="not-tested">
 <h2>Not tested by Scovant Core</h2>
@@ -552,14 +672,14 @@ a { color: #0969da; }
 <dt>scan_id</dt><dd>local-golden</dd>
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
-<dt>schema_version</dt><dd>1.0</dd>
-<dt>core_version</dt><dd>0.3.1</dd>
+<dt>schema_version</dt><dd>1.1</dd>
+<dt>core_version</dt><dd>0.4.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>ab5851b14f6a</dd>
+<dt>ruleset_digest</dt><dd>fd062c67627f</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.3.1 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.4.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

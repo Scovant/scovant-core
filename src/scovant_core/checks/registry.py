@@ -14,14 +14,20 @@ from scovant_core.scoring import SCORING_DIGEST
 
 RULESET_VERSION = "2026.10"
 RETIRED_IDS: frozenset[str] = frozenset()
-_ID_RE = re.compile(r"CORE-(ACCESS|MACHINE|INTERFACE|TRUST|OPERABILITY)-\d{3}")
+_ID_RE = re.compile(r"CORE-(ACCESS|MACHINE|INTERFACE|TRUST|OPERABILITY|SECURITY)-\d{3}")
 _ID_CATEGORY = {
     "ACCESS": Category.ACCESS,
     "MACHINE": Category.MACHINE,
     "INTERFACE": Category.INTERFACES,
     "TRUST": Category.TRUST,
     "OPERABILITY": Category.OPERABILITY,
+    "SECURITY": Category.SECURITY,
 }
+# SECURITY checks are grouped into families (a family = one identity/attack
+# surface, e.g. every web-security-header check shares SEC-WEB-*) instead of
+# the flat id space the five scored categories use — `family_id` is what the
+# summary/report renderers group by, independent of check id ordering.
+_FAMILY_RE = re.compile(r"^(SEC-WEB|SEC-TXT|MACHINE-DATA|PROMPT-SURFACE)-\d{3}$")
 
 CHECKS: list[CoreCheck] = []  # populated by checks/__init__.py
 
@@ -48,6 +54,16 @@ def validate_registry() -> None:
                 f"{c.id}: category {c.category!r} does not match id prefix {m.group(1)!r} "
                 f"(expected {expected_category!r})"
             )
+        if c.category == Category.SECURITY:
+            if not _FAMILY_RE.fullmatch(c.family_id):
+                raise ValueError(f"{c.id}: security check needs a family_id (got {c.family_id!r})")
+            if not c.security_domain or not c.fix_owner:
+                raise ValueError(f"{c.id}: security check needs security_domain and fix_owner")
+        elif c.family_id:
+            raise ValueError(f"{c.id}: family_id is reserved for SECURITY checks")
+    families = [c.family_id for c in CHECKS if c.family_id]
+    if len(families) != len(set(families)):
+        raise ValueError("duplicate family_id")
 
 
 def _digest() -> str:

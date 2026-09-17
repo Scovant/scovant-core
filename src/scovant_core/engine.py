@@ -17,13 +17,14 @@ from scovant_core.checks.registry import CHECKS, RULESET_VERSION, ruleset_digest
 from scovant_core.context import ScanContext, ScanOptions
 from scovant_core.evidence import EvidenceStore
 from scovant_core.gatherers import _register  # noqa: F401 — registers evidence.GATHERERS
-from scovant_core.models import CheckStatus, Report, Target
+from scovant_core.models import Category, CheckStatus, Report, Target
 from scovant_core.profiles import PROFILE_DETECTOR_VERSION, apply_profile
 from scovant_core.provenance import environment_fingerprint
 from scovant_core.scoring import CANONICAL_MIN_COVERAGE, EVIDENCE_MIN_COVERAGE, score_results
 from scovant_core.security.client import SecureClient
 from scovant_core.security.policy import CORE_USER_AGENT, SecurityPolicy
 from scovant_core.security.url_safety import display_url, redact_message, redact_report_strings
+from scovant_core.security_summary import build_security_summary
 from scovant_core.standards.agentready import agentready_coverage
 
 __all__ = ["NOT_TESTED", "UnknownSelector", "scan", "user_agent_for", "validate_selectors"]
@@ -135,10 +136,23 @@ def scan(
         results = sorted((c.run(store, ctx) for c in _selected(options)), key=lambda r: r.id)
     finally:
         client.close()
+    # SECURITY-category findings never feed readiness/protocol-adoption
+    # metrics — those measure the five scored categories' surfaces, and a
+    # SECURITY check (e.g. a header probe) is not a protocol/standard signal.
+    readiness_results = [r for r in results if r.category != Category.SECURITY]
     error_count = sum(1 for r in results if r.status == CheckStatus.ERROR)
+    # Only a READINESS error may degrade the score's scope/status. A
+    # transport failure on a security-only probe (security.txt on a profile
+    # CORE-TRUST-006 does not cover, say) would otherwise force
+    # scope=PARTIAL / status=DEGRADED / grade=None and fail
+    # `--require-canonical` — i.e. a SECURITY check moving the readiness
+    # score, exactly what docs/security.md's score-neutrality rule forbids.
+    readiness_error_count = sum(1 for r in readiness_results if r.status == CheckStatus.ERROR)
+    security_error_count = error_count - readiness_error_count
     selection_is_custom = bool(options.include or options.exclude or options.experimental)
     score, cats = score_results(results, include_experimental=options.experimental,
-                                selection_is_custom=selection_is_custom, error_count=error_count)
+                                selection_is_custom=selection_is_custom,
+                                error_count=readiness_error_count)
     # `included_checks` is the resolved post-`--include` selection (before
     # `--exclude` is applied); `excluded_checks` is exactly what `--exclude`
     # removed FROM THAT selection — never `all checks minus selected`, which
@@ -212,9 +226,13 @@ def scan(
             "gather_error_details": gather_error_details,
             "entry_error": entry_error,
             "error_count": error_count,
+            # Total (readiness + security) above; the security slice is
+            # broken out so a reader can see that a non-zero `error_count`
+            # on a CANONICAL/OK report came from security probes alone.
+            "security_error_count": security_error_count,
             "ai_crawler_policy": ai_crawler_policy,
-            "protocol_adoption": protocol_adoption(results),
-            "standards": {"agentready_v1": agentready_coverage(results)},
+            "protocol_adoption": protocol_adoption(readiness_results),
+            "standards": {"agentready_v1": agentready_coverage(readiness_results)},
         },
         not_tested=list(NOT_TESTED),
         provenance={
@@ -239,6 +257,7 @@ def scan(
             "dependencies": dependencies,
             "environment_digest": environment_digest,
         },
+        security=build_security_summary(results),
     )
     # Structural backstop, not a substitute for the at-source redactions
     # above/in the individual checks: a check that copies a URL into its

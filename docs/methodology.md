@@ -198,10 +198,12 @@ Minimum evidence coverage: 60%. Below this coverage, no score is emitted (`INSUF
 
 ## v0.1 category coverage
 
-Ruleset 2026.10 ships 50 checks in total (7 of them `experimental` —
-evaluated and reported, but excluded from the score until calibrated and
-promoted; see `docs/checks.md`), distributed like this — *checks / summed
-local weight* per category, counting experimental checks in both columns:
+Ruleset 2026.10 ships 66 checks: 50 readiness checks (7 of them
+`experimental` — evaluated and reported, but excluded from the score until
+calibrated and promoted; see `docs/checks.md`) and 16 security checks (8
+experimental) that never enter the score — see `docs/security.md`. The
+table below covers the 5 scored, weighted readiness categories only;
+"local weight" counts experimental checks in both columns:
 
 | Category | Checks / local weight | Category weight |
 |---|---|---:|
@@ -291,6 +293,40 @@ of the same five general requirements:
 A check that cannot meet these is not promoted. Staying experimental
 indefinitely, or being removed, are both acceptable outcomes; quietly
 scoring it is not.
+
+## Security signals are reported, not scored
+
+The 16 `CORE-SECURITY-*` checks (category "Agentic Security & Trust") sit
+outside the Static Signal Score entirely — by construction, not by
+convention. They never carry a `Category` weight (`CATEGORY_WEIGHTS` has no
+`security` key), they never count toward the evidence-coverage denominator,
+and excluding them (`--exclude security`) changes nothing about the
+score, a category score, or any readiness finding's own verdict — this is
+what `tests/test_security_is_score_neutral.py` proves on every fixture, on
+every commit. A SECURITY check that ERRORs (a security-only probe that could
+not be read at all) is neutral in the same way: it never degrades the
+readiness score, its coverage, its scope, or its grade — only a readiness
+check's ERROR can do that. The report still reports both, as `error_count`
+(total) and `security_error_count` (the security slice of it). Full
+boundary, label semantics, and standards mapping: `docs/security.md`.
+
+Every SECURITY finding carries two axes a readiness finding does not:
+
+- **`family_id`** — which identity/attack surface it belongs to (`SEC-WEB-*`
+  web-security-header checks, `SEC-TXT-*` security.txt, `MACHINE-DATA-*`
+  data exposure in machine-facing surfaces, `PROMPT-SURFACE-*` prompt-
+  injection-shaped content) — what a reader groups findings by, independent
+  of check-id ordering.
+- **`verification_mode`** — how the evidence was obtained. Scovant's
+  security design defines four canonical modes; Scovant Core, being passive-only, emits
+  exactly two of them:
+
+  | Mode | Meaning | Core emits it? |
+  |---|---|---|
+  | `DECLARED` | Derived from configuration/metadata only (e.g. a `security.txt` file exists; a tool description declares an override). | yes |
+  | `PASSIVE_OBSERVED` | Observed from normal requests without mutating state (e.g. an HSTS header on the entry response). | yes |
+  | `ACTIVE_SAFE` | Safe, bounded active probing against a real agent/tool. | no — requires authenticated/live testing, out of Core's passive boundary |
+  | `SYNTHETIC_AUTHORIZED` | Synthetic test data run under explicit customer authorization. | no — requires a `VERIFIED_SECURITY` execution mode Core does not implement |
 
 ## How Scovant Core validates new checks
 

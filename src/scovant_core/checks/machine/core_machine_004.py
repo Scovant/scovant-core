@@ -27,6 +27,7 @@ class ProductStructuredData(CoreCheck):
     id = "CORE-MACHINE-004"
     title = "Product structured data"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
     weight = 4
     severity_on_fail = Severity.HIGH

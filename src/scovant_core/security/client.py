@@ -55,6 +55,7 @@ class FetchResult:
     elapsed_ms: int = 0
     truncated: bool = False
     content_type: str = ""
+    raw_headers: list[tuple[str, str]] = field(default_factory=list)
 
 
 class SecureClient:
@@ -180,11 +181,13 @@ class SecureClient:
                         headers = {
                             k.lower(): v for k, v in resp.headers.items() if k.lower() not in _REDACTED_HEADERS
                         }
+                        raw_headers = list(resp.headers.multi_items())
                         result = FetchResult(
                             url=url, final_url=str(resp.url), status=resp.status_code, headers=headers,
                             text=body.decode(resp.encoding or "utf-8", errors="replace"), bytes_len=total,
                             redirect_chain=chain, elapsed_ms=int((time.monotonic() - t0) * 1000),
                             truncated=truncated, content_type=headers.get("content-type", ""),
+                            raw_headers=raw_headers,
                         )
                         self._log(current, resp.status_code, total, hop_t0)
                     break

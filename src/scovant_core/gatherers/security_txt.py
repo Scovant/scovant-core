@@ -20,6 +20,7 @@ today = datetime.date.today
 _PATHS = ("/.well-known/security.txt", "/security.txt")
 _CONTACT_RE = re.compile(r"^\s*Contact\s*:", re.I | re.M)
 _EXPIRES_RE = re.compile(r"^\s*Expires\s*:\s*(.+?)\s*$", re.I | re.M)
+_CANONICAL_RE = re.compile(r"^\s*Canonical\s*:\s*(\S+)\s*$", re.I | re.M)
 
 
 def _shape_out(*, last_status: int | None, last_retry_after: str | None,
@@ -27,6 +28,7 @@ def _shape_out(*, last_status: int | None, last_retry_after: str | None,
     out: dict[str, object] = {
         "found_url": None, "status": last_status, "contact": False, "expires": None,
         "expires_valid": None, "served_as_html": last_served_as_html, "truncated": False,
+        "canonical_location": None, "canonical_uris": [], "expires_parsed": None, "expired": None,
     }
     if last_status == 429:
         out["retry_after"] = last_retry_after
@@ -78,14 +80,18 @@ def gather_security_txt(client: SecureClient, ctx: ScanContext, store: EvidenceS
         m = _EXPIRES_RE.search(res.text)
         expires = m.group(1) if m else None
         expires_valid: bool | None = None
+        parsed = _parse_iso(expires) if expires is not None else None
         if expires is not None:
-            parsed = _parse_iso(expires)
             expires_valid = parsed is not None and parsed > today()
 
         return {
             "found_url": url, "status": res.status, "contact": contact, "expires": expires,
             "expires_valid": expires_valid, "served_as_html": False,
             "truncated": bool(res.truncated) and res.text != "",
+            "canonical_location": path == "/.well-known/security.txt",
+            "canonical_uris": _CANONICAL_RE.findall(res.text),
+            "expires_parsed": parsed.isoformat() if parsed else None,
+            "expired": (parsed <= today()) if parsed else None,
         }
 
     return _shape_out(last_status=last_status, last_retry_after=last_retry_after,

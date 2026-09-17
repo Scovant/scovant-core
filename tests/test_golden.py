@@ -1,9 +1,10 @@
-"""Golden-report regression tests for the four canonical fixture sites.
+"""Golden-report regression tests for the canonical fixture sites.
 
 Each fixture site's scan output is deterministic given a frozen clock, a
-frozen `scan_id`, and a frozen "today" for CORE-ACCESS-006 (the only check
-that reads real wall-clock time) — so `render_json(scan(...))` can be
-byte-compared against a committed expected file. `provenance.python`,
+frozen `scan_id`, and a frozen "today" for CORE-ACCESS-006 and
+`gatherers.security_txt` (the two checks that read real wall-clock time) —
+so `render_json(scan(...))` can be byte-compared against a committed
+expected file. `provenance.python`,
 `provenance.platform`, `provenance.dependencies`, and
 `provenance.environment_digest` are the only genuinely non-deterministic
 fields (they vary with the interpreter/OS/installed-package-versions running
@@ -27,6 +28,7 @@ import pytest
 
 from scovant_core.checks.access import core_access_006
 from scovant_core.engine import scan
+from scovant_core.gatherers import security_txt
 from scovant_core.report.html import render_html
 from scovant_core.report.json import render_json
 from scovant_core.report.markdown import render_markdown
@@ -37,7 +39,7 @@ pytestmark = pytest.mark.golden
 CLOCK = lambda: "2026-09-04T00:00:00Z"  # noqa: E731 — deterministic test clock
 FROZEN_TODAY = datetime.date(2026, 9, 4)
 URL = "https://example.com/"
-SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed")
+SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed", "security-good", "security-bad")
 EXPECTED_DIR = FIXTURES / "sites" / "expected"
 
 
@@ -56,6 +58,7 @@ def _normalize(data: dict) -> dict:
 
 def _run(site: str, monkeypatch: pytest.MonkeyPatch) -> str:
     monkeypatch.setattr(core_access_006, "today", lambda: FROZEN_TODAY)
+    monkeypatch.setattr(security_txt, "today", lambda: FROZEN_TODAY)
     transport = FixtureTransport(FIXTURES / "sites" / site)
     report = scan(URL, transport=transport, clock=CLOCK, scan_id="local-golden")
     data = _normalize(json.loads(render_json(report)))
@@ -92,6 +95,7 @@ def test_golden_report_is_stable_across_two_runs(site, monkeypatch):
 
 def _run_markdown(site: str, monkeypatch: pytest.MonkeyPatch) -> str:
     monkeypatch.setattr(core_access_006, "today", lambda: FROZEN_TODAY)
+    monkeypatch.setattr(security_txt, "today", lambda: FROZEN_TODAY)
     transport = FixtureTransport(FIXTURES / "sites" / site)
     report = scan(URL, transport=transport, clock=CLOCK, scan_id="local-golden")
     return render_markdown(report)
@@ -129,6 +133,7 @@ def _run_html(site: str, monkeypatch: pytest.MonkeyPatch) -> str:
     3.12 and 3.13) — normalized the same way before rendering, since HTML has
     no JSON structure to post-process after the fact."""
     monkeypatch.setattr(core_access_006, "today", lambda: FROZEN_TODAY)
+    monkeypatch.setattr(security_txt, "today", lambda: FROZEN_TODAY)
     transport = FixtureTransport(FIXTURES / "sites" / site)
     report = scan(URL, transport=transport, clock=CLOCK, scan_id="local-golden")
     report.provenance["python"] = "<runtime>"

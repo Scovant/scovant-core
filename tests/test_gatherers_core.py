@@ -339,3 +339,41 @@ def test_page_metrics_and_forms_skip_unparsed_pages():
     urls = [pg["url"] for pg in metrics["pages"]]
     assert not any(u.endswith("/products/widget") for u in urls)
     assert not any(pg["url"].endswith("/products/widget") for pg in forms["pages"])
+
+
+def test_openapi_gatherer_extracts_paths_and_schemas():
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "T", "version": "1.0"},
+        "paths": {
+            "/admin/users": {"delete": {"summary": "Delete a user"}},
+            "/products": {"get": {"summary": "List products"}},
+        },
+        "components": {
+            "schemas": {
+                "Login": {"type": "object", "properties": {"password": {"type": "string"}}},
+                "Client": {"type": "object",
+                           "properties": {"api_secret": {"type": "string", "example": "sample-secret-value-000000"}}},
+            }
+        },
+    }
+
+    def handler(request):
+        if request.url.path == "/openapi.json":
+            return httpx.Response(200, json=spec, headers={"content-type": "application/json"})
+        return httpx.Response(404, text="nf")
+
+    store, _ = _store_for(handler)
+    out = store.get("openapi")
+    assert out["paths"] == ["/admin/users", "/products"]
+    assert out["schemas"]["Login"]["password"] == {"example": None, "default": None}
+    assert out["schemas"]["Client"]["api_secret"] == {"example": "sample-secret-value-000000", "default": None}
+
+
+def test_openapi_gatherer_paths_and_schemas_empty_when_unparseable():
+    def handler(request):
+        return httpx.Response(404, text="nf")
+
+    store, _ = _store_for(handler)
+    out = store.get("openapi")
+    assert out["paths"] == [] and out["schemas"] == {}

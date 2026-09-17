@@ -19,15 +19,69 @@
 | Trust & Commerce | 15 | 100 | 15 / 15 |
 | Operability & Efficiency | 15 | 100 | 16 / 16 |
 
-50 checks: 40 PASS, 1 WARN, 0 FAIL, 9 N/A, 0 ERROR
+66 checks: 51 PASS, 3 WARN, 1 FAIL, 11 N/A, 0 ERROR
 
 ## Top findings
 
-(none)
+- **[security]** **CORE-SECURITY-003** — Neither Content-Security-Policy nor X-Frame-Options is sent.
+- **[security]** **CORE-SECURITY-002** — No Strict-Transport-Security header.
+- **[security]** **CORE-SECURITY-005** — Missing: referrer-policy, x-content-type-options.
 
 ## Findings
 
-### PASS (37)
+### FAIL (1)
+
+- **CORE-SECURITY-003** — Content-Security-Policy / framing policy (medium): Neither Content-Security-Policy nor X-Frame-Options is sent.
+  - Remediation: Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "csp_present": false,
+    "csp_report_only": false,
+    "frame_ancestors": false,
+    "x_frame_options": null
+  }
+  ```
+
+  </details>
+
+### WARN (2)
+
+- **CORE-SECURITY-002** — HSTS presence (low): No Strict-Transport-Security header.
+  - Remediation: Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "header": null,
+    "max_age": null
+  }
+  ```
+
+  </details>
+
+- **CORE-SECURITY-005** — Referrer / MIME hygiene headers (low): Missing: referrer-policy, x-content-type-options.
+  - Remediation: Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "missing": [
+      "referrer-policy",
+      "x-content-type-options"
+    ],
+    "referrer_policy": null,
+    "x_content_type_options": null
+  }
+  ```
+
+  </details>
+
+### PASS (41)
 
 - **CORE-ACCESS-001** — HTTPS reachability (info): HTTPS entry URL answered 200.
 
@@ -546,6 +600,65 @@
 
   </details>
 
+- **CORE-SECURITY-001** — HTTPS baseline (info): Served over https; http:// redirects to https.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "downgrade_attempted": true,
+    "downgrade_status": 301,
+    "final_scheme": "https",
+    "redirected_to_https": true
+  }
+  ```
+
+  </details>
+
+- **CORE-SECURITY-006** — security.txt validity (RFC 9116) (info): security.txt is at the canonical location, has Contact and a future Expires.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "canonical_location": true,
+    "canonical_uris": [],
+    "contact": true,
+    "expired": false,
+    "expires": "2030-01-01T00:00:00Z",
+    "found_url": "https://example.com/.well-known/security.txt"
+  }
+  ```
+
+  </details>
+
+- **CORE-SECURITY-007** — Credential-like value exposed in a machine-facing surface (info): No credential-like values in the gathered machine-facing surfaces.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "hit_count": 0,
+    "hits": [],
+    "surfaces_scanned": 7
+  }
+  ```
+
+  </details>
+
+- **CORE-SECURITY-008** — Internal network reference exposed (info): No internal network references found.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "hits": [],
+    "surfaces_scanned": 7
+  }
+  ```
+
+  </details>
+
 - **CORE-TRUST-001** — Contact/support discoverability (info): A contact or support link was found on the entry page.
 
   <details><summary>evidence</summary>
@@ -648,9 +761,9 @@
 
   </details>
 
-### N/A (6)
+### N/A (7)
 
-`CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-OPERABILITY-006`, `CORE-OPERABILITY-009`
+`CORE-INTERFACE-003`, `CORE-INTERFACE-005`, `CORE-INTERFACE-006`, `CORE-INTERFACE-007`, `CORE-OPERABILITY-006`, `CORE-OPERABILITY-009`, `CORE-SECURITY-004`
 
 ## Experimental (not scored)
 
@@ -658,8 +771,103 @@
 - **CORE-INTERFACE-008** (PASS) — A UCP profile is published and valid.
 - **CORE-MACHINE-012** (PASS) — The structured price matches a visible price on the page.
 - **CORE-OPERABILITY-011** (WARN) — 3 of 3 machine surface(s) are not linked from anything an agent reads: llms_txt, mcp, ucp.
+- **CORE-SECURITY-009** (PASS) — No administrative/destructive interfaces advertised.
+- **CORE-SECURITY-011** (PASS) — No indicators found.
+- **CORE-SECURITY-012** (PASS) — No indicators found.
+- **CORE-SECURITY-013** (PASS) — No indicators found.
+- **CORE-SECURITY-014** (PASS) — No indicators found.
+- **CORE-SECURITY-015** (PASS) — No indicators found.
+- **CORE-SECURITY-016** (PASS) — No indicators found.
 
-N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
+N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`, `CORE-SECURITY-010`
+
+## Agentic Security & Trust
+
+_PASSIVE SIGNALS ONLY_
+
+| | |
+|---|---|
+| Critical | 0 |
+| High | 0 |
+| Medium | 1 |
+| Low | 2 |
+| Web baseline | PASS 1  WARN 2  FAIL 1 |
+| Disclosure | PASS 1  WARN 0  FAIL 0 |
+| Data exposure | PASS 3  WARN 0  FAIL 0 |
+| Prompt surface | PASS 6  WARN 0  FAIL 0 |
+
+- Observed authorization: NOT TESTED
+- Verified agent identity: NOT TESTED
+- Prompt-injection resilience: NOT TESTED
+- Tool invocation safety: NOT TESTED
+
+### CORE-SECURITY-002 (SEC-WEB-002) — HSTS presence
+
+- Status: WARN · Severity: low · Confidence: high · Verification: PASSIVE_OBSERVED
+- Fix owner: edge_cdn · Domain: web_baseline
+- No Strict-Transport-Security header.
+- Remediation: Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).
+- Limitations: Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+  - Remediation: Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "header": null,
+    "max_age": null
+  }
+  ```
+
+  </details>
+
+### CORE-SECURITY-003 (SEC-WEB-003) — Content-Security-Policy / framing policy
+
+- Status: FAIL · Severity: medium · Confidence: high · Verification: PASSIVE_OBSERVED
+- Fix owner: frontend · Domain: web_baseline
+- Neither Content-Security-Policy nor X-Frame-Options is sent.
+- Remediation: Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.
+- Limitations: Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+  - Remediation: Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "csp_present": false,
+    "csp_report_only": false,
+    "frame_ancestors": false,
+    "x_frame_options": null
+  }
+  ```
+
+  </details>
+
+### CORE-SECURITY-005 (SEC-WEB-005) — Referrer / MIME hygiene headers
+
+- Status: WARN · Severity: low · Confidence: high · Verification: PASSIVE_OBSERVED
+- Fix owner: edge_cdn · Domain: web_baseline
+- Missing: referrer-policy, x-content-type-options.
+- Remediation: Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.
+- Limitations: Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+  - Remediation: Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "missing": [
+      "referrer-policy",
+      "x-content-type-options"
+    ],
+    "referrer_policy": null,
+    "x_content_type_options": null
+  }
+  ```
+
+  </details>
+
+This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.
 
 ## Not tested by Scovant Core
 
@@ -672,7 +880,7 @@ N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`
 
 ## Provenance
 
-Core 0.3.1 · ruleset 2026.10 (digest `ab5851b14f6a`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.4.0 · ruleset 2026.10 (digest `fd062c67627f`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

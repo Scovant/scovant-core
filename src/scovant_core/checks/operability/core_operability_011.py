@@ -23,6 +23,7 @@ class DiscoveryLinkage(CoreCheck):
     id = "CORE-OPERABILITY-011"
     title = "Discovery linkage"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     severity_on_fail = Severity.LOW
     experimental = True

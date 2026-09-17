@@ -1,0 +1,7 @@
+# Example Shop
+
+> Example Shop sells synthetic widgets.
+
+## Docs
+- [Shipping](https://example.com/shipping)
+- [Returns](https://example.com/returns)

@@ -5,7 +5,10 @@ Exit codes: 0 ok; 1 `--min-score`/`--fail-on` triggered; 2 invalid input;
 3 network fatal (entry unreachable); 4 security block (entry blocked by the
 SSRF guard — private/reserved/localhost target); 5 internal error (an
 unexpected exception — `scan()` itself never raises for a bad/blocked URL,
-so reaching this path means a genuine bug).
+so reaching this path means a genuine bug); 6 `--fail-on-security` triggered
+(a SECURITY-category finding FAILed at or above the given severity — a WARN
+never gates this, since `Report.security` is never scored; see
+`_threshold_exit_code`).
 """
 from __future__ import annotations
 
@@ -22,7 +25,7 @@ import scovant_core
 from scovant_core.context import ScanOptions
 from scovant_core.contribute import build_payload, send
 from scovant_core.engine import UnknownSelector, scan, validate_selectors
-from scovant_core.models import CheckStatus, Report
+from scovant_core.models import Category, CheckStatus, Report
 from scovant_core.profiles import PROFILES
 from scovant_core.report.html import render_html
 from scovant_core.report.json import render_json
@@ -57,10 +60,12 @@ _EXIT_INVALID_INPUT = 2
 _EXIT_NETWORK = 3
 _EXIT_SECURITY = 4
 _EXIT_INTERNAL = 5
+_EXIT_SECURITY_GATE = 6
 
 _PROFILES = PROFILES
 _FORMATS = ("text", "json", "markdown", "html")
 _FAIL_ON = ("fail", "warn", "never")
+_FAIL_ON_SECURITY = ("critical", "high", "medium", "never")
 
 # Marker attribute so `_enable_verbose_logging` never attaches a second
 # handler to the `scovant_core` logger when `main()` is called more than
@@ -136,6 +141,10 @@ def _build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument(
         "--require-canonical", action="store_true", dest="require_canonical",
         help="exit 1 unless the scan is CANONICAL with score status OK",
+    )
+    scan_p.add_argument(
+        "--fail-on-security", choices=_FAIL_ON_SECURITY, default="never", dest="fail_on_security",
+        help="exit 6 when a security finding FAILs at or above this severity (WARN never gates)",
     )
     scan_p.add_argument(
         "--timeout", type=_positive_timeout, default=60.0, help="total scan time budget in seconds (default: 60)",
@@ -218,19 +227,40 @@ def _entry_error_kind(report: Report) -> str | None:
     return entry_error["kind"] if entry_error else None
 
 
+_SECURITY_SEVERITY_ORDER = {"critical": 3, "high": 2, "medium": 1}
+
+
 def _threshold_exit_code(
     report: Report, *, min_score: int | None, fail_on: str, require_canonical: bool = False,
+    fail_on_security: str = "never",
 ) -> int:
     if require_canonical and not (report.score.scope == "CANONICAL" and report.score.status == "OK"):
         return _EXIT_THRESHOLD
     if min_score is not None and (report.score.value is None or report.score.value < min_score):
         return _EXIT_THRESHOLD
     if fail_on != "never":
-        statuses = {f.status for f in report.findings}
+        # Readiness-only: `Report.security` is never scored (see
+        # `Report.security.scored`), so a SECURITY-category finding must
+        # never trip the readiness gate — that's what `--fail-on-security`
+        # is for, below.
+        statuses = {f.status for f in report.findings if f.category != Category.SECURITY}
         if CheckStatus.FAIL in statuses:
             return _EXIT_THRESHOLD
         if fail_on == "warn" and CheckStatus.WARN in statuses:
             return _EXIT_THRESHOLD
+    # Evaluated AFTER the readiness thresholds above — a readiness exit 1
+    # wins over a security exit 6 when both would apply, so the CI-facing
+    # meaning of "1" (the Static Signal Score itself is bad) never gets
+    # masked by a passive, never-scored security signal.
+    if fail_on_security != "never":
+        floor = _SECURITY_SEVERITY_ORDER[fail_on_security]
+        for f in report.findings:
+            if (
+                f.category == Category.SECURITY
+                and f.status == CheckStatus.FAIL
+                and _SECURITY_SEVERITY_ORDER.get(f.severity.value, 0) >= floor
+            ):
+                return _EXIT_SECURITY_GATE
     return _EXIT_OK
 
 
@@ -289,7 +319,7 @@ def _run_scan(args: argparse.Namespace) -> int:
     else:
         exit_code = _threshold_exit_code(
             report, min_score=args.min_score, fail_on=args.fail_on,
-            require_canonical=args.require_canonical,
+            require_canonical=args.require_canonical, fail_on_security=args.fail_on_security,
         )
 
     color = args.format == "text" and not args.no_color and not args.output and sys.stdout.isatty()

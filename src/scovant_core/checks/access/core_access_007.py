@@ -26,6 +26,7 @@ class CanonicalIntegrity(CoreCheck):
     id = "CORE-ACCESS-007"
     title = "Canonical URL integrity"
     category = Category.ACCESS
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",)

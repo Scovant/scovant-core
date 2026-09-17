@@ -27,6 +27,7 @@ class McpServerDeclarationQuality(CoreCheck):
     id = "CORE-INTERFACE-002"
     title = "MCP server declaration quality"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://modelcontextprotocol.io/",)

@@ -25,6 +25,7 @@ class SitemapFreshness(CoreCheck):
     id = "CORE-ACCESS-006"
     title = "Sitemap freshness"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://www.sitemaps.org/protocol.html",)

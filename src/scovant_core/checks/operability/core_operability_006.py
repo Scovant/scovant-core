@@ -11,6 +11,7 @@ class FormControlLabels(CoreCheck):
     id = "CORE-OPERABILITY-006"
     title = "Form/control labels"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce", "saas"})
     weight = 2
     severity_on_fail = Severity.MEDIUM

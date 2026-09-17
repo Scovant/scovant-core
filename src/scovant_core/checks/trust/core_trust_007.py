@@ -20,6 +20,7 @@ class PricingDiscoverability(CoreCheck):
     id = "CORE-TRUST-007"
     title = "Pricing discoverability"
     category = Category.TRUST
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"saas", "commerce"})
     weight = 3
     references = ("https://schema.org/Offer",)

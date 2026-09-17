@@ -6,6 +6,7 @@ from scovant_core.gatherers import (  # noqa: F401
     http,
     llms,
     machine_links,
+    machine_text,
     mcp_discovery,
     oauth_metadata,
     openapi,

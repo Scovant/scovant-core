@@ -11,6 +11,7 @@ class Breadcrumbs(CoreCheck):
     id = "CORE-MACHINE-007"
     title = "Breadcrumbs"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"content", "commerce", "saas"})
     weight = 1
     severity_on_fail = Severity.LOW

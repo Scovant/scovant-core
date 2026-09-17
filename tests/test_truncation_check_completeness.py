@@ -84,6 +84,28 @@ EXEMPT_CHECKS: dict[str, str] = {
         "pages — a status code plus a header/heuristic classification, never "
         "body content itself."
     ),
+    "CORE-SECURITY-001": (
+        "HTTPS baseline. Reads only `http['final_url']`, `['downgrade']` "
+        "(itself status/redirect-derived: attempted/status/final_scheme/"
+        "redirected_to_https/error, never a body) and `['error']` — no body content."
+    ),
+    "CORE-SECURITY-002": (
+        "HSTS presence. Reads only `http['final_url']` and "
+        "`['security_headers']` — response headers, never a body."
+    ),
+    "CORE-SECURITY-003": (
+        "CSP/framing policy. Reads only `http['security_headers']` — "
+        "response headers, never a body."
+    ),
+    "CORE-SECURITY-004": (
+        "Cookie attributes. Reads only `http['set_cookie']`, parsed by the "
+        "gatherer from the Set-Cookie response headers (name + flags, never "
+        "the cookie value) — headers, never body content."
+    ),
+    "CORE-SECURITY-005": (
+        "Referrer/MIME hygiene headers. Reads only `http['security_headers']` "
+        "— response headers, never a body."
+    ),
     "CORE-ACCESS-011": (
         "llms.txt utility. Its own truncation is already disclosed by "
         "CORE-ACCESS-009, which reads the same `llms` gatherer record and is "
@@ -112,11 +134,28 @@ def _module_path(check) -> Path:
     return SRC_ROOT / (mod.replace(".", "/") + ".py")
 
 
-def _tree_for(check) -> ast.Module:
-    return ast.parse(_module_path(check).read_text(encoding="utf-8"))
+def _tree_for(check) -> ast.AST:
+    """The check's own class body — NOT the whole module. Several SECURITY
+    families share one module per family (`checks/security/web.py`, and
+    later `machine_data.py`/`prompt_surface.py`), so a whole-module AST scan
+    cannot tell which check INSIDE a shared file actually participates:
+    every check sharing the module would read as "participating" (or not)
+    together. Scoping to the check's own `ClassDef` (matched by
+    `type(check).__name__`) keeps every downstream scan here — the
+    participation check, the confidence-wiring check, the per-branch
+    disclosure check — correctly per-check regardless of how many checks
+    share a module; it reproduces the old whole-module result exactly for
+    every check that still has one class per module (the five scored
+    categories)."""
+    module = ast.parse(_module_path(check).read_text(encoding="utf-8"))
+    cls_name = type(check).__name__
+    for node in ast.walk(module):
+        if isinstance(node, ast.ClassDef) and node.name == cls_name:
+            return node
+    raise AssertionError(f"no class {cls_name!r} found in {_module_path(check)}")
 
 
-def _participates(tree: ast.Module) -> bool:
+def _participates(tree: ast.AST) -> bool:
     for node in ast.walk(tree):
         if isinstance(node, ast.Call) and _call_target_names(node) in (_TRUNCATION_ENTRY_POINTS | _DELEGATES):
             return True
@@ -324,6 +363,12 @@ AUDITED_SILENT_BRANCHES: dict[tuple[str, str], str] = {
     ("CORE-TRUST-006", "No security.txt was found — the path is served by an HTML catch-all."): (
         "(a) soft-404 classification, as for CORE-INTERFACE-006."
     ),
+    ("CORE-SECURITY-006", "No security.txt published."): (
+        "(a) reached only when `found_url is None` and `status is not None` — a real "
+        "404/410 on both conventional paths, or a soft-404 HTML catch-all (the same "
+        "gatherer-level classification CORE-TRUST-006's two absence branches cover "
+        "separately); neither reads a security.txt body."
+    ),
     ("CORE-OPERABILITY-007", "Machine reference integrity was not evaluated (experimental off)."): (
         "(a) an option precondition — the gatherer never ran, so no document was read at all."
     ),
@@ -332,6 +377,93 @@ AUDITED_SILENT_BRANCHES: dict[tuple[str, str], str] = {
         "content read out of any page body. The sample can be shrunk by a truncated sitemap or "
         "entry page; that dependency is upstream and is disclosed by CORE-ACCESS-005/-006/-007, "
         "which read those documents."
+    ),
+    ("CORE-SECURITY-007", "No machine-facing surface was gathered."): (
+        "(a) the `machine_text` gatherer ran and returned an empty `surfaces` list — nothing was "
+        "read, so there is no body a truncated read could have distorted."
+    ),
+    ("CORE-SECURITY-008", "No machine-facing surface was gathered."): (
+        "(a) the same empty-`surfaces` verdict as CORE-SECURITY-007, independent of any body read."
+    ),
+    ("CORE-SECURITY-009", "No agent-facing interface declarations gathered."): (
+        "Neither independent absence nor silent — the branch itself checks "
+        "`mcp_discovery`/`openapi`'s own `truncated` flags first and, when either "
+        "is set, DISCLOSES the partial read directly (`na(..., {'truncated': "
+        "True}, confidence=Confidence.MEDIUM)`) rather than claiming the empty "
+        "declared-interface list is independent of it; only the untruncated path "
+        "(both source records read in full and still empty) reaches this literal "
+        "with no disclosure, which is what stays exempt here. The disclosure shape "
+        "is a raw evidence dict + confidence kwarg passed straight to `na()`, not "
+        "a `note` spliced into the summary text, so this AST-based scanner cannot "
+        "see it as \"participating\" — `tests/test_checks_security_machine_data.py` "
+        "proves the runtime behaviour on both branches directly."
+    ),
+    ("CORE-SECURITY-010", "No machine schema gathered."): (
+        "Neither independent absence nor silent — the branch checks `openapi`'s "
+        "own `truncated` flag first and, when set, DISCLOSES the partial read "
+        "directly (`na(..., {'truncated': True}, confidence=Confidence.MEDIUM)`) "
+        "rather than claiming the empty `components.schemas` map is independent of "
+        "it; only the untruncated path (the document read in full and still "
+        "carrying no schemas) reaches this literal with no disclosure. As with "
+        "CORE-SECURITY-009, the disclosure is a raw evidence dict + confidence "
+        "kwarg, not a summary `note`, so this scanner cannot see it — "
+        "`tests/test_checks_security_machine_data.py` proves the runtime "
+        "behaviour on both branches directly."
+    ),
+    ("CORE-SECURITY-011", "No machine-facing surface was gathered."): (
+        "(a) `machine_text`'s own `surfaces` list came back empty — nothing was "
+        "read at all, so there is no body a truncated read could have distorted. "
+        "This is the SAME literal and reasoning as CORE-SECURITY-007/008's audited "
+        "branch, not a claim specific to this check's own `_MACHINE_KINDS` filter "
+        "(which today covers every kind `machine_text` ever produces, so filtering "
+        "by kind is a no-op over an empty list either way)."
+    ),
+    ("CORE-SECURITY-012", "No machine-facing surface was gathered."): (
+        "(a) the same empty-`surfaces` verdict as CORE-SECURITY-011, independent of "
+        "any body read."
+    ),
+    ("CORE-SECURITY-013", "No machine-facing surface was gathered."): (
+        "(a) the same empty-`surfaces` verdict as CORE-SECURITY-011, independent of "
+        "any body read."
+    ),
+    ("CORE-SECURITY-014", "No machine-facing surface was gathered."): (
+        "(a) the same empty-`surfaces` verdict as CORE-SECURITY-011, independent of "
+        "any body read."
+    ),
+    ("CORE-SECURITY-015", "No machine mirror (llms.txt / markdown) to compare."): (
+        "Neither independent absence nor silent — the branch is reached ONLY when "
+        "`mt.get('capped')` is False: `machine_text`'s running-TOTAL budget "
+        "(`MAX_TOTAL_CHARS`) is exhausted by earlier html-derived surfaces (json_ld/"
+        "meta_description/hidden_dom/webmcp_tool, assembled before llms.txt in gather "
+        "order) with a `break` — not a per-surface `_surface()` truncation, which "
+        "still appends a shortened surface — that DROPS llms.txt/markdown_mirror from "
+        "the list entirely even though the document was genuinely declared. When "
+        "`capped` is True the check DISCLOSES that directly "
+        "(`na(..., {'truncated': True}, confidence=Confidence.MEDIUM)`) instead of "
+        "reaching this literal; only the uncapped path (the subset genuinely never "
+        "gathered) reaches this literal with no disclosure. As with CORE-SECURITY-009/"
+        "010, the disclosure is a raw evidence dict + confidence kwarg passed straight "
+        "to `na()`, not a summary `note`, so this AST-based scanner cannot see it as "
+        "\"participating\" on the capped path — "
+        "`tests/test_checks_security_prompt_surface.py::"
+        "test_capped_before_llms_and_mcp_description_discloses_na` proves the runtime "
+        "behaviour on both branches directly."
+    ),
+    ("CORE-SECURITY-016", "No MCP server or WebMCP tool descriptions gathered."): (
+        "Neither independent absence nor silent — same shape as CORE-SECURITY-015 "
+        "above: the branch is reached ONLY when `mt.get('capped')` is False. "
+        "`mcp_server_description`/`webmcp_tool` surfaces are gathered AFTER "
+        "llms.txt/mcp_discovery in `machine_text.py`'s assembly order, so an "
+        "exhausted running-total budget can drop a genuinely-declared MCP server "
+        "description from the list before this check ever sees it. When `capped` is "
+        "True the check DISCLOSES that directly (`na(..., {'truncated': True}, "
+        "confidence=Confidence.MEDIUM)`); only the uncapped path (no description "
+        "genuinely declared) reaches this literal with no disclosure — the disclosure "
+        "shape (raw evidence dict + confidence kwarg, not a summary `note`) is again "
+        "invisible to this AST-based scanner, and "
+        "`tests/test_checks_security_prompt_surface.py::"
+        "test_capped_before_llms_and_mcp_description_discloses_na` proves the runtime "
+        "behaviour directly."
     ),
 }
 

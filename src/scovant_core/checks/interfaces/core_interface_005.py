@@ -10,6 +10,7 @@ class OpenApiDiscovery(CoreCheck):
     id = "CORE-INTERFACE-005"
     title = "OpenAPI discovery"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
     weight = 2
     severity_on_fail = Severity.MEDIUM

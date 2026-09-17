@@ -60,6 +60,7 @@ class RateLimitSignalled(CoreCheck):
     id = "CORE-OPERABILITY-009"
     title = "Rate limiting is signalled"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 1
     severity_on_fail = Severity.LOW
     standards = ("AR-READ-02",)

@@ -1,0 +1,1 @@
+{"etag": "\"security-good-v1\"", "strict-transport-security": "max-age=63072000; includeSubDomains", "content-security-policy": "default-src 'self'; frame-ancestors 'none'", "referrer-policy": "strict-origin-when-cross-origin", "x-content-type-options": "nosniff", "set-cookie": "sessionid=abc; Path=/; Secure; HttpOnly; SameSite=Lax"}

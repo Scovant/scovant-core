@@ -9,6 +9,7 @@ import json
 from scovant_core.models import CheckResult, CheckStatus, Report
 from scovant_core.report._cloud_matrix import CORE_BOUNDARY, CORE_VS_CLOUD
 from scovant_core.report._common import (
+    SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
     capabilities_lines,
     evaluated_experimental,
@@ -17,6 +18,8 @@ from scovant_core.report._common import (
     na_experimental,
     profile_note,
     scored_experimental,
+    security_findings,
+    security_rows,
     standards_line,
     status_counts,
     status_note,
@@ -244,6 +247,45 @@ def _limitations_section(findings: list[CheckResult], scored: bool) -> list[str]
     return out
 
 
+def _security_section(r: Report) -> list[str]:
+    """Mirrors `markdown.py`'s Agentic Security & Trust block: a badge for
+    `report.security.label` (never a score — see `Report.security.scored`),
+    the per-severity/per-domain counts, the fixed `not_tested` lines, one
+    card per SECURITY-category FAIL/WARN finding (each carrying its own
+    verification-mode badge), and the disclaimer verbatim."""
+    out = [
+        '<section id="agentic-security">',
+        "<h2>Agentic Security &amp; Trust</h2>",
+        f'<p><span class="badge badge-na">{e(r.security.label)}</span></p>',
+        "<table>",
+        "<tr><th>Signal</th><th>Value</th></tr>",
+    ]
+    for label, value in security_rows(r):
+        out.append(f"<tr><td>{e(label)}</td><td>{e(value)}</td></tr>")
+    out.append("</table>")
+    if r.security.not_tested:
+        out.append("<ul>")
+        out.extend(f"<li>{e(n)}: NOT TESTED</li>" for n in r.security.not_tested)
+        out.append("</ul>")
+    for f in security_findings(r):
+        out.append(f"<details><summary><code>{e(f.id)}</code> ({e(f.family_id)}) — {e(f.title)} "
+                    f'<span class="badge badge-na">{e(f.verification_mode)}</span></summary>')
+        out.append(
+            f"<p><strong>Status:</strong> {e(f.status.value)} &middot; <strong>Severity:</strong> {e(f.severity.value)} "
+            f"&middot; <strong>Confidence:</strong> {e(f.confidence.value)}</p>"
+        )
+        out.append(f"<p><strong>Fix owner:</strong> {e(f.fix_owner)} &middot; <strong>Domain:</strong> {e(f.security_domain)}</p>")
+        out.append(f"<p>{e(f.summary)}</p>")
+        if f.remediation:
+            out.append(f"<p><strong>Remediation:</strong> {e(f.remediation)}</p>")
+        if f.limitations:
+            out.append(f"<p><strong>Limitations:</strong> {e(f.limitations)}</p>")
+        out.append("</details>")
+    out.append(f"<p>{e(SECURITY_DISCLAIMER)}</p>")
+    out.append("</section>")
+    return out
+
+
 def _not_tested_section(r: Report) -> list[str]:
     out = ['<section id="not-tested">', "<h2>Not tested by Scovant Core</h2>", "<ul>"]
     out.extend(f"<li>{e(n)}</li>" for n in r.not_tested)
@@ -321,6 +363,7 @@ def render_html(report: Report, *, utm_medium: str = "html") -> str:
     out += _evidence_section(report.findings, scored)
     out += _remediation_section(report.findings, scored)
     out += _limitations_section(report.findings, scored)
+    out += _security_section(report)
     out += _not_tested_section(report)
     out += _cloud_comparison_section()
     out += _methodology_section()

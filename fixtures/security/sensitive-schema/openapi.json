@@ -1,0 +1,21 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Example API", "version": "1.0"},
+  "paths": {"/login": {"post": {"summary": "Login"}}},
+  "components": {
+    "schemas": {
+      "Login": {
+        "type": "object",
+        "properties": {
+          "password": {"type": "string"}
+        }
+      },
+      "Client": {
+        "type": "object",
+        "properties": {
+          "api_secret": {"type": "string", "example": "sample-secret-value-000000"}
+        }
+      }
+    }
+  }
+}

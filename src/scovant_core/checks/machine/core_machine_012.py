@@ -14,6 +14,7 @@ class VisibleVsStructuredPrice(CoreCheck):
     id = "CORE-MACHINE-012"
     title = "Visible vs. structured price"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
     weight = 3
     severity_on_fail = Severity.MEDIUM

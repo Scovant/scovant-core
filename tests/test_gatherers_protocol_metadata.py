@@ -366,6 +366,29 @@ def test_oauth_metadata_protected_resource_valid():
     assert pr["served_as_html"] is False
 
 
+def test_oauth_metadata_resource_matches_origin_normalises_both_sides():
+    """`resource_matches_origin` compares two NORMALISED origins.
+
+    In the live pipeline both sides already arrive lower-cased (httpx
+    normalises the response URL that `ctx.set_final_url` is called with),
+    so this seeds `ctx` directly — the point is that the comparison itself
+    normalises, rather than relying on an upstream component to have done
+    it. Seeding `http` also stops `store.get("http")` re-deriving the
+    origin from a response and erasing the case under test."""
+    body = json.dumps({"resource": "https://example.com", "authorization_servers": ["https://auth.example.com"]})
+    pr_resp = httpx.Response(200, text=body, headers={"content-type": "application/json"})
+    store, ctx = _store_for(_oauth_handler(None, pr_resp))
+    ctx.set_final_url("https://example.com/")
+    store._data["http"] = {
+        "input_url": "https://example.com/", "final_url": "https://example.com/", "status": 200,
+        "headers": {}, "redirect_chain": [], "html": "<html></html>", "bytes": 13,
+        "truncated": False, "error": None,
+    }
+    ctx.origin = "https://EXAMPLE.com"  # an un-normalised origin from any upstream path
+    r = store.get("oauth_metadata")
+    assert r["protected_resource"]["resource_matches_origin"] is True
+
+
 def test_oauth_metadata_both_absent():
     store, _ = _store_for(_oauth_handler(None, None))
     r = store.get("oauth_metadata")

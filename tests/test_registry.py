@@ -75,13 +75,14 @@ def test_registry_is_valid():
     assert re.fullmatch(r"\d{4}\.\d{2}", RULESET_VERSION) and re.fullmatch(r"[0-9a-f]{12}", RULESET_DIGEST)
 
 
-def test_registry_has_fifty():
-    # Ruleset 2026.10 adds five checks over the 2026.09 registry: the three
-    # required HTTP-semantics checks (CORE-OPERABILITY-008/009/010) plus two
-    # experimental discoverability/utility checks (CORE-ACCESS-011,
-    # CORE-OPERABILITY-011).
+def test_registry_has_sixty_six():
+    # Ruleset 2026.10 (readiness) ships 50 checks (see the old docstring
+    # this replaces for the five-check delta over 2026.09); AS-1 layers 16
+    # unscored SECURITY-category checks (CORE-SECURITY-001..016) on top,
+    # grouped into four families (SEC-WEB, SEC-TXT, MACHINE-DATA,
+    # PROMPT-SURFACE) — see docs/security.md.
     ids = {c.id for c in CHECKS}
-    expected = {
+    readiness_expected = {
         "CORE-ACCESS-001", "CORE-ACCESS-002", "CORE-ACCESS-003", "CORE-ACCESS-004", "CORE-ACCESS-005",
         "CORE-ACCESS-006", "CORE-ACCESS-007", "CORE-ACCESS-008", "CORE-ACCESS-009", "CORE-ACCESS-010",
         "CORE-ACCESS-011",
@@ -97,23 +98,34 @@ def test_registry_has_fifty():
         "CORE-OPERABILITY-005", "CORE-OPERABILITY-006", "CORE-OPERABILITY-007", "CORE-OPERABILITY-008",
         "CORE-OPERABILITY-009", "CORE-OPERABILITY-010", "CORE-OPERABILITY-011",
     }
-    assert ids == expected
-    assert len(CHECKS) == 50
+    security_expected = {f"CORE-SECURITY-{n:03d}" for n in range(1, 17)}
+    assert ids == readiness_expected | security_expected
+    assert len(readiness_expected) == 50
+    assert len(security_expected) == 16
+    assert len(CHECKS) == 66
     assert RULESET_VERSION == "2026.10"
     validate_registry()
 
 
 def test_experimental_set_is_exact():
-    # D2: exactly these seven checks are experimental — emerging protocols
-    # (INTERFACE-004/-008/-009, MACHINE-012), fragile heuristics
-    # (OPERABILITY-007), and the two 2026.10 additions whose measurement is
-    # declared/link-based rather than a direct observation
-    # (ACCESS-011 llms.txt utility, OPERABILITY-011 discovery linkage) —
-    # visible in reports but excluded from the score unless `--experimental`.
+    # D2: emerging protocols (INTERFACE-004/-008/-009, MACHINE-012), fragile
+    # heuristics (OPERABILITY-007), the two 2026.10 additions whose
+    # measurement is declared/link-based rather than a direct observation
+    # (ACCESS-011 llms.txt utility, OPERABILITY-011 discovery linkage), and
+    # the agentic-security SECURITY-* families added on top of the 2026.10
+    # ruleset (AS-1): MACHINE-DATA-003/004 (SECURITY-009/010, data exposure —
+    # name-based classification of declared interfaces/schema fields) and the
+    # full PROMPT-SURFACE-001..006 family (SECURITY-011..016 — heuristic
+    # pattern matches over machine-facing text; see checks/security/
+    # prompt_surface.py) — all visible in reports but excluded from the
+    # score unless `--experimental`.
     expected = {
         "CORE-INTERFACE-004", "CORE-INTERFACE-008", "CORE-INTERFACE-009",
         "CORE-MACHINE-012", "CORE-OPERABILITY-007",
         "CORE-ACCESS-011", "CORE-OPERABILITY-011",
+        "CORE-SECURITY-009", "CORE-SECURITY-010",
+        "CORE-SECURITY-011", "CORE-SECURITY-012", "CORE-SECURITY-013",
+        "CORE-SECURITY-014", "CORE-SECURITY-015", "CORE-SECURITY-016",
     }
     experimental_ids = {c.id for c in CHECKS if c.experimental}
     assert experimental_ids == expected
@@ -121,13 +133,39 @@ def test_experimental_set_is_exact():
 
 def test_scored_set_is_exact():
     """Ruleset freeze (CONTRIBUTING § Ruleset freeze): the scored set changes only
-    in a dedicated, calibrated PR that also bumps RULESET_VERSION."""
-    scored = sorted(c.id for c in CHECKS if not c.experimental)
+    in a dedicated, calibrated PR that also bumps RULESET_VERSION.
+
+    "Scored" is computed by excluding the SECURITY category, not just by
+    `not c.experimental` — every SECURITY-category check is unscored BY
+    CATEGORY (see `docs/security.md`), independent of its `experimental`
+    flag. A scored, non-experimental SECURITY check would still never move
+    the Static Signal Score, so it must never appear in `SCORED_2026_10`.
+    """
+    scored = sorted(c.id for c in CHECKS if not c.experimental and c.category != Category.SECURITY)
     assert RULESET_VERSION == "2026.10"
     assert scored == SCORED_2026_10, (
         "scored check set changed — this needs its own calibrated PR and a RULESET_VERSION bump "
         "(see CONTRIBUTING.md § Ruleset freeze)"
     )
+
+
+def test_security_checks_declare_family_domain_owner_and_mode():
+    sec = [c for c in CHECKS if c.category == Category.SECURITY]
+    assert len(sec) == 16
+    assert sorted(c.family_id for c in sec) == sorted([
+        "SEC-WEB-001", "SEC-WEB-002", "SEC-WEB-003", "SEC-WEB-004", "SEC-WEB-005", "SEC-TXT-001",
+        "MACHINE-DATA-001", "MACHINE-DATA-002", "MACHINE-DATA-003", "MACHINE-DATA-004",
+        "PROMPT-SURFACE-001", "PROMPT-SURFACE-002", "PROMPT-SURFACE-003", "PROMPT-SURFACE-004",
+        "PROMPT-SURFACE-005", "PROMPT-SURFACE-006",
+    ])
+    for c in sec:
+        assert c.security_domain in {"web_baseline", "disclosure", "data_exposure", "prompt_surface"}, c.id
+        assert c.fix_owner in {
+            "frontend", "backend", "identity", "mcp", "edge_cdn", "devops", "content", "commerce",
+            "security", "platform",
+        }, c.id
+        assert c.verification_mode in ("DECLARED", "PASSIVE_OBSERVED"), c.id
+        assert c.standards, c.id
 
 
 def test_experimental_checks_declare_promotion_criteria():

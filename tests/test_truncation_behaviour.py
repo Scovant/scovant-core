@@ -81,6 +81,18 @@ EXPECTED_TRUNCATION_FLAGGED_IDS = frozenset({
     "CORE-INTERFACE-001", "CORE-INTERFACE-002", "CORE-INTERFACE-003", "CORE-INTERFACE-004",
     "CORE-TRUST-001", "CORE-TRUST-004",
     "CORE-OPERABILITY-001", "CORE-OPERABILITY-005", "CORE-OPERABILITY-007",
+    # CORE-SECURITY-009 (PrivilegedEndpoint) reads `mcp_discovery["truncated"]`
+    # and `openapi["truncated"]` directly (not through `machine_text`'s own
+    # per-surface re-slicing), and both stub records set `truncated=True` —
+    # a genuine participant, not an artifact of this fixture.
+    "CORE-SECURITY-009",
+    # CORE-SECURITY-010 (SensitiveSchemaField): `_openapi_record` in this
+    # conftest carries no `schemas` key at all, so `api.get("schemas")` is
+    # falsy on BOTH stores and the check reaches its N/A branch — which
+    # (fix round 1) now checks `openapi["truncated"]` before declaring
+    # absence and discloses it (`{"truncated": True}` + MEDIUM confidence)
+    # on the truncated side. Also genuine, not a fixture artifact.
+    "CORE-SECURITY-010",
 })
 
 

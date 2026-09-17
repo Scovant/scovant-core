@@ -125,3 +125,24 @@ def test_summary_shows_no_grade_for_degraded(report_json):
     })
     md = render_summary(degraded)
     assert "No grade" in md
+
+
+def test_summary_counts_are_readiness_only_with_security_on_its_own_line(report_json):
+    """The summary block's pass/warn/fail line must describe the same
+    population as the `pass_count`/`warn_count`/`fail_count` outputs —
+    readiness only. Security is stated separately, never folded in."""
+    from scovant_core.action import _load_report, render_summary
+    from scovant_core.models import Category, CheckStatus
+    from scovant_core.report._common import status_counts
+
+    report = _load_report(str(report_json))
+    readiness = [f for f in report.findings if f.category != Category.SECURITY]
+    security = [f for f in report.findings if f.category == Category.SECURITY]
+    assert security, "fixture must contain security findings for this test to mean anything"
+    counts = status_counts(readiness)
+    md = render_summary(report)
+    assert f"{counts[CheckStatus.PASS]} pass · {counts[CheckStatus.WARN]} warn" in md
+    assert "**Security (never scored):**" in md
+    all_counts = status_counts(report.findings)
+    assert all_counts[CheckStatus.PASS] != counts[CheckStatus.PASS]
+    assert f"\n{all_counts[CheckStatus.PASS]} pass · " not in md

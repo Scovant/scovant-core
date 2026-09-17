@@ -12,6 +12,7 @@ class UcpProfilePresence(CoreCheck):
     id = "CORE-INTERFACE-008"
     title = "UCP profile validity"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
     weight = 2
     experimental = True

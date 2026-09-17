@@ -47,12 +47,15 @@ def test_the_contract_rejects_a_workflow_without_trusted_target():
 
 
 def test_smoke_assert_check_passes_on_a_healthy_report():
-    assert check({"score": {"status": "OK", "scope": "CANONICAL", "grade": "A", "value": 91}}) == []
+    assert check({
+        "score": {"status": "OK", "scope": "CANONICAL", "grade": "A", "value": 91},
+        "security": {"scored": False},
+    }) == []
 
 
 def test_smoke_assert_check_reports_every_violated_invariant():
     problems = check({"score": {"status": "OK", "scope": "CANONICAL", "grade": "B", "value": 84}})
-    assert problems == ["grade='B'", "value=84 < 85"]
+    assert problems == ["grade='B'", "value=84 < 85", "security.scored != false"]
 
 
 # --- cross-step $GITHUB_STEP_SUMMARY read (the 2026-09-14..15 always-red bug) ---

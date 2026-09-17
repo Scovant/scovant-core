@@ -10,6 +10,7 @@ class McpDiscoveryPresence(CoreCheck):
     id = "CORE-INTERFACE-001"
     title = "MCP discovery presence"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://modelcontextprotocol.io/",)

@@ -1,0 +1,15 @@
+# gitleaks configuration for the published package tree. The release workflow
+# runs the pinned gitleaks CLI over an export of this directory as a second,
+# independent secret scanner next to the maintainers' publish guard; gitleaks
+# loads this file from the scanned root.
+title = "scovant-core"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Synthetic fixtures whose purpose is a credential-SHAPED value: they exercise the package's own secret detector (MACHINE-DATA-001) and contain no real credential."
+paths = [
+  '''fixtures/security/machine-secret-exposed/llms\.txt''',
+  '''fixtures/sites/security-bad/llms\.txt''',
+]

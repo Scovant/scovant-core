@@ -33,7 +33,16 @@ class FixtureTransport(httpx.BaseTransport):
     Unknown paths → 404. Files named `*.redirect` contain a Location target.
     A `<path>.headers` sidecar (JSON object) merges into the response
     headers when present — lets a fixture declare e.g. a custom
-    `content-type` without renaming the served file."""
+    `content-type` without renaming the served file.
+
+    Scheme rule (added for the http→https downgrade probe, `http.py`'s
+    `_downgrade_probe`): a request whose scheme is `http` gets a bare
+    `301 → https://<host><same path>` — the site "redirects http to https,
+    same path", the default a real hardened site should exhibit — UNLESS a
+    file named `http-200.txt` exists directly under the fixture root, in
+    which case the request is served normally (as if it were https): the
+    fixture is declaring "my http:// origin answers 200 without
+    redirecting"."""
 
     def __init__(self, root: Path, host: str = "example.com"):
         self.root, self.host = root, host
@@ -41,6 +50,8 @@ class FixtureTransport(httpx.BaseTransport):
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         if request.url.host != self.host:
             return httpx.Response(404, text="wrong host")
+        if request.url.scheme == "http" and not (self.root / "http-200.txt").exists():
+            return httpx.Response(301, headers={"location": "https://" + self.host + request.url.path})
         path = request.url.path
         rel = "index.html" if path == "/" else path.lstrip("/")
         f = self.root / rel

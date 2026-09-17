@@ -11,6 +11,7 @@ class ReturnsPolicyDiscoverability(CoreCheck):
     id = "CORE-TRUST-003"
     title = "Returns/refund policy discoverability"
     category = Category.TRUST
+    verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
     weight = 2
     references = ("https://schema.org/MerchantReturnPolicy",)

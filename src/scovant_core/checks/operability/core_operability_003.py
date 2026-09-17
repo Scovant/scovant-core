@@ -14,6 +14,7 @@ class CacheValidators(CoreCheck):
     id = "CORE-OPERABILITY-003"
     title = "Cache validators"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 1
     severity_on_fail = Severity.INFO
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-validator-fields",)

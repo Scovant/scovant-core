@@ -38,6 +38,7 @@ class WebMcpStaticPresence(CoreCheck):
     id = "CORE-INTERFACE-003"
     title = "WebMCP static presence"
     category = Category.INTERFACES
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.LOW
     references = ("https://github.com/webmachinelearning/webmcp",)

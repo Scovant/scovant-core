@@ -17,6 +17,7 @@ class RedirectComplexity(CoreCheck):
     id = "CORE-OPERABILITY-002"
     title = "Redirect chain complexity"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-redirection-3xx",)

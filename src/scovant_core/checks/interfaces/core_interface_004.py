@@ -17,6 +17,7 @@ class WebMcpToolQuality(CoreCheck):
     id = "CORE-INTERFACE-004"
     title = "WebMCP tool declaration quality"
     category = Category.INTERFACES
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     experimental = True
     severity_on_fail = Severity.LOW

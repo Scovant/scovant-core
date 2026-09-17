@@ -12,6 +12,7 @@ class OAuthAuthorizationServerMetadata(CoreCheck):
     id = "CORE-INTERFACE-006"
     title = "OAuth authorization-server metadata"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
     weight = 2
     severity_on_fail = Severity.MEDIUM

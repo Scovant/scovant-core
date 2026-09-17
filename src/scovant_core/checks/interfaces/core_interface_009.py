@@ -42,6 +42,7 @@ class AgentDiscoverySurfacePresence(CoreCheck):
     id = "CORE-INTERFACE-009"
     title = "Agent discovery surface presence"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
     weight = 2
     experimental = True

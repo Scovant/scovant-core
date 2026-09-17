@@ -19,6 +19,10 @@ def check(report: dict) -> list[str]:
         problems.append(f"grade={s.get('grade')!r}")
     if not isinstance(s.get("value"), int) or s["value"] < 85:
         problems.append(f"value={s.get('value')!r} < 85")
+    # AS-1: `Report.security` is never scored — a smoke report claiming
+    # otherwise would mean the report/gate/action contract drifted.
+    if report.get("security", {}).get("scored") is not False:
+        problems.append("security.scored != false")
     return problems
 
 

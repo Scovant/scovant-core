@@ -8,6 +8,7 @@ class LlmsTxtIntegrity(CoreCheck):
     id = "CORE-ACCESS-009"
     title = "llms.txt presence and integrity"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://llmstxt.org/",)

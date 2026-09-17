@@ -46,6 +46,14 @@ class CoreCheck(ABC):
         "Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic."
     )
     cloud_extension: str = ""
+    # SECURITY-category checks only (enforced by `registry.validate_registry`):
+    # `family_id` groups checks into one identity/attack surface, and the
+    # other four describe HOW the evidence was obtained and where it points.
+    family_id: str = ""
+    verification_mode: str = "PASSIVE_OBSERVED"
+    security_domain: str = ""
+    fix_owner: str = ""
+    security_tags: tuple[str, ...] = ()
 
     def applicable(self, ctx: ScanContext) -> bool:
         return self.profiles is None or ctx.profile in self.profiles
@@ -65,6 +73,9 @@ class CoreCheck(ABC):
             why_it_matters=self.why_it_matters, limitations=self.limitations,
             cloud_extension=self.cloud_extension, remediation=remediation,
             experimental=self.experimental, check_version=self.check_version,
+            family_id=self.family_id, verification_mode=self.verification_mode,
+            security_domain=self.security_domain, fix_owner=self.fix_owner,
+            security_tags=list(self.security_tags),
         )
 
     def na(self, summary: str, evidence: dict | None = None, *,

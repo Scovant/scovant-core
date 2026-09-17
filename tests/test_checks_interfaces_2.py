@@ -375,7 +375,9 @@ def test_007_na_on_absent():
 
 def test_007_pass_when_complete():
     metadata = (
-        '{"resource": "https://example.com", "authorization_servers": ["https://example.com"]}'
+        '{"resource": "https://example.com", "authorization_servers": ["https://example.com"],'
+        ' "jwks_uri": "https://example.com/jwks.json", "scopes_supported": ["read"],'
+        ' "dpop_bound_access_tokens_required": true}'
     )
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -389,6 +391,18 @@ def test_007_pass_when_complete():
     result = OAuthProtectedResourceMetadata().run(store, ctx)
     assert result.status == CheckStatus.PASS
     assert result.evidence["resource_value"] == "https://example.com"
+    # The five consistency/shape fields the gatherer computes must actually
+    # reach a report — they were dead data before.
+    for key in ("resource_matches_origin", "matches_issuer", "jwks_uri",
+                "scopes_supported", "dpop_bound_access_tokens_required"):
+        assert key in result.evidence, key
+    assert result.evidence["resource_matches_origin"] is True
+    assert result.evidence["jwks_uri"] == "https://example.com/jwks.json"
+    assert result.evidence["scopes_supported"] == ["read"]
+    assert result.evidence["dpop_bound_access_tokens_required"] is True
+    # No authorization-server metadata document was served by this handler,
+    # so its issuer consistency is unmeasured — never guessed as False.
+    assert result.evidence["matches_issuer"] is None
 
 
 def test_007_warn_when_200_but_incomplete():

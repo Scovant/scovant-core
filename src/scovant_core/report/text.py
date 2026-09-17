@@ -6,11 +6,13 @@ from __future__ import annotations
 
 from scovant_core.models import CATEGORY_TITLES, Category, CheckStatus, Report
 from scovant_core.report._common import (
+    SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
     capabilities_lines,
     evaluated_experimental,
     na_experimental,
     profile_note,
+    security_rows,
     standards_line,
     status_counts,
     top_findings,
@@ -133,7 +135,8 @@ def _findings_block(findings: list, color: bool) -> list[str]:
     Experimental block."""
     lines: list[str] = []
     for f in findings:
-        lines.append(f"{_colorize(f.status.value, f.status, color)}  {f.id}")
+        tag = "[security] " if f.category == Category.SECURITY else ""
+        lines.append(f"{_colorize(f.status.value, f.status, color)}  {tag}{f.id}")
         lines.append(f"      {f.summary}")
         lines.append("")
     if lines and lines[-1] == "":
@@ -221,9 +224,21 @@ def render_text(report: Report, *, color: bool = False) -> str:
             # reconcile (mirrors markdown.py/html.py).
             lines.append("N/A: " + ", ".join(f.id for f in na))
             lines.append("")
+    lines.append("AGENTIC SECURITY & TRUST".ljust(_LABEL_WIDTH) + report.security.label)
+    lines.append(RULE)
+    for label, value in security_rows(report):
+        lines.append(f"{label.ljust(_LABEL_WIDTH)}{value}")
+    # `(name + " ").ljust(_LABEL_WIDTH)` (not `name.ljust(_LABEL_WIDTH)`)
+    # guarantees at least one separating space even for a label at or past
+    # `_LABEL_WIDTH` chars ("Prompt-injection resilience" is 28) — plain
+    # `ljust` is a no-op once the string already exceeds the width, which
+    # glued the label straight onto "NOT TESTED" with no space at all.
+    lines.extend(f"{(name + ' ').ljust(_LABEL_WIDTH)}NOT TESTED" for name in report.security.not_tested)
+    lines.append(SECURITY_DISCLAIMER)
+    lines.append("")
     lines.append("Not tested by Scovant Core")
     lines.append(RULE)
-    lines.extend(f"{name.ljust(_LABEL_WIDTH)}NOT TESTED" for name in report.not_tested)
+    lines.extend(f"{(name + ' ').ljust(_LABEL_WIDTH)}NOT TESTED" for name in report.not_tested)
     lines.append("")
     lines.append(CTA_TEXT)
     lines.append(CTA_URL)

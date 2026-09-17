@@ -21,7 +21,7 @@ def gather_llms(client: SecureClient, ctx: ScanContext, store: EvidenceStore) ->
     if isinstance(res, FetchError):
         parsed = parse_llms_txt("", 0)
         return {"url": url, "status": None, "parsed": parsed, "full_exists": False, "references": [],
-                "served_as_html": False, "truncated": False}
+                "served_as_html": False, "truncated": False, "text": ""}
 
     status = res.status
     # A 200 carrying an HTML page (a catch-all router / soft-404 template) is
@@ -55,8 +55,12 @@ def gather_llms(client: SecureClient, ctx: ScanContext, store: EvidenceStore) ->
             ref["retry_after"] = r.headers.get("retry-after")
         references.append(ref)
 
+    # NOT re-capped here — `content` is already bounded by the fetch layer's
+    # own per-kind size limit (`SecurityPolicy.limit_for("text")`, 1 MB);
+    # `machine_text` applies the tighter 64 KB per-surface cap and is the one
+    # place that decides whether a document was truncated FOR THAT PURPOSE.
     out = {"url": url, "status": status, "parsed": parsed, "full_exists": full_exists, "references": references,
-           "served_as_html": served_as_html, "truncated": truncated}
+           "served_as_html": served_as_html, "truncated": truncated, "text": content}
     if status == 429:
         out["retry_after"] = res.headers.get("retry-after")
     return out

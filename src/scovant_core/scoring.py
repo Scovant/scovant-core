@@ -27,6 +27,14 @@ from scovant_core.models import (
 )
 
 CATEGORY_WEIGHTS = {"access": 25, "machine": 25, "interfaces": 20, "trust": 15, "operability": 15}
+# The five scored categories, in the order `score_results` iterates them.
+# SECURITY is deliberately absent — its findings never enter the score (see
+# `Report.security` / `security_summary.py`) — and this assertion is the one
+# place that fact is pinned against `CATEGORY_WEIGHTS`.
+SCORED_CATEGORIES: tuple[Category, ...] = (
+    Category.ACCESS, Category.MACHINE, Category.INTERFACES, Category.TRUST, Category.OPERABILITY,
+)
+assert set(CATEGORY_WEIGHTS) == {c.value for c in SCORED_CATEGORIES}
 STATUS_VALUE = {CheckStatus.PASS: 1.0, CheckStatus.WARN: 0.5, CheckStatus.FAIL: 0.0}
 EVIDENCE_MIN_COVERAGE = 0.60     # below: no score at all (INSUFFICIENT_EVIDENCE)
 CANONICAL_MIN_COVERAGE = 0.85    # below (or any ERROR): score without a grade (DEGRADED)
@@ -47,7 +55,7 @@ def score_results(
 ) -> tuple[Score, dict[str, CategoryScore]]:
     cats: dict[str, CategoryScore] = {}
     raw_scores: dict[str, float] = {}
-    for cat in Category:
+    for cat in SCORED_CATEGORIES:
         rs = [r for r in results if r.category == cat and (include_experimental or not r.experimental)]
         applicable = [r for r in rs if r.status != CheckStatus.NA]
         evaluated = [r for r in applicable if r.status in STATUS_VALUE]

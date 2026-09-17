@@ -12,6 +12,7 @@ class OAuthProtectedResourceMetadata(CoreCheck):
     id = "CORE-INTERFACE-007"
     title = "OAuth protected-resource metadata"
     category = Category.INTERFACES
+    verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
     weight = 2
     severity_on_fail = Severity.MEDIUM
@@ -57,6 +58,25 @@ class OAuthProtectedResourceMetadata(CoreCheck):
         # record, `pr` is not), so the label is honest.
         note, truncated = record_truncation(pr, ev, document="OAuth protected-resource metadata")
         conf = truncated_confidence(truncated)
+
+        # Consistency/shape fields the gatherer already derives from the
+        # same documents — reported additively, never consulted by the
+        # verdict below (which stays "resource + a non-empty
+        # authorization_servers list"). They are attached only PAST the
+        # document_status gate: on the N/A and ERROR branches above no
+        # protected-resource document was read at all, and publishing
+        # `jwks_uri: null` there would describe a document that does not
+        # exist rather than one that omits the field. `matches_issuer`
+        # describes the SEPARATE authorization-server metadata document
+        # (`issuer` vs the URL it was served from); `None` when that
+        # document was not read.
+        ev.update({
+            "resource_matches_origin": pr["resource_matches_origin"],
+            "matches_issuer": oauth["authorization_server"]["matches_issuer"],
+            "jwks_uri": pr["jwks_uri"],
+            "scopes_supported": pr["scopes_supported"],
+            "dpop_bound_access_tokens_required": pr["dpop_bound_access_tokens_required"],
+        })
 
         if pr["parseable"] and pr["resource"] and pr["authorization_servers"]:
             ev["resource_value"] = pr["resource"]

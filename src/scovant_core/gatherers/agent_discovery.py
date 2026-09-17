@@ -3,6 +3,7 @@ SKILL.md, A2A cards, agent-skills index, OAuth discovery). MCP is
 deliberately excluded — it has its own probe module."""
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping
 from typing import Any
 
@@ -10,6 +11,8 @@ from scovant_core.compat import SoftTimeLimitExceeded
 
 from ._http import _PROBE_TIMEOUT, _probe_json, _probe_text_exists, _ProbeClient
 from .probe_tables import DISCOVERY_PROBES
+
+_TEXT_CAP = 64 * 1024
 
 
 def check_agent_discovery(
@@ -39,7 +42,10 @@ def check_agent_discovery(
     for key, probe in DISCOVERY_PROBES.items():
         if known is not None and key in known:
             # Seeded from another gatherer's already-fetched record, never
-            # probed here — nothing for THIS gatherer to have truncated.
+            # probed here — nothing for THIS gatherer to have truncated, and
+            # the source gatherer already carries its own "text" evidence
+            # (this exact dict shape is pinned by test_hardening_followups.py,
+            # so no "text" key is added here).
             surfaces[key] = {"exists": known[key], "source": "shared", "truncated": False}
             continue
         if probe["content"] == "json":
@@ -47,22 +53,27 @@ def check_agent_discovery(
             any_truncated = any_truncated or truncated
             if data is not None:
                 exists: bool | None = True
+                text = json.dumps(data, ensure_ascii=False)[:_TEXT_CAP]
             elif truncated:
                 exists = None  # cut off before we could tell — not a claimed absence
+                text = ""
             else:
                 exists = False
-            surfaces[key] = {"exists": exists, "truncated": truncated}
+                text = ""
+            surfaces[key] = {"exists": exists, "truncated": truncated, "text": text}
         else:  # text: 200 + non-HTML content type + non-empty body
+            body_text = ""
             try:
-                exists = _probe_text_exists(
-                    client.get(f"{domain}{probe['path']}", timeout=_PROBE_TIMEOUT)
-                )
+                resp = client.get(f"{domain}{probe['path']}", timeout=_PROBE_TIMEOUT)
+                exists = _probe_text_exists(resp)
+                if exists:
+                    body_text = resp.text[:_TEXT_CAP]
             except SoftTimeLimitExceeded:
                 raise
             except Exception:
                 exists = False
             # No ambiguity to report (see docstring) — always False, not
             # merely omitted, so every surface's shape is uniform.
-            surfaces[key] = {"exists": exists, "truncated": False}
+            surfaces[key] = {"exists": exists, "truncated": False, "text": body_text}
     return {"any_found": any(s["exists"] for s in surfaces.values()), "surfaces": surfaces,
             "truncated": any_truncated}

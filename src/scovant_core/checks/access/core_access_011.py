@@ -54,6 +54,7 @@ class LlmsTxtUtility(CoreCheck):
     id = "CORE-ACCESS-011"
     title = "llms.txt utility"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 1
     severity_on_fail = Severity.INFO
     experimental = True

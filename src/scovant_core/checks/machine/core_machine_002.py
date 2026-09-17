@@ -19,6 +19,7 @@ class OrganizationEntity(CoreCheck):
     id = "CORE-MACHINE-002"
     title = "Organization entity"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://schema.org/Organization",)

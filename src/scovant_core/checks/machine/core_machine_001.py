@@ -9,6 +9,7 @@ class JsonLdParseability(CoreCheck):
     id = "CORE-MACHINE-001"
     title = "JSON-LD parseability"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://json-ld.org/spec/latest/json-ld/",)

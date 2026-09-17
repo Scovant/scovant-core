@@ -536,3 +536,29 @@ def extract_landmark_tags(html: str) -> dict[str, int]:
     """Count semantic HTML5 landmark tags — agents use them to segment pages."""
     soup = _soup(html)
     return {tag: len(soup.find_all(tag)) for tag in _LANDMARK_TAGS}
+
+
+_HIDDEN_STYLE_RE = re.compile(r"display\s*:\s*none|visibility\s*:\s*hidden|left\s*:\s*-\d{3,}px|font-size\s*:\s*0", re.I)
+
+
+def extract_hidden_text(html: str) -> str:
+    """Text a human cannot see but a parser can: display:none / visibility:hidden /
+    off-screen / zero-font blocks, `aria-hidden="true"`, and `hidden` attributes.
+    Max 5000 chars, whitespace-collapsed. Script/style/head are excluded."""
+    soup = _soup(html)
+    for tag in soup.find_all(["script", "style", "head", "noscript"]):
+        tag.decompose()
+    parts: list[str] = []
+    for el in soup.find_all(True):
+        # `find_all(True)` materialises the list up front, but `decompose()`
+        # below also decomposes every DESCENDANT of the element it's called
+        # on — a nested hidden element (e.g. `hidden`-attr `<span>` inside a
+        # `display:none` `<div>`) is still in this list and would otherwise
+        # crash on `.get(...)` against attrs that no longer exist.
+        if el.decomposed:
+            continue
+        style = coerce_attr_str(el.get("style"), "") or ""
+        if el.has_attr("hidden") or el.get("aria-hidden") == "true" or _HIDDEN_STYLE_RE.search(style):
+            parts.append(el.get_text(separator=" ", strip=True))
+            el.decompose()
+    return re.sub(r"\s+", " ", " ".join(p for p in parts if p)).strip()[:5000]

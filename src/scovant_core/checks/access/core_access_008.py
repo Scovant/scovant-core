@@ -10,6 +10,7 @@ class Indexability(CoreCheck):
     id = "CORE-ACCESS-008"
     title = "Indexability"
     category = Category.ACCESS
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.HIGH
     references = ("https://developers.google.com/search/docs/crawling-indexing/block-indexing",)

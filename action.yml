@@ -19,6 +19,7 @@ inputs:
   allow-private-networks: { description: Allow private/loopback targets (your own staging), default: 'false' }
   trusted-target: { description: 'Required (true) when allow-private-networks is true; never honoured for pull requests from forks', default: 'false' }
   require-canonical: { description: Fail the step unless the scan is CANONICAL with score status OK, default: 'false' }
+  fail-on-security: { description: 'never|critical|high|medium — exit 6 on a FAILed security finding at or above this severity (WARN never gates)', default: never }
 outputs:
   score: { value: '${{ steps.out.outputs.score }}' }
   grade: { value: '${{ steps.out.outputs.grade }}' }
@@ -30,6 +31,10 @@ outputs:
   score_status: { value: '${{ steps.out.outputs.score_status }}' }
   scan_scope: { value: '${{ steps.out.outputs.scan_scope }}' }
   error_count: { value: '${{ steps.out.outputs.error_count }}' }
+  security_critical: { value: '${{ steps.out.outputs.security_critical }}' }
+  security_high: { value: '${{ steps.out.outputs.security_high }}' }
+  security_fail_count: { value: '${{ steps.out.outputs.security_fail_count }}' }
+  security_warn_count: { value: '${{ steps.out.outputs.security_warn_count }}' }
 runs:
   using: composite
   steps:
@@ -88,8 +93,13 @@ runs:
         INPUT_MIN_CORE_SCORE: ${{ inputs.min-core-score }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
         INPUT_REQUIRE_CANONICAL: ${{ inputs.require-canonical }}
+        INPUT_FAIL_ON_SECURITY: ${{ inputs.fail-on-security }}
       run: |
         set -euo pipefail
         extra=()
         [[ "$INPUT_REQUIRE_CANONICAL" == "true" ]] && extra+=(--require-canonical)
-        python -m scovant_core.action gate "$RUNNER_TEMP/core.json" --min-score "$INPUT_MIN_CORE_SCORE" --fail-on "$INPUT_FAIL_ON" "${extra[@]}"
+        # An empty fail-on-security value (unset input, or explicitly passed
+        # as '') tolerates the same way --min-score's empty string does —
+        # "no gate", i.e. never.
+        sec="${INPUT_FAIL_ON_SECURITY:-never}"
+        python -m scovant_core.action gate "$RUNNER_TEMP/core.json" --min-score "$INPUT_MIN_CORE_SCORE" --fail-on "$INPUT_FAIL_ON" --fail-on-security "$sec" "${extra[@]}"

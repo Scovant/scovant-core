@@ -38,6 +38,9 @@ scoring constants — so a change to a detector's SEMANTICS (what it flags, not
 how it is worded) must bump that check's `check_version`, which changes the
 digest and tells a reader that a re-scan may legitimately differ.
 
+Security-category checks are unscored by construction and may be added
+within a ruleset version; the scored set remains frozen.
+
 ## Requirements for every PR
 
 - tests for every parser or check touched (fixtures must be synthetic — see

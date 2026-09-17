@@ -14,6 +14,7 @@ class LanguageDeclaration(CoreCheck):
     id = "CORE-MACHINE-010"
     title = "Language declaration"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://www.w3.org/International/questions/qa-html-language-declarations",)

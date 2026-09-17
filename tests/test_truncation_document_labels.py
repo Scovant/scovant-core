@@ -77,10 +77,12 @@ AUDITED_DOCUMENT_CALLS: set[tuple[str, str, str]] = {
     ("interfaces/core_interface_008.py", "ucp", "UCP profile"),
     ("trust/core_trust_001.py", "entry", "entry page"),
     ("trust/core_trust_006.py", "sec", "security.txt"),
+    ("security/web.py", "s", "security.txt"),
     ("trust/core_trust_007.py", "pricing_page", "pricing page"),
     ("trust/core_trust_007.py", "priced", "product page"),
     ("operability/core_operability_001.py", "entry", "entry page"),
     ("operability/core_operability_005.py", "pages[0]", "entry page"),
+    ("security/machine_data.py", "{'truncated': bool(api.get('truncated'))}", "the OpenAPI schema"),
 }
 
 

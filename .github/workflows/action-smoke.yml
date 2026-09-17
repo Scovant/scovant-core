@@ -35,6 +35,7 @@ jobs:
           allow-private-networks: 'true'
           trusted-target: 'true'
           min-core-score: '85'
+          fail-on-security: never
       - name: Assert outputs
         run: |
           set -euo pipefail

@@ -11,6 +11,7 @@ class TermsDiscoverability(CoreCheck):
     id = "CORE-TRUST-005"
     title = "Terms/conditions discoverability"
     category = Category.TRUST
+    verification_mode = "DECLARED"
     profiles = frozenset({"commerce", "saas", "api"})
     weight = 2
     references = ("https://schema.org/Legal",)

@@ -9,6 +9,7 @@ class UnknownPathsReturn404(CoreCheck):
     id = "CORE-OPERABILITY-008"
     title = "Unknown paths return 404"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     check_version = "1.1"
     severity_on_fail = Severity.MEDIUM

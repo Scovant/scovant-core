@@ -28,7 +28,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.3.1" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.3.1/constraints/constraints-0.3.1.txt
+    pip install "scovant-core==0.4.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.4.0/constraints/constraints-0.4.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -38,11 +38,14 @@ Every report records what actually ran (`provenance.dependencies`,
 Running `scovant scan https://example.com --experimental` against a
 well-instrumented commerce site produces text output shaped like this (real
 output, rendered — never from a live scan — from the `commerce-good` test
-fixture; a site with nothing to report on the SCORED checks, so "Top
-findings" is empty; any FAIL/WARN among those would be listed there). The
-`(n/N)` beside each category is how many of that category's applicable
-checks were actually evaluated — see `docs/methodology.md` for how the
-categories' depth varies. The "Experimental (not scored)" block lists every
+fixture; the SCORED readiness checks have nothing to report, so "Top
+findings" carries only the site's three `[security]`-tagged findings — the
+16 SECURITY checks never score and never gate the SCORED-checks claim, but
+a FAIL/WARN among them still surfaces in "Top findings", tagged
+`[security]`, appended after any readiness FAIL/WARN). The `(n/N)` beside
+each category is how many of that category's applicable checks were
+actually evaluated — see `docs/methodology.md` for how the categories'
+depth varies. The "Experimental (not scored)" block lists every
 experimental check that evaluated to something other than `N/A` on this
 scan (including a WARN, as below — experimental findings are still shown,
 just never scored), plus a compact "N/A: ..." line naming the experimental
@@ -50,7 +53,9 @@ checks that had nothing to evaluate — so every check the header counts is
 named somewhere, never merely counted. These never affect the Static Signal
 Score; pass `--experimental` to also run the experimental checks gated
 behind that flag (omit it and they're skipped entirely, not evaluated as
-N/A).
+N/A). The "Agentic Security & Trust" block below it is the 16 SECURITY
+checks' own summary — see `docs/security.md` for the full boundary of what
+it does and does not test.
 
 ```text
 SCOVANT CORE
@@ -58,7 +63,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.3.1
+Core version: 0.4.0
 
 Static Signal Score       100 / 100   A
 Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
@@ -82,16 +87,23 @@ Agent Interfaces          100   (2/2)
 Trust & Commerce          100   (7/7)
 Operability & Efficiency  100   (7/7)
 
-50 checks
-40 PASS
-1 WARN
-0 FAIL
-9 N/A
+66 checks
+51 PASS
+3 WARN
+1 FAIL
+11 N/A
 0 ERROR
 
 Top findings
 
-(none)
+FAIL  [security] CORE-SECURITY-003
+      Neither Content-Security-Policy nor X-Frame-Options is sent.
+
+WARN  [security] CORE-SECURITY-002
+      No Strict-Transport-Security header.
+
+WARN  [security] CORE-SECURITY-005
+      Missing: referrer-policy, x-content-type-options.
 
 Experimental (not scored)
 ──────────────────────────────────────────────
@@ -107,7 +119,44 @@ PASS  CORE-MACHINE-012
 WARN  CORE-OPERABILITY-011
       3 of 3 machine surface(s) are not linked from anything an agent reads: llms_txt, mcp, ucp.
 
-N/A: CORE-INTERFACE-004, CORE-INTERFACE-009, CORE-OPERABILITY-007
+PASS  [security] CORE-SECURITY-009
+      No administrative/destructive interfaces advertised.
+
+PASS  [security] CORE-SECURITY-011
+      No indicators found.
+
+PASS  [security] CORE-SECURITY-012
+      No indicators found.
+
+PASS  [security] CORE-SECURITY-013
+      No indicators found.
+
+PASS  [security] CORE-SECURITY-014
+      No indicators found.
+
+PASS  [security] CORE-SECURITY-015
+      No indicators found.
+
+PASS  [security] CORE-SECURITY-016
+      No indicators found.
+
+N/A: CORE-INTERFACE-004, CORE-INTERFACE-009, CORE-OPERABILITY-007, CORE-SECURITY-010
+
+AGENTIC SECURITY & TRUST  PASSIVE SIGNALS ONLY
+──────────────────────────────────────────────
+Critical                  0
+High                      0
+Medium                    1
+Low                       2
+Data exposure             PASS 3  WARN 0  FAIL 0
+Disclosure                PASS 1  WARN 0  FAIL 0
+Prompt surface            PASS 6  WARN 0  FAIL 0
+Web baseline              PASS 1  WARN 2  FAIL 1
+Observed authorization    NOT TESTED
+Verified agent identity   NOT TESTED
+Prompt-injection resilience NOT TESTED
+Tool invocation safety    NOT TESTED
+This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.
 
 Not tested by Scovant Core
 ──────────────────────────────────────────────
@@ -124,8 +173,9 @@ https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss
 
 ## What Core checks
 
-50 deterministic checks across 5 categories (7 of the 50 are experimental —
-they run and report but never affect the score; see below):
+66 checks total: 50 readiness checks across 5 categories (7 experimental)
+plus 16 unscored security checks. The 50 readiness checks (7 of them
+experimental — they run and report but never affect the score; see below):
 
 - **Access & Discovery** (11) — HTTPS reachability, robots.txt, AI crawler
   policy, training-vs-search crawler separation, sitemap availability and
@@ -179,6 +229,20 @@ id, weight, applicable profile, and why it matters — generated straight
 from the check registry so it can never drift from what the package
 actually runs.
 
+### Agentic Security & Trust (passive)
+
+16 more checks (`CORE-SECURITY-001..016`, 8 of them experimental) report
+passive, declared/observed security signals — HTTP security headers, HSTS,
+CSP, cookie flags, `security.txt` validity, credential-like values or
+internal-network references exposed in machine-facing surfaces, privileged
+endpoints advertised to agents, and prompt-injection-shaped content in
+`llms.txt`/MCP tool descriptions. They never carry a score weight and never
+change the Static Signal Score — every scan reports the same
+`PASSIVE SIGNALS ONLY` banner and the same four `NOT TESTED` lines
+(observed authorization, verified agent identity, prompt-injection
+resilience, tool invocation safety). Full boundary, verification-mode
+semantics, and standards mapping: [`docs/security.md`](docs/security.md#agentic-security--trust-passive-checks).
+
 ## What Core does NOT test
 
 Core is a static, unauthenticated scanner. It never opens a browser and
@@ -221,7 +285,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.3.1` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.4.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -247,6 +311,7 @@ step when the gate you configured trips.
 | `allow-private-networks` | Allow private/loopback targets (your own staging) | `false` |
 | `trusted-target` | Required (`true`) when `allow-private-networks` is `true`; never honoured for pull requests from forks | `false` |
 | `require-canonical` | Fail the step unless the scan is CANONICAL with score status OK | `false` |
+| `fail-on-security` | `never`\|`critical`\|`high`\|`medium` — fail the step on a FAILed security finding at or above this severity (a WARN never gates) | `never` |
 
 ### Outputs
 
@@ -262,6 +327,15 @@ step when the gate you configured trips.
 | `score_status` | `OK`\|`DEGRADED`\|`NOT_CANONICAL`\|`INSUFFICIENT_EVIDENCE` |
 | `scan_scope` | `CANONICAL`\|`CUSTOM`\|`PARTIAL` |
 | `error_count` | Number of checks that errored |
+| `security_critical` | Number of `critical`-severity findings in the Agentic Security & Trust section (FAIL + WARN) |
+| `security_high` | Number of `high`-severity findings in the Agentic Security & Trust section (FAIL + WARN) |
+| `security_fail_count` | Number of FAIL findings in the Agentic Security & Trust section |
+| `security_warn_count` | Number of WARN findings in the Agentic Security & Trust section |
+
+`pass_count`/`warn_count`/`fail_count` are readiness-only (the Agentic
+Security & Trust section is never scored — see `Report.security.scored` —
+so a security finding never changes what those three numbers mean); the
+`security_*` outputs above make the security population visible on its own.
 
 ### Scanning private networks
 
@@ -298,7 +372,11 @@ produces a versioned JSON report (`schema_version`, `core_version`,
 evidence) suitable for CI pipelines, matching the published
 [`docs/report.schema.json`](docs/report.schema.json). Combine with
 `--min-score`/`--fail-on` for a CI-friendly exit code, or `--output
-report.json` to write it to a file.
+report.json` to write it to a file. `--fail-on-security
+never|critical|high|medium` gates independently on the Agentic Security &
+Trust section (exit code `6` — a WARN never gates, only a FAIL at or above
+the given severity; that section is never scored, so this flag is separate
+from `--fail-on`/`--min-score`).
 
 ```bash
 scovant scan https://example.com --format markdown --output report.md
@@ -341,7 +419,7 @@ shell command. Claude Desktop (`claude_desktop_config.json`) and Cursor
 
 | Tool | Description |
 | --- | --- |
-| `scan_site` | Run all 50 checks against one public URL, return the JSON report |
+| `scan_site` | Run all 66 checks against one public URL, return the JSON report |
 | `get_core_score` | Run the scan, return only the Static Signal Score summary |
 | `list_checks` | List every check with category, weight, profiles, experimental flag |
 | `explain_check` | Explain one check: why it matters, limitations, Cloud extension, references |

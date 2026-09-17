@@ -13,6 +13,7 @@ class ImageAltCoverage(CoreCheck):
     id = "CORE-MACHINE-011"
     title = "Image alt coverage"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"content", "commerce"})
     weight = 1
     severity_on_fail = Severity.MEDIUM

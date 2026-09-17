@@ -740,3 +740,298 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **References:**
 
 - <https://www.rfc-editor.org/rfc/rfc8288>
+
+## Agentic Security & Trust
+
+Weight is informational — security checks are never scored.
+
+| ID | Title | Family | Verification | Weight | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|---|---|---|
+| CORE-SECURITY-001 | HTTPS baseline | SEC-WEB-001 | PASSIVE_OBSERVED | 1 | all | medium | no |
+| CORE-SECURITY-002 | HSTS presence | SEC-WEB-002 | PASSIVE_OBSERVED | 1 | all | low | no |
+| CORE-SECURITY-003 | Content-Security-Policy / framing policy | SEC-WEB-003 | PASSIVE_OBSERVED | 1 | all | medium | no |
+| CORE-SECURITY-004 | Security-relevant cookie attributes | SEC-WEB-004 | PASSIVE_OBSERVED | 1 | all | medium | no |
+| CORE-SECURITY-005 | Referrer / MIME hygiene headers | SEC-WEB-005 | PASSIVE_OBSERVED | 1 | all | low | no |
+| CORE-SECURITY-006 | security.txt validity (RFC 9116) | SEC-TXT-001 | DECLARED | 1 | all | medium | no |
+| CORE-SECURITY-007 | Credential-like value exposed in a machine-facing surface | MACHINE-DATA-001 | DECLARED | 1 | all | high | no |
+| CORE-SECURITY-008 | Internal network reference exposed | MACHINE-DATA-002 | DECLARED | 1 | all | low | no |
+| CORE-SECURITY-009 | Privileged endpoint advertised to agents | MACHINE-DATA-003 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-010 | Sensitive field advertised in a machine schema | MACHINE-DATA-004 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-011 | Hidden machine-facing imperative instructions | PROMPT-SURFACE-001 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-012 | Sensitive-information request instruction | PROMPT-SURFACE-002 | DECLARED | 1 | all | high | yes |
+| CORE-SECURITY-013 | External transmission instruction | PROMPT-SURFACE-003 | DECLARED | 1 | all | high | yes |
+| CORE-SECURITY-014 | Policy/role override language | PROMPT-SURFACE-004 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-015 | Human ↔ machine instruction divergence | PROMPT-SURFACE-005 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-016 | Tool/server description trust risk | PROMPT-SURFACE-006 | DECLARED | 1 | all | medium | yes |
+
+### CORE-SECURITY-001 — HTTPS baseline
+
+**Why it matters:** An agent that can be downgraded to plain HTTP can be read and rewritten in transit; the entry URL's scheme and the http→https redirect are the two externally observable signals.
+
+**Family:** SEC-WEB-001 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** edge_cdn
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** MDN:HTTPS
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc9110>
+
+### CORE-SECURITY-002 — HSTS presence
+
+**Why it matters:** Strict-Transport-Security keeps a returning agent on https even when it is handed an http:// link.
+
+**Family:** SEC-WEB-002 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** edge_cdn
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** RFC 6797
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc6797>
+
+### CORE-SECURITY-003 — Content-Security-Policy / framing policy
+
+**Why it matters:** A framing policy stops a page being embedded and click-jacked; a CSP is the declared allow-list agents can read. Neither alone proves XSS protection, and this check never claims it.
+
+**Family:** SEC-WEB-003 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** frontend
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** CSP3
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.w3.org/TR/CSP3/>
+
+### CORE-SECURITY-004 — Security-relevant cookie attributes
+
+**Why it matters:** A session-like cookie without Secure/HttpOnly/SameSite can be stolen or replayed by an agent-driven page; only names and attribute flags are inspected, never values.
+
+**Family:** SEC-WEB-004 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** backend
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** RFC 6265bis
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc6265>
+
+### CORE-SECURITY-005 — Referrer / MIME hygiene headers
+
+**Why it matters:** Two low-cost headers that stop URL leakage and MIME sniffing; informational weight only.
+
+**Family:** SEC-WEB-005 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** edge_cdn
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** Referrer Policy, X-Content-Type-Options
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.w3.org/TR/referrer-policy/>
+
+### CORE-SECURITY-006 — security.txt validity (RFC 9116)
+
+**Why it matters:** An expired or mis-located security.txt sends a reporter (human or agent) to a dead contact; CORE-TRUST-006 reports presence, this check reports validity.
+
+**Family:** SEC-TXT-001 · **Verification:** DECLARED · **Domain:** disclosure · **Fix owner:** security
+
+**Limitations:** Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.
+
+**Standards:** RFC 9116
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc9116>
+
+### CORE-SECURITY-007 — Credential-like value exposed in a machine-facing surface
+
+**Why it matters:** llms.txt, discovery files and schemas are read verbatim by agents; a live key there is copied into every agent's context window.
+
+**Family:** MACHINE-DATA-001 · **Verification:** DECLARED · **Domain:** data_exposure · **Fix owner:** backend
+
+**Limitations:** Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI03 (partial)
+
+**Cloud extension:** Scovant Cloud tests observed data minimisation with synthetic identities.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-008 — Internal network reference exposed
+
+**Why it matters:** Private addresses, metadata endpoints and internal hostnames in public documents map the inside of a deployment; not a vulnerability by itself, hence low severity.
+
+**Family:** MACHINE-DATA-002 · **Verification:** DECLARED · **Domain:** data_exposure · **Fix owner:** devops
+
+**Limitations:** Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.
+
+**Standards:** RFC 1918
+
+**Cloud extension:** Scovant Cloud tests observed data minimisation with synthetic identities.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc1918>
+
+### CORE-SECURITY-009 — Privileged endpoint advertised to agents
+
+**Why it matters:** An agent-facing declaration of an admin or destructive interface invites its use; Core reports the declaration only.
+
+**Family:** MACHINE-DATA-003 · **Verification:** DECLARED · **Domain:** data_exposure · **Fix owner:** mcp
+
+**Status:** experimental · scored: no · reason: An agent-facing declaration of an admin or destructive interface invites its use; Core reports the declaration only. · promotion: Precision ≥ 0.8 on a hand-labelled sample of ≥ 50 declared-privileged hits from the calibration corpus, and a WARN rate ≤ 5% on the marketing corpus.
+
+**Limitations:** Passive signal only. Scovant Core reports declared MCP server names and OpenAPI paths; the privileged/destructive classification is a NAME-BASED GUESS, never an inspection of actual behaviour, and it never authenticates, invokes a tool or submits a request.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI02 (partial)
+
+**Cloud extension:** Scovant Cloud tests observed data minimisation with synthetic identities.
+
+**References:**
+
+- <https://modelcontextprotocol.io/specification/>
+
+### CORE-SECURITY-010 — Sensitive field advertised in a machine schema
+
+**Why it matters:** A schema that names a password field is normal; one that ships a sample or real value for it is a leak. The classification distinguishes the three.
+
+**Family:** MACHINE-DATA-004 · **Verification:** DECLARED · **Domain:** data_exposure · **Fix owner:** backend
+
+**Status:** experimental · scored: no · reason: A schema that names a password field is normal; one that ships a sample or real value for it is a leak. · promotion: Zero FAIL verdicts on the public fixture corpus and ≥ 3 confirmed true positives (real_value_like) on the calibration corpus.
+
+**Limitations:** Passive signal only. Scovant Core reports declared OpenAPI schema field names and their example/default values; it never authenticates, invokes an endpoint or submits a request.
+
+**Standards:** OpenAPI 3
+
+**Cloud extension:** Scovant Cloud tests observed data minimisation with synthetic identities.
+
+**References:**
+
+- <https://spec.openapis.org/oas/latest.html>
+
+### CORE-SECURITY-011 — Hidden machine-facing imperative instructions
+
+**Why it matters:** Text a human never sees but an agent reads verbatim is the classic indirect-injection carrier.
+
+**Family:** PROMPT-SURFACE-001 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** content
+
+**Status:** experimental · scored: no · reason: Text a human never sees but an agent reads verbatim is the classic indirect-injection carrier. · promotion: Precision ≥ 0.7 on a hand-labelled sample of ≥ 100 WARNs from the calibration corpus and a WARN rate ≤ 3 % on the marketing corpus.
+
+**Limitations:** Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-012 — Sensitive-information request instruction
+
+**Why it matters:** A machine-facing request to disclose credentials or private data is the exfiltration half of an injection.
+
+**Family:** PROMPT-SURFACE-002 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** content
+
+**Status:** experimental · scored: no · reason: A machine-facing request to disclose credentials or private data is the exfiltration half of an injection. · promotion: Precision ≥ 0.8 on ≥ 30 labelled WARNs; zero hits on the public fixture corpus except the suspicious fixture.
+
+**Limitations:** Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-013 — External transmission instruction
+
+**Why it matters:** An instruction to send data to a third-party host is a data-exfiltration attempt if an agent obeys it.
+
+**Family:** PROMPT-SURFACE-003 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** content
+
+**Status:** experimental · scored: no · reason: An instruction to send data to a third-party host is a data-exfiltration attempt if an agent obeys it. · promotion: Precision ≥ 0.8 on ≥ 30 labelled WARNs (a legitimate webhook/documentation URL must not count).
+
+**Limitations:** Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-014 — Policy/role override language
+
+**Why it matters:** "Ignore previous instructions" and friends have no legitimate place in site content.
+
+**Family:** PROMPT-SURFACE-004 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** content
+
+**Status:** experimental · scored: no · reason: "Ignore previous instructions" and friends have no legitimate place in site content. · promotion: WARN rate ≤ 2 % on the marketing corpus with precision ≥ 0.8 on labelled hits.
+
+**Limitations:** Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-015 — Human ↔ machine instruction divergence
+
+**Why it matters:** Instructions present in the machine mirror but absent from the visible page are addressed to agents only.
+
+**Family:** PROMPT-SURFACE-005 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** content
+
+**Status:** experimental · scored: no · reason: Instructions present in the machine mirror but absent from the visible page are addressed to agents only. · promotion: Precision ≥ 0.7 on ≥ 50 labelled WARNs; N/A rate documented per profile.
+
+**Limitations:** Heuristic passive indicator only: compares an instruction phrase found in machine-facing text against the visible text of the rendered page (itself capped at 5000 characters) by normalized substring containment. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-016 — Tool/server description trust risk
+
+**Why it matters:** A tool description is injected into the agent's context on every call; unrelated instructions or hidden Unicode there are a supply-chain injection vector.
+
+**Family:** PROMPT-SURFACE-006 · **Verification:** DECLARED · **Domain:** prompt_surface · **Fix owner:** mcp
+
+**Status:** experimental · scored: no · reason: A tool description is injected into the agent's context on every call; unrelated instructions or hidden Unicode there are a supply-chain injection vector. · promotion: Precision ≥ 0.8 on ≥ 30 labelled WARNs from the community Core index.
+
+**Limitations:** Heuristic passive indicator only: pattern matches over declared MCP server and WebMCP tool descriptions. It never executes an instruction, never invokes a tool, and a WARN is not a vulnerability claim.
+
+**Standards:** OWASP Agentic Top 10 2026: ASI01 (partial)
+
+**Cloud extension:** Scovant Cloud runs authorized prompt-resilience scenarios with synthetic canaries.
+
+**References:**
+
+- <https://owasp.org/www-project-top-10-for-large-language-model-applications/>

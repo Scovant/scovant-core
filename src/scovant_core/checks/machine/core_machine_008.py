@@ -10,6 +10,7 @@ class MetadataQuality(CoreCheck):
     id = "CORE-MACHINE-008"
     title = "Metadata quality"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://ogp.me/",)

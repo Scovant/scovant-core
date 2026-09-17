@@ -4,6 +4,87 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.4.0] - 2026-09-16
+
+Adds a new, unconditionally unscored SECURITY category — the scored set,
+weights, and everything `ruleset_digest` already covered for the 50
+readiness checks are unchanged; `ruleset_digest` itself changes because the
+digest is computed over every check's `id:check_version`, security checks
+included. Report schema bumps `schema_version` 1.0 → 1.1 (additive-only:
+one new top-level `security` object; every existing field is unchanged).
+
+### Added
+- 16 `CORE-SECURITY-001..016` checks (category "Agentic Security & Trust"):
+  `SEC-WEB-*` (HTTPS baseline, HSTS, CSP/framing, cookie attributes,
+  referrer/MIME hygiene), `SEC-TXT-001` (security.txt validity, RFC 9116),
+  `MACHINE-DATA-001..004` (credential-like values, internal network
+  references, privileged endpoints, sensitive schema fields exposed in
+  machine-facing surfaces — the last two ship `experimental`), and
+  `PROMPT-SURFACE-001..006` (hidden imperative instructions,
+  sensitive-information requests, external-transmission instructions,
+  policy/role override language, human↔machine divergence, tool/server
+  description trust risk — all six ship `experimental`). 8 of the 16 are
+  experimental; none of the 16 ever carries a `Category` weight or moves
+  the Static Signal Score — see `docs/security.md` and
+  `tests/test_security_is_score_neutral.py`.
+- `Report.security` block: severity counts, per-`security_domain` PASS/
+  WARN/FAIL tallies, a fixed "not tested" list (observed authorization,
+  verified agent identity, prompt-injection resilience, tool invocation
+  safety), and `redaction_applied`. Rendered in all four output formats
+  (`text`, `markdown`, `html`, `json`) with the `PASSIVE SIGNALS ONLY`
+  banner.
+- `--fail-on-security {never,critical,high,medium}` CLI flag and its
+  GitHub Action equivalent (`fail-on-security` input) — exit code `6` on a
+  FAILed security finding at or above the chosen severity; a WARN never
+  gates. Independent of the existing `--fail-on`/`fail-on` (readiness)
+  gate.
+- `CORE-SECURITY-006` reuses the existing security.txt gatherer
+  (`gatherers/security_txt.py`, RFC 9116, `.well-known/security.txt` then
+  the legacy `/security.txt` path — shipped since 0.1.x, not new here), now
+  gathered on every profile because `CORE-SECURITY-006` has no profile
+  gate. It is the same cached gatherer `CORE-TRUST-006` already required for
+  `saas`/`api`/`commerce` profiles, so it adds no request there; because
+  `CORE-SECURITY-006` carries no profile restriction (unlike
+  `CORE-TRUST-006`), a profile `CORE-TRUST-006` doesn't cover (`content`,
+  `blog`, `other`, ...) now pays 1-2 requests for it that it previously
+  skipped.
+- Existing gatherers (`gatherers/http.py`) extended in place: security
+  response headers, `Set-Cookie` attributes (name + flags only, never the
+  value — see `docs/security.md` § Redaction policy), and a new
+  http→https downgrade probe backing `CORE-SECURITY-001` (HTTPS baseline)
+  — one `http://<origin>/` fetch per `https`-target scan, zero extra
+  requests when the target is already `http`. This probe, not
+  `security_txt`, is the real cost driver measured across the four
+  canonical fixtures' regenerated goldens: `metrics.requests` moved
+  31→33 (commerce-good), 26→32 (commerce-bad), 31→33 (api-good), 39→41
+  (saas-mixed) — +2 requests for three of the four (the probe's own
+  request plus the one hop needed to reach https), and +6 for
+  commerce-bad, whose fixture deliberately exercises a 4-hop internal
+  redirect chain (for the pre-existing redirect-complexity check) that
+  the probe re-walks in full once it lands on https. Disabling only the
+  downgrade probe reproduces the OLD (pre-0.4.0) counts exactly
+  (31/26/31/39) — confirmed by measurement, not estimated.
+- `docs/security.md` § "Agentic Security & Trust (passive checks)" — the
+  Core/Cloud boundary (MAY/MUST NOT), verification-mode semantics, the
+  four NOT-TESTED lines, the deferred-domain WATCH list (including
+  `MACHINE-DATA-005`/`-006`), redaction policy, required wording, and a
+  standards mapping (RFC 9116, RFC 9728, RFC 8707, RFC 9421, OWASP Agentic
+  Top 10 2026 — mapping only, no compliance claim).
+- `docs/methodology.md` § "Security signals are reported, not scored".
+- `tests/test_security_is_score_neutral.py` — parametrized over every
+  golden fixture, proves `--exclude security` changes nothing about the
+  score, any category score, or any readiness finding's own
+  status/severity/evidence.
+- Fixtures `security-good`/`security-bad` (+ goldens) alongside the four
+  existing canonical fixtures.
+
+### Fixed
+- `report/text.py`: the "NOT TESTED" line renderer glued a label straight
+  onto "NOT TESTED" with no separating space whenever the label was at or
+  past the fixed column width ("Prompt-injection resilience" is 28 chars
+  against a 26-char column) — now guarantees at least one space regardless
+  of label length.
+
 ## [0.3.1] - 2026-09-15
 
 The scored set, weights and `RULESET_VERSION` (2026.10) are unchanged. Two

@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import json
 
-from scovant_core.models import CheckStatus, Report
+from scovant_core.models import Category, CheckStatus, Report
 from scovant_core.report._common import (
+    SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
     capabilities_lines,
     evaluated_experimental,
@@ -13,6 +14,8 @@ from scovant_core.report._common import (
     na_experimental,
     profile_note,
     scored_experimental,
+    security_findings,
+    security_rows,
     standards_line,
     status_counts,
     status_note,
@@ -94,7 +97,10 @@ def render_markdown(report: Report, *, utm_medium: str = "cli") -> str:
     ]
     out += ["## Top findings", ""]
     top = top_findings(report.findings, scored)
-    out += [f"- **{f.id}** — {f.summary}" for f in top] or ["(none)"]
+    out += [
+        f"- {'**[security]** ' if f.category == Category.SECURITY else ''}**{f.id}** — {f.summary}"
+        for f in top
+    ] or ["(none)"]
     out += ["", "## Findings", ""]
     for status, fs in grouped_by_status(report.findings).items():
         fs = [f for f in fs if scored or not f.experimental]
@@ -124,6 +130,23 @@ def render_markdown(report: Report, *, utm_medium: str = "cli") -> str:
             out += ["_Experimental checks: not scored (run with --experimental)_", ""]
         if na:
             out += ["N/A: " + ", ".join(f"`{f.id}`" for f in na), ""]
+    out += ["## Agentic Security & Trust", "", f"_{report.security.label}_", "", "| | |", "|---|---|"]
+    out += [f"| {k} | {v} |" for k, v in security_rows(report)]
+    out += [""]
+    if report.security.not_tested:
+        out += [f"- {n}: NOT TESTED" for n in report.security.not_tested] + [""]
+    for f in security_findings(report):
+        out += [
+            f"### {f.id} ({f.family_id}) — {f.title}", "",
+            f"- Status: {f.status.value} · Severity: {f.severity.value} · Confidence: {f.confidence.value} · Verification: {f.verification_mode}",
+            f"- Fix owner: {f.fix_owner} · Domain: {f.security_domain}", f"- {f.summary}",
+        ]
+        if f.remediation:
+            out.append(f"- Remediation: {f.remediation}")
+        if f.limitations:
+            out.append(f"- Limitations: {f.limitations}")
+        out += _finding(f)[1:] if f.evidence else [""]
+    out += [SECURITY_DISCLAIMER, ""]
     out += ["## Not tested by Scovant Core", ""] + [f"- {n}" for n in report.not_tested] + [""]
     p = report.provenance
     out += [

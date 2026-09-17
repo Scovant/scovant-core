@@ -10,6 +10,7 @@ class ContactDiscoverability(CoreCheck):
     id = "CORE-TRUST-001"
     title = "Contact/support discoverability"
     category = Category.TRUST
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://schema.org/ContactPoint",)

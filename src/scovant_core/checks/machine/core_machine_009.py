@@ -10,6 +10,7 @@ class HeadingStructure(CoreCheck):
     id = "CORE-MACHINE-009"
     title = "Heading structure"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://www.w3.org/WAI/tutorials/page-structure/headings/",)

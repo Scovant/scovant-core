@@ -52,7 +52,7 @@ def test_get_finding_unknown_scan_is_an_error_not_a_rescan(server):
 
 def test_list_and_explain(server):
     checks = json.loads(_call(server, "list_checks")[0].text)
-    assert len(checks) == 50 and {"id", "title", "category", "weight", "profiles", "experimental"} <= set(checks[0])
+    assert len(checks) == 66 and {"id", "title", "category", "weight", "profiles", "experimental"} <= set(checks[0])
     ex = json.loads(_call(server, "explain_check", check_id="CORE-MACHINE-007")[0].text)
     assert ex["id"] == "CORE-MACHINE-007" and ex["why_it_matters"] and ex["limitations"]
 

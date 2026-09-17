@@ -16,6 +16,11 @@ from ._soft_200 import is_soft_200_html
 
 _CANDIDATE_PATHS = ("/openapi.json", "/openapi.yaml", "/.well-known/openapi.json", "/swagger.json", "/api-docs")
 _MAX_VERSION_LEN = 50
+# Bounds the retained `text` well above machine_text's own 64 KB per-surface
+# cap (so a real single-source overflow still exercises that cap, not this
+# one) while still capping the 10 MB "json"-kind fetch ceiling down to
+# something bounded before it's carried around as evidence.
+_TEXT_CAP = 256 * 1024
 
 
 def _entry_page_link_candidates(html: str, base_url: str, origin: str) -> list[str]:
@@ -58,6 +63,48 @@ def _check_parseable(text: str) -> tuple[bool, str | None]:
     return False, None
 
 
+def _extract_paths_and_schemas(text: str) -> tuple[list[str], dict[str, dict[str, dict]]]:
+    """Best-effort structural extraction over an already-confirmed-parseable
+    OpenAPI JSON document — `paths` (the declared path keys, in document
+    order) and `schemas` (`components.schemas[*].properties` reduced to
+    `{property: {example, default}}`, values coerced to plain str/None so a
+    non-string example/default never leaks a nested object into evidence).
+    Never raises: a document that doesn't parse as JSON, or whose `paths`/
+    `components` aren't the expected shape, degrades to `[]`/`{}` — this is
+    additive evidence, not a second parseability gate."""
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        return [], {}
+    if not isinstance(data, dict):
+        return [], {}
+    paths_obj = data.get("paths")
+    paths = [str(p) for p in paths_obj] if isinstance(paths_obj, dict) else []
+    schemas: dict[str, dict[str, dict]] = {}
+    components = data.get("components")
+    raw_schemas = components.get("schemas") if isinstance(components, dict) else None
+    if isinstance(raw_schemas, dict):
+        for name, schema in raw_schemas.items():
+            if not isinstance(schema, dict):
+                continue
+            props = schema.get("properties")
+            if not isinstance(props, dict):
+                continue
+            out_props: dict[str, dict] = {}
+            for prop, meta in props.items():
+                if not isinstance(meta, dict):
+                    continue
+                example = meta.get("example")
+                default = meta.get("default")
+                out_props[str(prop)] = {
+                    "example": example if isinstance(example, str) else None,
+                    "default": default if isinstance(default, str) else None,
+                }
+            if out_props:
+                schemas[str(name)] = out_props
+    return paths, schemas
+
+
 def _is_json_parseable(text: str) -> bool:
     """The body parses as JSON at all — deliberately weaker than
     `_check_parseable` (which additionally requires an `openapi`/`swagger`
@@ -89,6 +136,8 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
     parseable = False
     json_parseable = False
     openapi_version: str | None = None
+    paths: list[str] = []
+    schemas: dict[str, dict[str, dict]] = {}
     served_as_html = False
     # `status`/`last_served_as_html` are AGGREGATED across every candidate
     # this loop examines — never "whichever candidate happened to answer
@@ -116,6 +165,7 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
     saw_soft_html = False
     saw_absent = False
     truncated = False
+    found_text = ""
     for url in candidates:
         res = client.try_fetch(url, kind="json")
         if isinstance(res, FetchError):
@@ -131,10 +181,13 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
             found_url = url
             parseable, openapi_version = _check_parseable(res.text)
             json_parseable = _is_json_parseable(res.text)
+            found_text = res.text[:_TEXT_CAP]
             # Only the candidate that actually became the found spec
             # contributes to the record — an earlier 404'd/errored candidate
             # never fed a document into `parseable`/`openapi_version`.
             truncated = bool(res.truncated) and res.text != ""
+            if parseable:
+                paths, schemas = _extract_paths_and_schemas(res.text)
             break
         if res.status in (404, 410):
             saw_absent = True
@@ -164,7 +217,8 @@ def gather_openapi(client: SecureClient, ctx: ScanContext, store: EvidenceStore)
            "openapi_version": openapi_version,
            "candidates": candidates, "served_as_html": served_as_html,
            "status": status, "last_served_as_html": last_served_as_html,
-           "truncated": truncated}
+           "truncated": truncated, "text": found_text,
+           "paths": paths, "schemas": schemas}
     if status == 429:
         out["retry_after"] = error_retry_after
     return out

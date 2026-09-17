@@ -50,11 +50,23 @@ def test_exactly_one_mapping_per_requirement_and_every_check_exists():
 
 
 def test_check_standards_attribute_is_the_inverse_of_mapping():
+    # AgentReady v1.0's 18 requirements never reference a SEC-* check — the
+    # mapping is about the five scored categories only — so `.standards` on
+    # a SECURITY-category check means something else entirely (the RFC/spec
+    # it implements, e.g. "RFC 9116"; see `test_security_foundation.py`'s
+    # identical category boundary and the security registry tests) and is
+    # deliberately out of scope for this inverse-of-MAPPING check.
     inverse: dict[str, list[str]] = {}
     for m in MAPPING:
         for cid in m.core_checks:
             inverse.setdefault(cid, []).append(m.requirement_id)
     for c in CHECKS:
+        if c.category == Category.SECURITY:
+            # Pinned, not skipped: AgentReady v1.0 maps no SECURITY check
+            # today, so a CORE-SECURITY id can never silently enter MAPPING
+            # without this assertion catching it.
+            assert standards_for(c.id) == (), c.id
+            continue
         assert tuple(c.standards) == tuple(inverse.get(c.id, ())), c.id
         assert tuple(c.standards) == standards_for(c.id)
     assert checks_for("AR-ACT-02") == ("CORE-INTERFACE-005",)

@@ -6,7 +6,8 @@
         "machine",
         "interfaces",
         "trust",
-        "operability"
+        "operability",
+        "security"
       ],
       "title": "Category",
       "type": "string"
@@ -79,6 +80,16 @@
           "title": "Experimental",
           "type": "boolean"
         },
+        "family_id": {
+          "default": "",
+          "title": "Family Id",
+          "type": "string"
+        },
+        "fix_owner": {
+          "default": "",
+          "title": "Fix Owner",
+          "type": "string"
+        },
         "id": {
           "title": "Id",
           "type": "string"
@@ -93,6 +104,18 @@
           "title": "Remediation",
           "type": "string"
         },
+        "security_domain": {
+          "default": "",
+          "title": "Security Domain",
+          "type": "string"
+        },
+        "security_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Security Tags",
+          "type": "array"
+        },
         "severity": {
           "$ref": "#/$defs/Severity"
         },
@@ -105,6 +128,11 @@
         },
         "title": {
           "title": "Title",
+          "type": "string"
+        },
+        "verification_mode": {
+          "default": "PASSIVE_OBSERVED",
+          "title": "Verification Mode",
           "type": "string"
         },
         "weight": {
@@ -200,6 +228,52 @@
         "status"
       ],
       "title": "Score",
+      "type": "object"
+    },
+    "SecuritySummary": {
+      "description": "The report's `security` block — counts over SECURITY-category\nfindings only. Never a score; see `scoring.SCORED_CATEGORIES` and\ndocs/security.md.",
+      "properties": {
+        "by_domain": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "title": "By Domain",
+          "type": "object"
+        },
+        "findings_by_severity": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Findings By Severity",
+          "type": "object"
+        },
+        "label": {
+          "default": "PASSIVE SIGNALS ONLY",
+          "title": "Label",
+          "type": "string"
+        },
+        "not_tested": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Not Tested",
+          "type": "array"
+        },
+        "redaction_applied": {
+          "default": false,
+          "title": "Redaction Applied",
+          "type": "boolean"
+        },
+        "scored": {
+          "default": false,
+          "title": "Scored",
+          "type": "boolean"
+        }
+      },
+      "title": "SecuritySummary",
       "type": "object"
     },
     "Severity": {
@@ -306,11 +380,14 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "1.0",
+      "const": "1.1",
       "type": "string"
     },
     "score": {
       "$ref": "#/$defs/Score"
+    },
+    "security": {
+      "$ref": "#/$defs/SecuritySummary"
     },
     "started_at": {
       "title": "Started At",

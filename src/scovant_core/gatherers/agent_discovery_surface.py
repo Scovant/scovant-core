@@ -71,4 +71,11 @@ def gather_agent_discovery_surface(client: SecureClient, ctx: ScanContext, store
     if pr_exists is not None:
         known["oauth_pr"] = pr_exists
 
-    return check_agent_discovery(client.probe_adapter("json"), ctx.origin or "", known=known)
+    result = check_agent_discovery(client.probe_adapter("json"), ctx.origin or "", known=known)
+    origin = ctx.origin or ""
+    result["documents"] = [
+        {"kind": key, "url": f"{origin}{DISCOVERY_PROBES[key]['path']}", "text": surface["text"]}
+        for key, surface in result["surfaces"].items()
+        if surface.get("text")
+    ]
+    return result

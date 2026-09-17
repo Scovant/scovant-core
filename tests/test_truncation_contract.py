@@ -37,6 +37,18 @@ BODY_READING = {
     "sitemap_urls", "soft_404", "ucp",
 }
 
+# `machine_text` writes a `"truncated"` key too, but it is a DIFFERENT
+# signal from everything above: it never performs a fetch of its own (it
+# reads only `EvidenceStore.gathered(...)` — evidence other gatherers
+# already fetched this scan) and its `"truncated"` means "this Surface's
+# text was cut at the package's own 64 KB per-surface cap", not "the fetch
+# layer capped the response body". It is intentionally outside the
+# body-reading contract this file otherwise enforces, so it is excluded
+# from `BODY_READING` (it would fail `_reads_a_body`'s detector — no
+# `.text`/probe-helper access) and from the stray-writer check below by
+# name, rather than folded into either set under a false pretense.
+SURFACE_CAP_ONLY = {"machine_text"}
+
 # Gatherers where a real, per-call truncation signal is either unavailable
 # or genuinely never applicable — AUDITED, with the reason a reviewer would
 # need to accept the module is honest anyway. A module here still must
@@ -153,5 +165,10 @@ def test_exemptions_are_audited_body_readers_that_still_write_the_flag():
 
 def test_no_other_gatherer_writes_the_flag():
     strays = [name for name, src in _modules().items()
-              if name not in BODY_READING and '"truncated"' in src]
+              if name not in BODY_READING and name not in SURFACE_CAP_ONLY and '"truncated"' in src]
     assert strays == [], f"only body-reading gatherers may write `truncated`: {strays}"
+
+
+def test_surface_cap_only_modules_never_read_a_body():
+    for name in SURFACE_CAP_ONLY:
+        assert not _reads_a_body(_modules()[name]), f"{name} reads a body — it belongs in BODY_READING"

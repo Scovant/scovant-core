@@ -20,6 +20,7 @@ class WebSiteOrPageEntity(CoreCheck):
     id = "CORE-MACHINE-003"
     title = "WebSite/WebPage entity"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://schema.org/WebSite", "https://schema.org/WebPage")

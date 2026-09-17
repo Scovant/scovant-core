@@ -19,6 +19,9 @@ from scovant_core.security.client import FetchError, SecureClient
 # cap, same rationale: a hostile/misconfigured discovery file must not blow
 # up evidence size.
 _MAX_SERVERS = 50
+# Bounds the retained `text` well above machine_text's own 64 KB
+# per-surface cap — see the identical rationale in gatherers/openapi.py.
+_TEXT_CAP = 256 * 1024
 # First-present-wins key for a server's declared auth scheme — the field name
 # isn't standardized yet, so this reads defensively across the variants seen
 # in the wild.
@@ -91,6 +94,9 @@ def gather_mcp_discovery(client: SecureClient, ctx: ScanContext, store: Evidence
         retry_after = res.headers.get("retry-after") if status == 429 else None
 
     discovery = check_mcp_discovery(content, status or 0)
+    # Raw JSON body, bounded only by the fetch layer's own "json" kind size
+    # limit — `machine_text` applies the tighter per-surface cap.
+    discovery["text"] = (content or "")[:_TEXT_CAP]
     # the probe adapter (not `client.httpx`): redirect-following, size-capped
     # and scan-deadline-aware, so a server card behind a 301 is still found.
     # `probe_mcp_server_card` reads through `_probe_json`, which DOES derive

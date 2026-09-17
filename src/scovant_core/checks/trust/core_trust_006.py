@@ -12,6 +12,7 @@ class SecurityTxtDiscoverability(CoreCheck):
     id = "CORE-TRUST-006"
     title = "security.txt discoverability"
     category = Category.TRUST
+    verification_mode = "DECLARED"
     profiles = frozenset({"saas", "api", "commerce"})
     weight = 2
     references = ("https://www.rfc-editor.org/rfc/rfc9116",)

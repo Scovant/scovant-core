@@ -11,6 +11,7 @@ class OfferCompleteness(CoreCheck):
     id = "CORE-MACHINE-005"
     title = "Offer price, currency, and availability"
     category = Category.MACHINE
+    verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
     weight = 4
     severity_on_fail = Severity.HIGH

@@ -35,6 +35,7 @@ class BrokenMachineEndpoints(CoreCheck):
     id = "CORE-OPERABILITY-004"
     title = "Broken machine-consumable endpoints"
     category = Category.OPERABILITY
+    verification_mode = "PASSIVE_OBSERVED"
     weight = 3
     severity_on_fail = Severity.HIGH
     references = ("https://llmstxt.org/", "https://www.sitemaps.org/protocol.html")

@@ -12,6 +12,7 @@ class RobotsTxtAvailability(CoreCheck):
     id = "CORE-ACCESS-002"
     title = "robots.txt availability and syntax"
     category = Category.ACCESS
+    verification_mode = "DECLARED"
     weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)

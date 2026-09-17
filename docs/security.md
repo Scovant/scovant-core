@@ -323,6 +323,237 @@ are ported into Scovant's private monorepo by hand, following the same
 "port a community PR" path any external contribution takes, and reach this
 repository again only in the next sync commit.
 
+## Agentic Security & Trust (passive checks)
+
+Ruleset 2026.10 adds 16 `CORE-SECURITY-*` checks — the passive slice of a
+larger Agentic Security & Trust program (this is check-level security
+*signal reporting*, distinct from everything above this section, which is
+about the security of Core's own network layer while it scans). Read this
+section alongside `docs/methodology.md`'s "Security signals are reported,
+not scored" section and `docs/checks.md`'s "Agentic Security & Trust"
+section (the per-check catalog).
+
+```text
+Agentic Security & Trust
+PASSIVE SIGNALS ONLY
+```
+
+That banner (rendered by every output format) is the whole boundary in four
+words. Every `CORE-SECURITY-*` finding is derived from the same
+unauthenticated, non-mutating requests every other Core check already
+makes — declared metadata (a header, a `security.txt` file, a tool
+description) or a normal GET response. Nothing here authenticates, submits
+a form, invokes a tool, or observes how a real agent actually behaves.
+
+### Core vs. Cloud: what MAY and MUST NOT happen here
+
+Scovant Core remains, unconditionally: passive, static/deterministic,
+local-first, reproducible, CI-safe, public-resource only, unauthenticated,
+non-destructive.
+
+Core MAY:
+
+- inspect TLS/HTTPS state;
+- inspect response security headers;
+- inspect public `Set-Cookie` attributes;
+- inspect `security.txt`;
+- inspect public OAuth protected-resource and authorization-server metadata;
+- inspect public MCP/WebMCP/OpenAPI/agent metadata;
+- identify suspicious secret/token-like values in public machine-readable surfaces;
+- classify declared tool risk from metadata/annotations where possible;
+- detect machine-facing prompt/instruction risk indicators;
+- detect public machine-interface inconsistencies;
+- produce remediation advice.
+
+Core MUST NOT:
+
+- authenticate;
+- submit forms;
+- call live consequential tools;
+- bypass WAF or CAPTCHA;
+- simulate attack chains;
+- persist discovered credentials;
+- test cross-tenant isolation;
+- perform prompt-injection execution against real agents;
+- claim observed authorization behavior.
+
+Everything on the Core MUST NOT list — plus the domains below — is Scovant
+Cloud/enterprise territory (a separately designed, explicitly authorized
+product), not something a future Core release quietly grows into.
+
+### Verification modes
+
+Every `CORE-SECURITY-*` finding carries a `verification_mode`. Scovant's
+security design defines four canonical modes; Core, being passive-only,
+emits exactly two of them:
+
+| Mode | Meaning | Core emits it? |
+|---|---|---|
+| `DECLARED` | Derived from configuration/metadata only — e.g. a `security.txt` file exists; a tool description declares an override. | yes |
+| `PASSIVE_OBSERVED` | Observed from normal requests without mutating state — e.g. an HSTS header on the entry response. | yes |
+| `ACTIVE_SAFE` | Safe, bounded active probing against a real agent or tool. | no |
+| `SYNTHETIC_AUTHORIZED` | Synthetic test data run under a `VERIFIED_SECURITY` execution mode with explicit customer authorization. | no |
+
+`ACTIVE_SAFE` and `SYNTHETIC_AUTHORIZED` are structurally impossible from
+Core: both require a live, authenticated interaction with the target that
+the Core MUST NOT list above forbids outright.
+
+### What is NOT tested
+
+Every report — `text`, `markdown`, `html`, `json` — states the same four
+labels, each marked `NOT TESTED`, regardless of what the 16 checks found
+(`security_summary.SECURITY_NOT_TESTED`, the report's single source of
+truth for this list):
+
+- `Observed authorization`
+- `Verified agent identity`
+- `Prompt-injection resilience`
+- `Tool invocation safety`
+
+Declaring a policy and enforcing it consistently are two different things;
+Core can only see the former. These four lines exist so a reader never
+mistakes "no findings in this domain" for "this domain was checked and is
+fine" — it was not checked at all, by design, by Core.
+
+### The WATCH list — deferred, Cloud/enterprise territory
+
+Scovant's security design defines ten security domains. Core implements
+the passive slice of three of them (Web Security Baseline → `SEC-WEB-*`/`SEC-TXT-*`;
+Public machine-facing data exposure → `MACHINE-DATA-001..004`;
+Prompt/Instruction Manipulation Surface → `PROMPT-SURFACE-*`). The rest —
+including two checks in a domain Core already partially covers — are
+explicitly out of scope for Core and watched for a future Cloud release:
+
+- **`MACHINE-DATA-005`** — Machine representation exposes more sensitive
+  facts than the human-facing representation. Requires comparing two
+  equivalent surfaces with deterministic normalization; not yet built even
+  as an experimental Core check.
+- **`MACHINE-DATA-006`** — Sensitive content exposed through a stale
+  machine representation (a human page removed confidential text, but a
+  cached/generated machine surface still carries it). Requires freshness/
+  version evidence Core does not currently gather.
+- **Agent Identity & Edge Trust** (observed agent-identity behavior, edge
+  WAF/bot-firewall treatment of a real agent) — requires live traffic
+  observation.
+- **OAuth / MCP Authentication & Authorization** (interoperability testing,
+  token handling under real exchanges) — requires authentication.
+- **MCP Gateway / Governance** — requires operating inside a customer's
+  gateway deployment.
+- **Tool & Consequential Action Safety** (real tool invocation, a
+  Consequential Action Protection Rate) — requires calling live tools,
+  which Core MUST NOT do.
+- **MCP Data Safety** (cross-tenant isolation, authenticated data-scoping
+  tests) — requires authentication and a multi-tenant harness.
+- **Delegation & Intent Integrity** — requires observing a real delegated
+  agent's behavior.
+- **Observability & Runtime Control** — mostly requires a live runtime to
+  observe; not implemented by any Core check, readiness or security.
+
+None of these are silently deprioritized — they are the reason Cloud exists
+as a separate, explicitly-authorized product rather than something Core
+grows into over time.
+
+### Redaction policy
+
+A finding that names a secret-shaped value never carries the value itself:
+
+- **Shape, never the value.** `MACHINE-DATA-001`/`-004` findings report a
+  classification (`field_name_only` / `sample_value` / `real_value_like`)
+  and a redacted fingerprint for correlation, never the credential-like
+  string itself.
+- **Cookie values are dropped at the gatherer.** `gatherers/http.py`'s
+  cookie parser (`_cookie_records`) never stores a `Set-Cookie` value at
+  all — only the cookie name and its `Secure`/`HttpOnly`/`SameSite`/`Path`
+  flags reach `CORE-SECURITY-004`'s evidence. There is no later redaction
+  step to forget, because the value never enters the evidence store in the
+  first place.
+- **`redaction_applied`.** The report's `security` block carries a boolean
+  `redaction_applied` — true whenever any SECURITY finding's evidence
+  contains a redacted value, so a caller can see at a glance whether this
+  scan touched anything that needed redacting, without scanning every
+  finding's evidence itself.
+
+### Wording
+
+Security wording must avoid claims such as:
+
+```text
+"Your website is secure"
+"No prompt injection vulnerabilities exist"
+"OAuth is secure"
+"The MCP server cannot be exploited"
+```
+
+Preferred wording:
+
+```text
+"No failures were observed in the tested controls and scenarios."
+"The tested agent-authorization boundary behaved as expected."
+"This scan does not cover general application-security vulnerabilities."
+```
+
+Every `CORE-SECURITY-*` `PASS` result and every piece of documentation
+about it (including this section) follows this convention — a passive scan
+proves absence of an observed failure in what it tested, never the presence
+of security.
+
+### Standards mapping
+
+The following standards inform check design. Listing them is a mapping, not
+a compliance claim — Scovant does not assert conformance to, or
+certification against, any of them.
+
+| Standard | Relevance |
+|---|---|
+| RFC 9116 — security.txt | `CORE-SECURITY-006` (`SEC-TXT-001`) validates presence, contact, and expiry per the RFC's shape. |
+| RFC 9728 — OAuth 2.0 Protected Resource Metadata | Referenced by the readiness `CORE-INTERFACE-007` (OAuth protected-resource metadata) check; informs the (not-yet-built) OAuth/MCP AuthN domain above. |
+| RFC 8707 — Resource Indicators for OAuth 2.0 | Not yet read by any Core check; relevant once the (not-yet-built) OAuth/MCP AuthN domain above is built. |
+| RFC 9421 — HTTP Message Signatures | Relevant to Web Bot Auth / agent-identity verification (Agent Identity & Edge Trust domain above); not implemented by any Core check. |
+| OWASP Agentic Top 10 2026 | A mapping only, not a ruleset replacement. Which ASI category each check claims is declared by the check itself and listed per check below — never restated independently here, because a second hand-written copy is what let this table contradict the code. No Core check maps `EXACT` or `SCOVANT_SUPERSET` to any ASI category; every mapping is `PARTIAL`, and every category not listed is `NOT_APPLICABLE` to a passive scanner. |
+
+#### Per-check mapping
+
+Generated from each check's own `standards` tuple in `checks/security/` —
+`tests/test_security_docs.py` derives the expected rows from the live
+registry and fails if this table drifts from it. A row whose Type is
+`reference` cites an RFC or a format specification, not an OWASP category.
+The relation is `PARTIAL` for every row without exception: a passive,
+unauthenticated scan can observe a declared or served signal that is
+*relevant to* a category, never conformance with it.
+
+| Family | Check | Standard | Type | Relation |
+|---|---|---|---|---|
+| SEC-WEB-001 | CORE-SECURITY-001 | MDN:HTTPS | reference | PARTIAL |
+| SEC-WEB-002 | CORE-SECURITY-002 | RFC 6797 | reference | PARTIAL |
+| SEC-WEB-003 | CORE-SECURITY-003 | CSP3 | reference | PARTIAL |
+| SEC-WEB-004 | CORE-SECURITY-004 | RFC 6265bis | reference | PARTIAL |
+| SEC-WEB-005 | CORE-SECURITY-005 | Referrer Policy | reference | PARTIAL |
+| SEC-WEB-005 | CORE-SECURITY-005 | X-Content-Type-Options | reference | PARTIAL |
+| SEC-TXT-001 | CORE-SECURITY-006 | RFC 9116 | reference | PARTIAL |
+| MACHINE-DATA-001 | CORE-SECURITY-007 | OWASP Agentic Top 10 2026: ASI03 (partial) | OWASP mapping | PARTIAL |
+| MACHINE-DATA-002 | CORE-SECURITY-008 | RFC 1918 | reference | PARTIAL |
+| MACHINE-DATA-003 | CORE-SECURITY-009 | OWASP Agentic Top 10 2026: ASI02 (partial) | OWASP mapping | PARTIAL |
+| MACHINE-DATA-004 | CORE-SECURITY-010 | OpenAPI 3 | reference | PARTIAL |
+| PROMPT-SURFACE-001 | CORE-SECURITY-011 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| PROMPT-SURFACE-002 | CORE-SECURITY-012 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| PROMPT-SURFACE-003 | CORE-SECURITY-013 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| PROMPT-SURFACE-004 | CORE-SECURITY-014 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| PROMPT-SURFACE-005 | CORE-SECURITY-015 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| PROMPT-SURFACE-006 | CORE-SECURITY-016 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+
+### Disclaimer
+
+> A high Core Score does not prove that autonomous agents can complete real
+> workflows on the site.
+
+The same principle applies, undiluted, to the Agentic Security & Trust
+section: zero SECURITY findings does not prove the site is secure, does not
+prove prompt-injection resilience, does not prove tool invocation is safe,
+and does not prove an agent's authorization boundary behaves correctly
+under real traffic. It proves only that the passive, declared/observed
+signals Core is able to check from an unauthenticated request found no
+problems — see "What is NOT tested" above for exactly what that excludes.
+
 ## Reporting a vulnerability
 
 Email `security@scovant.com` or use GitHub's private vulnerability
@@ -338,7 +569,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.3.1
+V=0.4.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

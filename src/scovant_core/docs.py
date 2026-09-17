@@ -27,7 +27,7 @@ from pathlib import Path
 from scovant_core import checks as _checks  # noqa: F401 — importing populates registry.CHECKS
 from scovant_core.checks.registry import CHECKS
 from scovant_core.models import CATEGORY_TITLES, Category
-from scovant_core.scoring import CATEGORY_WEIGHTS, GRADES, MIN_COVERAGE
+from scovant_core.scoring import CATEGORY_WEIGHTS, GRADES, MIN_COVERAGE, SCORED_CATEGORIES
 
 __all__ = ["HEADER", "render_checks", "render_weights_table", "render_example", "render_agentready", "main"]
 
@@ -78,19 +78,47 @@ def render_checks() -> str:
             continue
         lines.append(f"## {CATEGORY_TITLES[cat]}")
         lines.append("")
-        lines.append("| ID | Title | Weight | Profiles | Severity on fail | Experimental |")
-        lines.append("|---|---|---|---|---|---|")
-        for c in cat_checks:
-            lines.append(
-                f"| {c.id} | {c.title} | {c.weight} | {_profiles_cell(c.profiles)} "
-                f"| {c.severity_on_fail.value} | {'yes' if c.experimental else 'no'} |"
-            )
+        if cat == Category.SECURITY:
+            # Every check row carries a `Weight` column, and a reader who
+            # has just read five scored sections will read that column the
+            # same way here. It is inert for this category.
+            lines.append("Weight is informational — security checks are never scored.")
+            lines.append("")
+            # SECURITY checks carry two extra dimensions readiness checks
+            # don't: which family (attack surface) they belong to, and how
+            # the evidence was obtained (`verification_mode`) — both are
+            # load-bearing for a reader deciding how much to trust a
+            # finding, so they get their own columns here rather than
+            # being buried in prose. Readiness sections keep the original
+            # table shape so their `checks.md` diff stays minimal.
+            lines.append("| ID | Title | Family | Verification | Weight | Profiles | Severity on fail | Experimental |")
+            lines.append("|---|---|---|---|---|---|---|---|")
+            for c in cat_checks:
+                lines.append(
+                    f"| {c.id} | {c.title} | {c.family_id} | {c.verification_mode} | {c.weight} "
+                    f"| {_profiles_cell(c.profiles)} | {c.severity_on_fail.value} "
+                    f"| {'yes' if c.experimental else 'no'} |"
+                )
+        else:
+            lines.append("| ID | Title | Weight | Profiles | Severity on fail | Experimental |")
+            lines.append("|---|---|---|---|---|---|")
+            for c in cat_checks:
+                lines.append(
+                    f"| {c.id} | {c.title} | {c.weight} | {_profiles_cell(c.profiles)} "
+                    f"| {c.severity_on_fail.value} | {'yes' if c.experimental else 'no'} |"
+                )
         lines.append("")
         for c in cat_checks:
             lines.append(f"### {c.id} — {c.title}")
             lines.append("")
             lines.append(f"**Why it matters:** {c.why_it_matters}")
             lines.append("")
+            if cat == Category.SECURITY:
+                lines.append(
+                    f"**Family:** {c.family_id} · **Verification:** {c.verification_mode} · "
+                    f"**Domain:** {c.security_domain} · **Fix owner:** {c.fix_owner}"
+                )
+                lines.append("")
             if c.experimental:
                 # An experimental check must publish its own exit criteria, not
                 # just its experimental flag (`promotion_criteria` is required on
@@ -130,8 +158,10 @@ def _grade_ranges() -> list[tuple[int, int, str]]:
 
 
 def render_weights_table() -> str:
+    # SCORED_CATEGORIES, not Category — SECURITY carries no weight (see
+    # scoring.SCORED_CATEGORIES) and has no entry in CATEGORY_WEIGHTS.
     lines: list[str] = ["| Category | Weight |", "|---|---:|"]
-    for cat in Category:
+    for cat in SCORED_CATEGORIES:
         lines.append(f"| {CATEGORY_TITLES[cat]} | {CATEGORY_WEIGHTS[cat.value]} |")
     lines.append(f"| **Total** | **{sum(CATEGORY_WEIGHTS.values())}** |")
     lines.append("")

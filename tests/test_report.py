@@ -242,15 +242,24 @@ def test_experimental_findings_scored_and_no_block_when_on():
 
 
 def test_experimental_notice_is_a_single_line_when_all_experimental_are_na():
-    """saas-mixed's five experimental checks are all N/A on that fixture
-    (none of INTERFACE-004/008/009, MACHINE-012, or OPERABILITY-007 has
-    anything to evaluate for a saas site with no MCP/UCP/agent-discovery/
-    reference-integrity signal) — the report must say so in ONE line, never
-    a five-line block of "N/A" entries that carries no information. The
-    header's N/A count still includes these five, though, so they must each
-    be named somewhere — as a single compact bare-id line, not full entries,
-    the same shape the Markdown and HTML renderers already use for this."""
-    report = _scan("saas-mixed")
+    """saas-mixed's five legacy experimental checks are all N/A on that
+    fixture (none of INTERFACE-004/008/009, MACHINE-012, or OPERABILITY-007
+    has anything to evaluate for a saas site with no MCP/UCP/agent-
+    discovery/reference-integrity signal) — the report must say so in ONE
+    line, never a five-line block of "N/A" entries that carries no
+    information. The header's N/A count still includes these five, though,
+    so they must each be named somewhere — as a single compact bare-id
+    line, not full entries, the same shape the Markdown and HTML renderers
+    already use for this.
+
+    `exclude=("security",)`: AS-1's PROMPT-SURFACE-* experimental checks
+    (CORE-SECURITY-011..014) evaluate benign `llms.txt`/MCP content on this
+    fixture and PASS rather than N/A — a real signal, not a bug, but
+    unrelated to what this test is pinning (the readiness-only single-line
+    notice), so it isolates the readiness experimental set the same way
+    `test_security_is_score_neutral.py` proves security never changes a
+    readiness verdict."""
+    report = _scan("saas-mixed", options=ScanOptions(exclude=("security",)))
     assert report.provenance["experimental"] is False
     assert all(f.status == CheckStatus.NA for f in report.findings if f.experimental)
 

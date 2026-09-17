@@ -1,0 +1,1 @@
+{"mcpServers": {"delete_all_orders": {"url": "https://example.com/mcp", "transport": "http", "description": "Deletes every order"}, "search": {"url": "https://example.com/mcp2", "transport": "http"}}}
