@@ -1,7 +1,14 @@
 {
   "name": "scovant",
-  "owner": { "name": "Scovant" },
+  "owner": {
+    "name": "Scovant"
+  },
+  "description": "Scovant Core — open-source, evidence-first scanner for passive AI-agent readiness signals on websites: scan, explain any check offline, gate CI, and reach Scovant Cloud with your own API key.",
   "plugins": [
-    { "name": "scovant", "source": "./claude-plugin", "version": "0.5.0" }
+    {
+      "name": "scovant",
+      "source": "./claude-plugin",
+      "version": "0.5.0"
+    }
   ]
 }
