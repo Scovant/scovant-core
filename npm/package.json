@@ -1,6 +1,6 @@
 {
   "name": "@scovant/core",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Passive AI-agent-readiness scanner (thin launcher for the Python package scovant-core)",
   "bin": {
     "scovant": "bin/scovant.js"

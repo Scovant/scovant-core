@@ -5,10 +5,13 @@
 `"docs"` is for a committed static document (e.g. `docs/example-report.md`)
 that a reader may click from a docs page rather than a live CLI/Action/MCP
 run — attributing it to `"cli"` (the `render_markdown` default) would
-misreport the Core-to-Cloud funnel's per-medium breakdown."""
+misreport the Core-to-Cloud funnel's per-medium breakdown.
+
+`"claude-code"` is the Claude Code plugin's MCP server (set through the
+`SCOVANT_CTA_MEDIUM` environment variable, see `mcp_server._medium`)."""
 from __future__ import annotations
 
-_MEDIA = frozenset({"cli", "github", "html", "mcp", "docs"})
+_MEDIA = frozenset({"cli", "github", "html", "mcp", "docs", "claude-code"})
 CTA_TEXT = "Verify with real agents:"
 
 

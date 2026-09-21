@@ -81,3 +81,11 @@ def test_has_experimental_true_iff_any_finding_is_experimental():
 
 def test_cloud_matrix_has_only_known_cells():
     assert all(core in ("✅", "✅ (experimental)", "❌", "—") and cloud in ("✅", "❌", "—") for _, core, cloud in CORE_VS_CLOUD)
+
+
+def test_cta_claude_code_medium():
+    from scovant_core.report._cta import cta_url
+
+    assert cta_url("claude-code") == (
+        "https://scovant.com/scan?utm_source=scovant-core&utm_medium=claude-code&utm_campaign=oss"
+    )

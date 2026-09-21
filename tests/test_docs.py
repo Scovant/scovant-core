@@ -245,3 +245,16 @@ def test_methodology_named_truncation_example_is_a_label_the_code_really_emits()
     assert '"The sitemap body' not in section, (
         "the dropped 'sitemap' document label must not reappear as a named-document example"
     )
+
+
+# The byte-equal pin of claude-plugin/skills/references/* against their
+# sources lives in tests/test_claude_plugin.py
+# (test_references_are_generated_not_hand_written) — not duplicated here.
+
+
+def test_main_plugin_flag_writes_the_four_references(tmp_path, monkeypatch):
+    monkeypatch.setattr(_docs_module, "_PLUGIN_REFS", tmp_path / "refs")
+    assert main(["--plugin"]) == 0
+    assert sorted(p.name for p in (tmp_path / "refs").iterdir()) == [
+        "agentready.md", "checks.md", "methodology.md", "report.schema.json",
+    ]

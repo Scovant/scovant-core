@@ -1,0 +1,413 @@
+{
+  "$defs": {
+    "Category": {
+      "enum": [
+        "access",
+        "machine",
+        "interfaces",
+        "trust",
+        "operability",
+        "security"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "CategoryScore": {
+      "properties": {
+        "applicable_weight": {
+          "title": "Applicable Weight",
+          "type": "number"
+        },
+        "evaluated_weight": {
+          "title": "Evaluated Weight",
+          "type": "number"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Score"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "title",
+        "score",
+        "weight",
+        "applicable_weight",
+        "evaluated_weight"
+      ],
+      "title": "CategoryScore",
+      "type": "object"
+    },
+    "CheckResult": {
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/Category"
+        },
+        "check_version": {
+          "default": "1.0",
+          "title": "Check Version",
+          "type": "string"
+        },
+        "cloud_extension": {
+          "default": "",
+          "title": "Cloud Extension",
+          "type": "string"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "evidence": {
+          "additionalProperties": true,
+          "title": "Evidence",
+          "type": "object"
+        },
+        "experimental": {
+          "default": false,
+          "title": "Experimental",
+          "type": "boolean"
+        },
+        "family_id": {
+          "default": "",
+          "title": "Family Id",
+          "type": "string"
+        },
+        "fix_owner": {
+          "default": "",
+          "title": "Fix Owner",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "limitations": {
+          "default": "",
+          "title": "Limitations",
+          "type": "string"
+        },
+        "remediation": {
+          "default": "",
+          "title": "Remediation",
+          "type": "string"
+        },
+        "security_domain": {
+          "default": "",
+          "title": "Security Domain",
+          "type": "string"
+        },
+        "security_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Security Tags",
+          "type": "array"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "status": {
+          "$ref": "#/$defs/CheckStatus"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "verification_mode": {
+          "default": "PASSIVE_OBSERVED",
+          "title": "Verification Mode",
+          "type": "string"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "integer"
+        },
+        "why_it_matters": {
+          "default": "",
+          "title": "Why It Matters",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "status",
+        "severity",
+        "confidence",
+        "weight",
+        "summary"
+      ],
+      "title": "CheckResult",
+      "type": "object"
+    },
+    "CheckStatus": {
+      "enum": [
+        "PASS",
+        "WARN",
+        "FAIL",
+        "N/A",
+        "ERROR"
+      ],
+      "title": "CheckStatus",
+      "type": "string"
+    },
+    "Confidence": {
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "Score": {
+      "properties": {
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        },
+        "grade": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Grade"
+        },
+        "name": {
+          "default": "Scovant Core Static Signal Score",
+          "title": "Name",
+          "type": "string"
+        },
+        "scope": {
+          "default": "CANONICAL",
+          "title": "Scope",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value",
+        "grade",
+        "coverage",
+        "status"
+      ],
+      "title": "Score",
+      "type": "object"
+    },
+    "SecuritySummary": {
+      "description": "The report's `security` block — counts over SECURITY-category\nfindings only. Never a score; see `scoring.SCORED_CATEGORIES` and\ndocs/security.md.",
+      "properties": {
+        "by_domain": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "title": "By Domain",
+          "type": "object"
+        },
+        "findings_by_severity": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Findings By Severity",
+          "type": "object"
+        },
+        "label": {
+          "default": "PASSIVE SIGNALS ONLY",
+          "title": "Label",
+          "type": "string"
+        },
+        "not_tested": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Not Tested",
+          "type": "array"
+        },
+        "redaction_applied": {
+          "default": false,
+          "title": "Redaction Applied",
+          "type": "boolean"
+        },
+        "scored": {
+          "default": false,
+          "title": "Scored",
+          "type": "boolean"
+        }
+      },
+      "title": "SecuritySummary",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "Target": {
+      "properties": {
+        "final_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Final Url"
+        },
+        "input_url": {
+          "title": "Input Url",
+          "type": "string"
+        },
+        "profile_confidence": {
+          "title": "Profile Confidence",
+          "type": "number"
+        },
+        "requested_profile": {
+          "title": "Requested Profile",
+          "type": "string"
+        },
+        "resolved_profile": {
+          "title": "Resolved Profile",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_url",
+        "final_url",
+        "requested_profile",
+        "resolved_profile",
+        "profile_confidence"
+      ],
+      "title": "Target",
+      "type": "object"
+    }
+  },
+  "$id": "https://raw.githubusercontent.com/Scovant/scovant-core/main/docs/report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Output of `scovant scan --format json`. Additive keys may appear without a schema_version bump; a removed or retyped field bumps schema_version.",
+  "properties": {
+    "categories": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CategoryScore"
+      },
+      "title": "Categories",
+      "type": "object"
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "core_version": {
+      "title": "Core Version",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/CheckResult"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "metrics": {
+      "additionalProperties": true,
+      "title": "Metrics",
+      "type": "object"
+    },
+    "not_tested": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Not Tested",
+      "type": "array"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "title": "Provenance",
+      "type": "object"
+    },
+    "ruleset_version": {
+      "title": "Ruleset Version",
+      "type": "string"
+    },
+    "scan_id": {
+      "title": "Scan Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.1",
+      "type": "string"
+    },
+    "score": {
+      "$ref": "#/$defs/Score"
+    },
+    "security": {
+      "$ref": "#/$defs/SecuritySummary"
+    },
+    "started_at": {
+      "title": "Started At",
+      "type": "string"
+    },
+    "target": {
+      "$ref": "#/$defs/Target"
+    }
+  },
+  "required": [
+    "core_version",
+    "ruleset_version",
+    "scan_id",
+    "started_at",
+    "completed_at",
+    "target",
+    "score",
+    "categories",
+    "findings"
+  ],
+  "title": "Scovant Core report",
+  "type": "object"
+}

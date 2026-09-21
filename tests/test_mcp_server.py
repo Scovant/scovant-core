@@ -93,3 +93,152 @@ def test_tool_input_schemas_are_valid_json_schema(server):
 
     for t in asyncio.run(server.list_tools()):
         Draft202012Validator.check_schema(t.inputSchema)
+
+
+def test_scan_site_description_counts_the_registry(server):
+    import scovant_core.checks  # noqa: F401
+    from scovant_core.checks.registry import CHECKS
+
+    tool = next(t for t in asyncio.run(server.list_tools()) if t.name == "scan_site")
+    assert f"{len(CHECKS)} checks" in tool.description
+    assert "45 checks" not in tool.description
+
+
+def test_medium_defaults_to_mcp_and_accepts_claude_code(monkeypatch, capsys):
+    monkeypatch.delenv("SCOVANT_CTA_MEDIUM", raising=False)
+    assert mcp_server._medium() == "mcp"
+    monkeypatch.setenv("SCOVANT_CTA_MEDIUM", "claude-code")
+    assert mcp_server._medium() == "claude-code"
+    monkeypatch.setenv("SCOVANT_CTA_MEDIUM", "carrier-pigeon")
+    assert mcp_server._medium() == "mcp"          # unknown → default, never a crash
+    assert "carrier-pigeon" in capsys.readouterr().err
+
+
+def test_scan_site_default_format_is_findings_without_pass_bodies(server):
+    out = json.loads(_call(server, "scan_site", url="https://example.com")[0].text)
+    assert set(out) == {
+        "scan_id", "input_url", "final_url", "profile", "score", "counts",
+        "findings", "security_findings", "security_disclaimer", "passed", "cta",
+    }
+    assert set(out["score"]) == {"value", "grade", "coverage", "status", "scope"}
+    assert out["score"]["scope"] == "CANONICAL"
+    assert all(f["status"] != "PASS" for f in out["findings"])
+    assert all(f["category"] != "security" for f in out["findings"])
+    assert all(isinstance(i, str) and i.startswith("CORE-") for i in out["passed"])
+    assert set(out["counts"]) == {"PASS", "WARN", "FAIL", "ERROR", "N/A"}
+    assert out["cta"].endswith("utm_medium=mcp&utm_campaign=oss")
+    # every finding kept its evidence (the agent's raw material)
+    assert all("evidence" in f for f in out["findings"])
+
+
+def test_scan_site_security_findings_are_split_out_and_never_scored(monkeypatch):
+    """security-bad has non-PASS CORE-SECURITY-* findings; they must never
+    appear in `findings` (which drives the readiness/score narrative) and
+    must carry the never-scored disclaimer."""
+    monkeypatch.setattr(mcp_server, "_TRANSPORT_FACTORY", lambda: FixtureTransport(FIXTURES / "sites" / "security-bad"))
+    server = mcp_server.build_server()
+    out = json.loads(_call(server, "scan_site", url="https://example.com")[0].text)
+    assert out["security_findings"], "security-bad fixture is expected to carry non-PASS security findings"
+    assert all(f["category"] == "security" for f in out["security_findings"])
+    assert all(f["status"] != "PASS" for f in out["security_findings"])
+    security_ids = {f["id"] for f in out["security_findings"]}
+    assert not security_ids & {f["id"] for f in out["findings"]}
+    assert all(f["category"] != "security" for f in out["findings"])
+    assert out["security_disclaimer"] == (
+        "Passive Agentic Security & Trust signals — never scored, not an overall security rating."
+    )
+
+
+def test_scan_site_json_format_is_todays_full_report(server, monkeypatch):
+    """The `json` format must be exactly `render_json(report)` — not merely
+    equal to whatever the same call happened to stash in the ring buffer
+    (that would pass even if the json branch re-shaped the payload, since
+    both sides come from the same call)."""
+    captured = {}
+    real_run_scan = mcp_server._run_scan
+
+    def spy(*a, **k):
+        report, data = real_run_scan(*a, **k)
+        captured["report"] = report
+        return report, data
+
+    monkeypatch.setattr(mcp_server, "_run_scan", spy)
+    out = _call(server, "scan_site", url="https://example.com", format="json")[0].text
+    data = json.loads(out)
+    expected = json.loads(mcp_server.render_json(captured["report"]))
+    assert data == expected
+
+
+def test_medium_only_computed_for_findings_and_markdown_formats(server, monkeypatch):
+    """`_medium()` prints a stderr warning on an unrecognized
+    SCOVANT_CTA_MEDIUM — that warning must fire once per relevant call, not
+    once per scan_site call regardless of format."""
+    calls = []
+    real_medium = mcp_server._medium
+
+    def spy():
+        calls.append(1)
+        return real_medium()
+
+    monkeypatch.setattr(mcp_server, "_medium", spy)
+    _call(server, "scan_site", url="https://example.com", format="json")
+    _call(server, "scan_site", url="https://example.com", format="summary")
+    assert calls == [], "json/summary formats never need the CTA medium"
+    _call(server, "scan_site", url="https://example.com", format="findings")
+    assert calls == [1]
+    _call(server, "scan_site", url="https://example.com", format="markdown")
+    assert calls == [1, 1]
+
+
+def test_scan_site_summary_format_matches_get_core_score(server):
+    summary = json.loads(_call(server, "scan_site", url="https://example.com", format="summary")[0].text)
+    score = json.loads(_call(server, "get_core_score", url="https://example.com")[0].text)
+    assert set(summary) == set(score)
+    assert {k: v for k, v in summary.items() if k != "scan_id"} == {k: v for k, v in score.items() if k != "scan_id"}
+
+
+def test_scan_site_markdown_format_carries_the_medium(server, monkeypatch):
+    monkeypatch.setenv("SCOVANT_CTA_MEDIUM", "claude-code")
+    out = _call(server, "scan_site", url="https://example.com", format="markdown")[0].text
+    assert out.lstrip().startswith("#")
+    assert "utm_medium=claude-code" in out
+
+
+def test_findings_format_still_lets_get_finding_read_a_pass_check(server):
+    out = json.loads(_call(server, "scan_site", url="https://example.com")[0].text)
+    if not out["passed"]:
+        pytest.skip("fixture has no PASS check")
+    f = json.loads(_call(server, "get_finding", scan_id=out["scan_id"], check_id=out["passed"][0])[0].text)
+    assert f["status"] == "PASS" and f["id"] == out["passed"][0]
+
+
+def test_unknown_format_is_a_tool_error_not_a_scan(server, monkeypatch):
+    called = []
+    monkeypatch.setattr(mcp_server, "_run_scan", lambda *a, **k: called.append(1))
+    with pytest.raises(Exception):  # noqa: B017 — mcp.server.fastmcp.exceptions.ToolError
+        _call(server, "scan_site", url="https://example.com", format="yaml")
+    assert called == []
+
+
+def test_allow_private_networks_reaches_scan_options(server, monkeypatch):
+    seen = {}
+
+    def fake_scan(url, options, transport=None):
+        seen["allow"] = options.allow_private_networks
+        raise RuntimeError("stop here")
+
+    monkeypatch.setattr(mcp_server, "scan", fake_scan)
+    with pytest.raises(Exception):  # noqa: B017 — mcp.server.fastmcp.exceptions.ToolError
+        _call(server, "scan_site", url="http://localhost:3000", allow_private_networks=True)
+    assert seen["allow"] is True
+    with pytest.raises(Exception):  # noqa: B017 — mcp.server.fastmcp.exceptions.ToolError
+        _call(server, "scan_site", url="https://example.com")
+    assert seen["allow"] is False
+
+
+def test_mcp_server_has_no_contribute_path():
+    """A private-network scan is never contributed: the CLI enforces the
+    exclusion with a flag check, this server enforces it structurally —
+    there is nothing here that could contribute."""
+    import inspect
+    assert "contribute" not in inspect.getsource(mcp_server)

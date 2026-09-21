@@ -28,7 +28,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.4.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.4.0/constraints/constraints-0.4.0.txt
+    pip install "scovant-core==0.5.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.5.0/constraints/constraints-0.5.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -63,7 +63,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.4.0
+Core version: 0.5.0
 
 Static Signal Score       100 / 100   A
 Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
@@ -285,7 +285,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.4.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.5.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -430,6 +430,16 @@ scan` does (public documents: robots.txt, sitemaps, llms.txt, JSON-LD,
 MCP/OAuth/UCP discovery files), never a browser, never an MCP `tools/call`,
 never authentication. The server runs one scan at a time and keeps only the
 last 8 reports in memory for `get_finding` to read back.
+
+### Claude Code plugin
+
+```
+/plugin marketplace add Scovant/scovant-core
+/plugin install scovant@scovant
+```
+
+See [`claude-plugin/README.md`](claude-plugin/README.md) for the bundled
+skills and their MCP wiring.
 
 ## Methodology
 

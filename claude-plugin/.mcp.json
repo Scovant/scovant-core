@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "scovant-core": {
+      "command": "uvx",
+      "args": ["--from", "scovant-core[mcp]==0.5.0", "scovant", "mcp"],
+      "env": { "SCOVANT_CTA_MEDIUM": "claude-code" }
+    },
+    "scovant-cloud": {
+      "type": "http",
+      "url": "https://scovant.com/mcp/",
+      "headers": { "Authorization": "Bearer ${SCOVANT_API_KEY:-}" }
+    }
+  }
+}

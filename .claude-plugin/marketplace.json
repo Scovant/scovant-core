@@ -1,0 +1,7 @@
+{
+  "name": "scovant",
+  "owner": { "name": "Scovant" },
+  "plugins": [
+    { "name": "scovant", "source": "./claude-plugin", "version": "0.5.0" }
+  ]
+}
