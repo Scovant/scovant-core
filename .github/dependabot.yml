@@ -2,11 +2,19 @@ version: 2
 updates:
   - package-ecosystem: pip
     directory: /
+    # constraints/constraints-<version>.txt are frozen release snapshots
+    # (what a clean install resolved to on release day) — never bump them.
+    exclude-paths: ["constraints/**"]
     schedule:
       interval: weekly
     groups:
       python-deps:
         patterns: ["*"]
+    ignore:
+      # mcp 2.x renamed FastMCP → MCPServer; the [mcp] extra is pinned <2
+      # on purpose until the server is ported. A major bump here only breaks CI.
+      - dependency-name: "mcp"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
