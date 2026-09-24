@@ -5,8 +5,8 @@ title: "Scovant Core"
 abstract: "Open-source, evidence-first scanner for passive AI agent readiness signals on websites."
 authors:
   - name: "Scovant"
-version: "0.5.0"
-date-released: "2026-09-21"
+version: "0.5.1"
+date-released: "2026-09-24"
 license: Apache-2.0
 repository-code: "https://github.com/Scovant/scovant-core"
 url: "https://scovant.com/open-source"

@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.5.0",
+  "core_version": "0.5.1",
   "findings": [
     {
       "category": "access",
@@ -1954,7 +1954,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.5.0",
+    "core_version": "0.5.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -1971,7 +1971,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.5.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.5.1 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
