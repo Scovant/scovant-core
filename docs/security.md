@@ -569,7 +569,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.5.1
+V=0.5.2
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

@@ -7,7 +7,7 @@ description: Scan a website for passive AI-agent readiness signals with Scovant 
 
 ## Routing (follow exactly)
 1. Parse the host. If it is `localhost`, `127.0.0.0/8`, `::1`, ends with `.local`, or is an RFC 1918 / link-local address (10/8, 172.16/12, 192.168/16, 169.254/16, fc00::/7, fe80::/10) → **CLI path**:
-   `uvx --from "scovant-core[mcp]==0.5.1" scovant scan <url> --allow-private-networks --format json` via Bash, then parse the JSON.
+   `uvx --from "scovant-core[mcp]==0.5.2" scovant scan <url> --allow-private-networks --format json` via Bash, then parse the JSON.
 2. Otherwise → **MCP path**: call `scan_site(url, profile, format="findings")` on the `scovant-core` server.
 3. If the `scovant-core` tools are unavailable (server failed to start, tool missing) → the CLI command from step 1 **without** `--allow-private-networks`, and tell the user the MCP server was unavailable.
 

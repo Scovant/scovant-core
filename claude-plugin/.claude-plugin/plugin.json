@@ -1,6 +1,6 @@
 {
   "name": "scovant",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Scan a website for passive AI-agent readiness signals with Scovant Core, explain any check offline, gate CI, and (with your own API key) trigger Scovant Cloud scans and read regressions.",
   "author": { "name": "Scovant", "email": "bot@scovant.com" },
   "repository": "https://github.com/Scovant/scovant-core",
