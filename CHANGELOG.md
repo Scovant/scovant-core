@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [Unreleased]
+
+### Changed
+- `CORE-SECURITY-007..010` ERROR summaries now name the shape of the unreadable
+  entry — `entry URL answered HTTP 403, not 200` (evidence `{"http_status": 403}`)
+  versus a transport failure (`{"error": kind}`) — instead of the same
+  "could not be fetched" for both.
+- The `machine_text` gatherer isolates each HTML extractor: one parser failing
+  on a malformed page no longer blanks the record (and every prompt-surface
+  check with it); the failure is recorded in a new `errors` list.
+
 ## [0.5.1] - 2026-09-24
 
 `ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.

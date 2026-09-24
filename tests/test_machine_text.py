@@ -100,3 +100,23 @@ def test_machine_text_caps_total_chars():
     store.get("llms")
     mt = store.get("machine_text")
     assert mt["capped"] is True and mt["total_chars"] <= 256 * 1024
+
+
+def test_machine_text_isolates_a_failing_html_extractor(monkeypatch):
+    """One extractor raising on a malformed page must not blank the whole
+    record: the other surfaces are still gathered and the failure is
+    recorded in `errors` (never swallowed, never fatal)."""
+    from scovant_core.gatherers import machine_text as mt_mod
+
+    def boom(html):  # noqa: ARG001
+        raise ValueError("not enough values to unpack (expected 2, got 1)")
+
+    monkeypatch.setattr(mt_mod, "extract_webmcp_tools", boom)
+    client = make_client(lambda req: httpx.Response(200, headers={"content-type": "text/html"}, text=HTML))
+    ctx = ScanContext("https://example.com/", ScanOptions())
+    store = EvidenceStore(client, ctx)
+    store.try_get("http")
+    mt = store.get("machine_text")
+    assert {s["kind"] for s in mt["surfaces"]} >= {"json_ld", "meta_description"}
+    assert mt["errors"] == [{"surface": "webmcp_tool", "kind": "ValueError",
+                             "message": "not enough values to unpack (expected 2, got 1)"}]

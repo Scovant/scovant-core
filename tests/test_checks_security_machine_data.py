@@ -193,3 +193,17 @@ def test_sensitive_schema_field_fail_flags_real_value_like_and_redacts():
     assert hit["classification"] == "real_value_like"
     assert {"redacted", "sha256_prefix", "length"} <= set(hit)
     assert live_looking not in json.dumps(r.evidence)
+
+
+def test_unreadable_entry_error_names_the_shape_and_carries_evidence():
+    """A bot wall's 403 is a fetch that happened and was refused — the ERROR
+    must say so (status in the summary, `http_status` in evidence) so a
+    reader can tell it from a transport failure, and so Cloud can compare it
+    with its own honest fetch of the same page."""
+    client = make_client(lambda req: httpx.Response(403, text="blocked"))
+    ctx = ScanContext("https://example.com/", ScanOptions())
+    store = EvidenceStore(client, ctx)
+    store.try_get("http")
+    r = CredentialExposed().run(store, ctx)
+    assert r.status == CheckStatus.ERROR
+    assert "HTTP 403" in r.summary and r.evidence == {"http_status": 403}

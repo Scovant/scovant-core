@@ -30,19 +30,44 @@ def gather_machine_text(client: SecureClient, ctx: ScanContext, store: EvidenceS
     http = store.gathered("http") or {}
     html = http.get("html") or ""
     final_url = http.get("final_url")
-    if html:
+    # Each HTML-derived surface is extracted in its own fault box: one parser
+    # tripping over a malformed page must not blank the whole record and turn
+    # every prompt-surface check into ERROR (a one-off `ValueError` inside the
+    # WebMCP extractor did exactly that on a live page). The failure is
+    # recorded honestly in `errors` instead of being swallowed.
+    errors: list[dict] = []
+
+    def _try(name: str, fn) -> None:
+        try:
+            fn()
+        except Exception as exc:  # noqa: BLE001 — isolate, record, continue
+            errors.append({"surface": name, "kind": type(exc).__name__, "message": str(exc)[:200]})
+
+    def _json_ld() -> None:
         for block in extract_schema_org(html):
             surfaces.append(_surface("html", final_url, "json_ld", json.dumps(block, ensure_ascii=False)))
+
+    def _meta() -> None:
         desc = (extract_metadata(html) or {}).get("meta_description")
         if desc:
             surfaces.append(_surface("html", final_url, "meta_description", desc))
+
+    def _hidden() -> None:
         hidden = extract_hidden_text(html)
         if hidden:
             surfaces.append(_surface("html", final_url, "hidden_dom", hidden))
+
+    def _webmcp() -> None:
         tools, _parse_errors = extract_webmcp_tools(html)
         for tool in tools:
             text = " ".join(str(tool.get(k) or "") for k in ("name", "description"))
             surfaces.append(_surface(f"webmcp#{tool.get('name')}", final_url, "webmcp_tool", text))
+
+    if html:
+        _try("json_ld", _json_ld)
+        _try("meta_description", _meta)
+        _try("hidden_dom", _hidden)
+        _try("webmcp_tool", _webmcp)
 
     llms = store.gathered("llms") or {}
     if llms.get("text"):
@@ -96,4 +121,4 @@ def gather_machine_text(client: SecureClient, ctx: ScanContext, store: EvidenceS
         total += len(s["text"])
         kept.append(s)
 
-    return {"surfaces": kept, "total_chars": total, "capped": capped}
+    return {"surfaces": kept, "total_chars": total, "capped": capped, "errors": errors}

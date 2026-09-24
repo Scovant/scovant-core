@@ -30,7 +30,16 @@ _SENSITIVE_FIELDS = ("password", "passwd", "access_token", "refresh_token", "api
 class _Unreadable(Exception):
     """The entry URL could not be read as a real page — every check here
     degrades to ERROR on this, never N/A, since "nothing to evaluate" must
-    not be confused with "the site itself could not be read"."""
+    never be claimed about a page we did not get. Carries the honest reason
+    and evidence so the report says WHICH shape it was: a transport error
+    (`{"error": kind}`) or a non-200 answer (`{"http_status": N}` — a bot
+    wall's 403 is a fetch that happened and was refused, not a fetch that
+    could not be made)."""
+
+    def __init__(self, reason: str, evidence: dict):
+        super().__init__(reason)
+        self.reason = reason
+        self.evidence = evidence
 
 
 class _MachineData(CoreCheck):
@@ -49,8 +58,12 @@ class _MachineData(CoreCheck):
         check: a site that could not be read honestly must not score as if
         nothing suspicious was found on it."""
         http = store.get("http")
-        if http.get("error") or http.get("status") != 200:
-            raise _Unreadable
+        if http.get("error"):
+            kind = (http["error"] or {}).get("kind", "error")
+            raise _Unreadable(f"entry URL could not be fetched ({kind})", {"error": kind})
+        if http.get("status") != 200:
+            raise _Unreadable(f"entry URL answered HTTP {http.get('status')}, not 200",
+                              {"http_status": http.get("status")})
         return http
 
     def _machine_text(self, store) -> dict:
@@ -94,8 +107,8 @@ class CredentialExposed(_MachineData):
     def evaluate(self, store, ctx):
         try:
             mt = self._machine_text(store)
-        except _Unreadable:
-            return self.error("entry URL could not be fetched")
+        except _Unreadable as exc:
+            return self.error(exc.reason, exc.evidence)
         surfaces = mt["surfaces"]
         if not surfaces:
             return self.na("No machine-facing surface was gathered.")
@@ -137,8 +150,8 @@ class InternalReference(_MachineData):
     def evaluate(self, store, ctx):
         try:
             mt = self._machine_text(store)
-        except _Unreadable:
-            return self.error("entry URL could not be fetched")
+        except _Unreadable as exc:
+            return self.error(exc.reason, exc.evidence)
         surfaces = mt["surfaces"]
         if not surfaces:
             return self.na("No machine-facing surface was gathered.")
@@ -183,8 +196,8 @@ class PrivilegedEndpoint(_MachineData):
     def evaluate(self, store, ctx):
         try:
             self._check_readable(store)
-        except _Unreadable:
-            return self.error("entry URL could not be fetched")
+        except _Unreadable as exc:
+            return self.error(exc.reason, exc.evidence)
         mcp = store.gathered("mcp_discovery") or {}
         api = store.gathered("openapi") or {}
         names: list[tuple[str, str]] = []
@@ -241,8 +254,8 @@ class SensitiveSchemaField(_MachineData):
     def evaluate(self, store, ctx):
         try:
             self._check_readable(store)
-        except _Unreadable:
-            return self.error("entry URL could not be fetched")
+        except _Unreadable as exc:
+            return self.error(exc.reason, exc.evidence)
         api = store.gathered("openapi") or {}
         schemas = api.get("schemas")
         if not schemas:
