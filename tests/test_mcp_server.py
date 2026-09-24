@@ -23,13 +23,9 @@ def server(monkeypatch):
 
 
 def _call(server, name, **args):
-    result = asyncio.run(server.call_tool(name, args))
-    # 1.28.1's FastMCP.call_tool(convert_result=True): our tools all
-    # annotate `-> str`, a "primitive" return type FastMCP wraps as
-    # structured output — the call returns `(content_blocks, structured)`,
-    # not a bare content list or a `CallToolResult`. Unwrap to the content
-    # blocks; the test bodies below then index `[0].text`.
-    return result[0] if isinstance(result, tuple) else result
+    # mcp 2.x: `call_tool` returns a `CallToolResult`; the test bodies below
+    # index the content blocks (`[0].text`).
+    return asyncio.run(server.call_tool(name, args)).content
 
 
 def test_tool_names_and_passive_prefix(server):
@@ -92,7 +88,7 @@ def test_tool_input_schemas_are_valid_json_schema(server):
     from jsonschema import Draft202012Validator
 
     for t in asyncio.run(server.list_tools()):
-        Draft202012Validator.check_schema(t.inputSchema)
+        Draft202012Validator.check_schema(t.input_schema)
 
 
 def test_scan_site_description_counts_the_registry(server):
@@ -247,10 +243,10 @@ def test_mcp_server_has_no_contribute_path():
 def test_server_info_version_is_the_package_version(server):
     """`initialize` must advertise scovant-core's version, not the SDK's.
 
-    FastMCP has no version argument, so the low-level server falls back to
-    `importlib.metadata.version("mcp")` (1.30.0 on the day this was noticed).
+    mcp 1.x's FastMCP had no version argument and fell back to the SDK's own
+    version (1.30.0 on the day this was noticed); 2.x's MCPServer takes it
+    as a constructor kwarg and defaults it to "".
     """
     from scovant_core import __version__
 
-    opts = server._mcp_server.create_initialization_options()
-    assert opts.server_version == __version__
+    assert server.version == __version__

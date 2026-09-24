@@ -10,11 +10,6 @@ updates:
     groups:
       python-deps:
         patterns: ["*"]
-    ignore:
-      # mcp 2.x renamed FastMCP → MCPServer; the [mcp] extra is pinned <2
-      # on purpose until the server is ported. A major bump here only breaks CI.
-      - dependency-name: "mcp"
-        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

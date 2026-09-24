@@ -38,9 +38,23 @@ INSTRUCTIONS = (
 
 
 def _import_sdk():
-    from mcp.server.fastmcp import FastMCP  # noqa: PLC0415
+    from mcp.server.mcpserver import MCPServer  # noqa: PLC0415
 
-    return FastMCP
+    return MCPServer
+
+
+def _tool_error(message: str) -> Exception:
+    """A deliberate refusal the CLIENT must be able to read. mcp 2.x reports
+    any other exception raised inside a tool as a bare
+    `Error executing tool <name>` (the real message only in `__cause__`),
+    so a busy lock or an unknown profile would reach the agent as noise.
+    `ToolError` is the SDK's channel for a message meant for the caller.
+    Imported lazily: this module must import without the optional extra."""
+    try:
+        from mcp.server.mcpserver.exceptions import ToolError  # noqa: PLC0415
+    except ImportError:  # pragma: no cover — only without the [mcp] extra
+        return RuntimeError(message)
+    return ToolError(message)
 
 
 def _medium() -> str:
@@ -67,9 +81,9 @@ def _run_scan(
     ring buffer keeps, whatever shape the caller asked for — so get_finding
     can read any check, including PASSed ones, after a `findings` call."""
     if profile not in PROFILES:
-        raise ValueError(f"unknown profile {profile!r} — must be one of {PROFILES}")
+        raise _tool_error(f"unknown profile {profile!r} — must be one of {PROFILES}")
     if not _SCAN_LOCK.acquire(blocking=False):
-        raise RuntimeError("scan in progress — this server runs one scan at a time")
+        raise _tool_error("scan in progress — this server runs one scan at a time")
     try:
         report = scan(
             url,
@@ -141,13 +155,12 @@ def _shape_findings(data: dict, medium: str) -> dict:
 
 
 def build_server():
-    FastMCP = _import_sdk()
-    server = FastMCP("scovant-core", instructions=INSTRUCTIONS)
-    # FastMCP takes no version; the low-level server would otherwise advertise
-    # the mcp SDK's own version in `initialize.serverInfo`. Tell clients ours.
+    MCPServer = _import_sdk()
     from scovant_core import __version__  # noqa: PLC0415
 
-    server._mcp_server.version = __version__  # noqa: SLF001
+    # `version` is what `initialize.serverInfo` advertises — the package's,
+    # never the SDK's (v2 defaults it to "" rather than the SDK version).
+    server = MCPServer("scovant-core", instructions=INSTRUCTIONS, version=__version__)
 
     import scovant_core.checks  # noqa: F401,PLC0415
     from scovant_core.checks.registry import CHECKS  # noqa: PLC0415
@@ -170,7 +183,7 @@ def build_server():
         allow_private_networks: bool = False,
     ) -> str:
         if format not in _FORMATS:
-            raise ValueError(f"unknown format {format!r} — must be one of {_FORMATS}")
+            raise _tool_error(f"unknown format {format!r} — must be one of {_FORMATS}")
         report, data = _run_scan(url, profile, experimental, allow_private_networks)
         if format == "json":
             return json.dumps(data, ensure_ascii=False)
@@ -213,7 +226,7 @@ def build_server():
 
         c = get_check(check_id)
         if c is None:
-            raise ValueError(f"unknown check id {check_id!r}")
+            raise _tool_error(f"unknown check id {check_id!r}")
         return json.dumps(
             {
                 "id": c.id,
@@ -236,11 +249,11 @@ def build_server():
     def get_finding(scan_id: str, check_id: str) -> str:
         d = _REPORTS.get(scan_id)
         if d is None:
-            raise ValueError(f"unknown scan_id {scan_id!r} — run scan_site first")
+            raise _tool_error(f"unknown scan_id {scan_id!r} — run scan_site first")
         for f in d["findings"]:
             if f["id"] == check_id:
                 return json.dumps(f, ensure_ascii=False)
-        raise ValueError(f"no finding {check_id!r} in scan {scan_id!r}")
+        raise _tool_error(f"no finding {check_id!r} in scan {scan_id!r}")
 
     return server
 

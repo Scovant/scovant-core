@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.6.0] - 2026-09-24
+
+`ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.
+Minor bump because the optional `[mcp]` extra moves to a new SDK major.
+
+### Changed
+- `scovant mcp` now runs on the mcp Python SDK 2.x (`MCPServer`; the `[mcp]`
+  extra requires `mcp>=2.2,<3`). Tool contract unchanged. Deliberate refusals
+  (busy single-flight lock, unknown profile/format/check id/scan id) are
+  raised as the SDK's `ToolError` so their message reaches the caller — the
+  2.x SDK hides any other exception behind `Error executing tool <name>`.
+
 ## [0.5.2] - 2026-09-24
 
 `ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.
