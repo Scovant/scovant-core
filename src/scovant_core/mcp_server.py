@@ -143,6 +143,11 @@ def _shape_findings(data: dict, medium: str) -> dict:
 def build_server():
     FastMCP = _import_sdk()
     server = FastMCP("scovant-core", instructions=INSTRUCTIONS)
+    # FastMCP takes no version; the low-level server would otherwise advertise
+    # the mcp SDK's own version in `initialize.serverInfo`. Tell clients ours.
+    from scovant_core import __version__  # noqa: PLC0415
+
+    server._mcp_server.version = __version__  # noqa: SLF001
 
     import scovant_core.checks  # noqa: F401,PLC0415
     from scovant_core.checks.registry import CHECKS  # noqa: PLC0415

@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [Unreleased]
+
+### Fixed
+- `scovant mcp` now advertises the package version in `initialize.serverInfo`
+  (it reported the mcp SDK's version, e.g. `1.30.0`). No check or score change.
+
 ## [0.5.0] - 2026-09-21
 
 Adds the Claude Code plugin (`claude-plugin/`, installable with

@@ -242,3 +242,15 @@ def test_mcp_server_has_no_contribute_path():
     there is nothing here that could contribute."""
     import inspect
     assert "contribute" not in inspect.getsource(mcp_server)
+
+
+def test_server_info_version_is_the_package_version(server):
+    """`initialize` must advertise scovant-core's version, not the SDK's.
+
+    FastMCP has no version argument, so the low-level server falls back to
+    `importlib.metadata.version("mcp")` (1.30.0 on the day this was noticed).
+    """
+    from scovant_core import __version__
+
+    opts = server._mcp_server.create_initialization_options()
+    assert opts.server_version == __version__
