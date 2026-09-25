@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [Unreleased]
+
+`ruleset_version` UNCHANGED.
+
+### Added
+- `MCP_PROBE_TRANSPORT`/`MCP_PROBE_MODE` constants stamped onto the MCP
+  interface snapshot (`parsers/mcp.py`), recording that the probe itself
+  used `streamable_http` in `stateless_probe` mode.
+- `_empty_mcp_interface()` helper producing the inert-default interface
+  shape for an unattempted/unreachable probe.
+
 ## [0.6.0] - 2026-09-24
 
 `ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.

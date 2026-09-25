@@ -34,6 +34,13 @@ _MCP_DESCRIPTION_CAP = 2000
 _MCP_SCHEMA_KEYS_CAP = 50
 _MCP_SCHEMA_KEY_LEN_CAP = 100
 
+# Probe provenance: which probe shape produced an interface snapshot — one
+# stateless Streamable-HTTP `initialize` + `tools/list` round trip, never a
+# session. Static descriptors of OUR prober, not the server's capability —
+# a caller diffing two snapshots for capability change should ignore them.
+MCP_PROBE_TRANSPORT = "streamable_http"
+MCP_PROBE_MODE = "stateless_probe"
+
 
 def _mcp_cap_str(value: Any, cap: int = _MCP_NAME_CAP) -> str | None:
     """Cap an untrusted server-supplied string field; non-strings become None."""
@@ -64,6 +71,23 @@ def _extract_deprecation(tool: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
+def _empty_mcp_interface() -> dict[str, Any]:
+    """The inert E1 interface block.
+
+    ``transport``/``mode`` are provenance descriptors: they record which
+    probe shape produced the snapshot, so a later consumer never has to
+    infer it. They are deliberately static and should be excluded from any
+    interface-regression diff (they describe the prober, not the server's
+    capability).
+    """
+    return {
+        "attempted": False, "ok": False, "server_info": None,
+        "tools": [], "tool_count": 0, "truncated": False, "error": None,
+        "response_headers": {}, "init_status": None, "auth_required": False,
+        "transport": MCP_PROBE_TRANSPORT, "mode": MCP_PROBE_MODE,
+    }
+
+
 def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str, Any]:
     """Parse ``/.well-known/mcp.json`` (MCP server discovery).
 
@@ -85,7 +109,8 @@ def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str,
             "interface": {"attempted": bool, "ok": bool, "server_info": dict | None,
                           "tools": [...], "tool_count": int, "truncated": bool,
                           "error": str | None, "response_headers": dict,
-                          "init_status": int | None, "auth_required": bool},
+                          "init_status": int | None, "auth_required": bool,
+                          "transport": str, "mode": str},
             "oauth": {"attempted": bool, "discovered": bool,
                       "resource_metadata": dict | None,
                       "auth_server_metadata_ok": bool, "error": str | None},
@@ -110,11 +135,7 @@ def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str,
             "attempted": False, "ok": False, "error": None,
             "server_info": None, "session_id": None,
         },
-        "interface": {
-            "attempted": False, "ok": False, "server_info": None,
-            "tools": [], "tool_count": 0, "truncated": False, "error": None,
-            "response_headers": {}, "init_status": None, "auth_required": False,
-        },
+        "interface": _empty_mcp_interface(),
         "oauth": {
             "attempted": False, "discovered": False,
             "resource_metadata": None, "auth_server_metadata_ok": False,
