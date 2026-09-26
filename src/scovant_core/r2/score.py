@@ -1,6 +1,7 @@
 """`score_r2` — the R2 readiness formula (see docs/r2.md).
 
-category  = 100 · Σ wᵢ·vᵢ / Σ wᵢ over measured, counted WEIGHTED outcomes
+category  = 100 · (Σ wᵢ·vᵢ + P) / (Σ wᵢ + P) over measured, counted WEIGHTED outcomes
+            (P = policy.category_prior_weight, only for a category with a measurement)
             vᵢ = 1 − fᵢ·(1 − STATE_VALUE[state]); fᵢ = pages_failed/pages_measured
             for a page-scope rule, 1 for a domain-scope rule
 overall   = Σ category·W / Σ W over categories that have a score
@@ -20,7 +21,7 @@ from scovant_core.r2.manifest import Manifest, RuleScope, RuleSpec, ScoreEffect
 from scovant_core.r2.outcome import MEASURED_STATES, STATE_VALUE, Outcome, OutcomeState, R2Category
 from scovant_core.r2.policy import ScoringPolicy
 
-FORMULA_VERSION = "R2.0"
+FORMULA_VERSION = "R2.1"  # R2.1: per-category prior (policy.category_prior_weight)
 
 
 class CategoryResult(BaseModel):
@@ -181,7 +182,9 @@ def score_r2(
     raw_scores: dict[R2Category, float] = {}
     for c in R2Category:
         applicable = policy.category_applies(c, profile)
-        score = 100.0 * cat_num[c] / cat_den[c] if applicable and cat_den[c] else None
+        prior = policy.category_prior_weight
+        score = (100.0 * (cat_num[c] + prior) / (cat_den[c] + prior)
+                 if applicable and cat_den[c] else None)
         if score is not None:
             raw_scores[c] = score
         categories[c.value] = CategoryResult(

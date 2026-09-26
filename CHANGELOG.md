@@ -20,6 +20,9 @@ out explicitly because scores are only comparable within one ruleset version.
   `score_r2` (7-category ratio model, half-up rounding, badge-only public
   gates, `R2.0@<digest>` model ids). Not wired into `scovant scan`; report
   schema `1.1` and the Core Score are unchanged. See `docs/r2.md`.
+- `ScoringPolicy.category_prior_weight` (default 0): a pseudo-pass weight added
+  to every measured category. `PUBLIC_POLICY` sets 14 (one medium-severity
+  rule), so one failure in a sparse category no longer collapses it to 0.
 
 ## [0.6.0] - 2026-09-24
 

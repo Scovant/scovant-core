@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
@@ -42,6 +43,10 @@ class ScoringPolicy(BaseModel):
     grades: tuple[tuple[int, str], ...]   # descending floors
     badges: tuple[tuple[int, str], ...]   # descending floors
     gates: tuple[Gate, ...]
+    # R2.1: a pseudo-pass weight added to every MEASURED category (numerator and
+    # denominator), so one failure in a sparse category cannot collapse it to 0.
+    # Not evidence: coverage ignores it. 0 = the plain ratio.
+    category_prior_weight: float = 0.0
 
     @field_validator("category_profiles")
     @classmethod
@@ -56,6 +61,8 @@ class ScoringPolicy(BaseModel):
             raise ValueError("category_weights must cover every R2Category exactly")
         if set(self.severity_weights) != {"critical", "high", "medium", "low", "info"}:
             raise ValueError("severity_weights must cover every severity exactly")
+        if not (math.isfinite(self.category_prior_weight) and self.category_prior_weight >= 0):
+            raise ValueError("category_prior_weight must be a non-negative number")
         groups = [g.root_cause_group for g in self.gates]
         if len(groups) != len(set(groups)):
             raise ValueError("one gate per root_cause_group")
@@ -90,4 +97,5 @@ PUBLIC_POLICY = ScoringPolicy(
     grades=((90, "A"), (80, "B"), (60, "C"), (0, "D")),
     badges=((80, "agent_ready"), (60, "agent_compatible")),
     gates=(Gate(root_cause_group="agent_access_blocked", effect="badge_block"),),
+    category_prior_weight=14.0,   # one medium-severity rule's weight
 )

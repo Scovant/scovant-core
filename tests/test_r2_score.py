@@ -26,7 +26,12 @@ BASE_OUT = [
 ]
 
 
-def run(specs=BASE, outs=BASE_OUT, profile="blog", policy=PUBLIC_POLICY):
+# Formula-mechanics tests use the policy WITHOUT the category prior so their
+# worked numbers stay hand-checkable; the prior has its own tests below.
+POLICY0 = ScoringPolicy(**{**PUBLIC_POLICY.model_dump(), "category_prior_weight": 0.0})
+
+
+def run(specs=BASE, outs=BASE_OUT, profile="blog", policy=POLICY0):
     return score_r2(outs, profile=profile, manifest=Manifest(specs), policy=policy)
 
 
@@ -42,7 +47,7 @@ def test_worked_example():
     assert r.categories["ucp"].applicable is False and r.categories["ucp"].score is None
     assert r.categories["citability"].applicable is True and r.categories["citability"].score is None
     assert r.model_id.startswith(f"{FORMULA_VERSION}@")
-    assert r.model_id == model_id(Manifest(BASE), PUBLIC_POLICY)
+    assert r.model_id == model_id(Manifest(BASE), POLICY0)
 
 
 def test_error_degrades_and_withholds_grade():
@@ -124,7 +129,7 @@ def test_public_gate_blocks_badge_but_not_number():
 
 
 def test_host_policy_cap_gate():
-    data = PUBLIC_POLICY.model_dump()
+    data = POLICY0.model_dump()
     data["name"] = "host"
     data["gates"] = (Gate(root_cause_group="agent_access_blocked", effect="cap", cap=50),)
     host = ScoringPolicy(**data)
@@ -252,3 +257,27 @@ def test_empty_manifest_is_insufficient_evidence():
 def test_only_a_failing_gate_fires():
     r = run(BASE + [GATE], BASE_OUT + [Outcome(rule_id="G", state=S.WARN)])
     assert r.gates_applied == [] and r.badge == "agent_compatible"
+
+
+def test_category_prior_smooths_sparse_categories():
+    """R2.1: a public pseudo-pass weight per measured category — one failure in
+    a sparse category no longer collapses it to 0."""
+    specs = [spec("OG", C.TRUST, Severity.MEDIUM)]
+    outs = [Outcome(rule_id="OG", state=S.FAIL)]
+    data = PUBLIC_POLICY.model_dump()
+    data["category_prior_weight"] = 0.0
+    raw = run(specs, outs, policy=ScoringPolicy(**data))
+    assert raw.categories["trust"].score == 0.0
+    smooth = run(specs, outs, policy=PUBLIC_POLICY)  # the public policy carries the prior
+    assert smooth.categories["trust"].score == round(100 * 14 / (14 + 14), 1)
+    assert smooth.coverage == raw.coverage           # the prior is not evidence
+
+
+def test_prior_never_creates_a_score_for_an_unmeasured_category():
+    specs = [spec("OG", C.TRUST, Severity.MEDIUM)]
+    r = run(specs, [Outcome(rule_id="OG", state=S.NOT_MEASURED)], policy=PUBLIC_POLICY)
+    assert r.categories["trust"].score is None
+
+
+def test_public_prior_value():
+    assert PUBLIC_POLICY.category_prior_weight == 14.0
