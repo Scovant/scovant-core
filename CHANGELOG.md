@@ -14,6 +14,12 @@ out explicitly because scores are only comparable within one ruleset version.
   used `streamable_http` in `stateless_probe` mode.
 - `_empty_mcp_interface()` helper producing the inert-default interface
   shape for an unattempted/unreachable probe.
+- `scovant_core.r2` — Readiness R2 preview library: outcome contract
+  (`OutcomeState` incl. `NOT_MEASURED`, `BLOCKED_BY_POLICY`, `UNKNOWN`),
+  `RuleSpec`/`Manifest` (one owner per signal), `PUBLIC_POLICY` and the pure
+  `score_r2` (7-category ratio model, half-up rounding, badge-only public
+  gates, `R2.0@<digest>` model ids). Not wired into `scovant scan`; report
+  schema `1.1` and the Core Score are unchanged. See `docs/r2.md`.
 
 ## [0.6.0] - 2026-09-24
 
