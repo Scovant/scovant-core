@@ -18,11 +18,14 @@ out explicitly because scores are only comparable within one ruleset version.
   (`OutcomeState` incl. `NOT_MEASURED`, `BLOCKED_BY_POLICY`, `UNKNOWN`),
   `RuleSpec`/`Manifest` (one owner per signal), `PUBLIC_POLICY` and the pure
   `score_r2` (7-category ratio model, half-up rounding, badge-only public
-  gates, `R2.0@<digest>` model ids). Not wired into `scovant scan`; report
+  gates, `R2.1@<digest>` model ids). Not wired into `scovant scan`; report
   schema `1.1` and the Core Score are unchanged. See `docs/r2.md`.
 - `ScoringPolicy.category_prior_weight` (default 0): a pseudo-pass weight added
   to every measured category. `PUBLIC_POLICY` sets 14 (one medium-severity
   rule), so one failure in a sparse category no longer collapses it to 0.
+  The formula version is `R2.1` (was `R2.0` before the prior).
+- Scovant Cloud now publishes its headline result — Agent Readiness, with
+  Technical Readiness beside it — through this same `score_r2` formula.
 
 ## [0.6.0] - 2026-09-24
 
