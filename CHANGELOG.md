@@ -13,6 +13,12 @@ out explicitly because scores are only comparable within one ruleset version.
 `ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.
 
 ### Added
+- `scovant_core.rules` — the contract for Scovant Cloud rules published in
+  Core (`CoreRule`, `Finding`, `MeasureCtx`, `probe_measured`, public
+  evidence TypedDicts). `scovant scan` and the Core Score are unchanged.
+- First rules published from Scovant Cloud in `scovant_core.rules.discoverability`:
+  `CONTENT_SIGNALS_ABSENT`, `CONTENT-SIGNAL-001` and `SITEMAP_MISSING_OR_INVALID`
+  (the evidence they read is documented in `scovant_core.rules.evidence`).
 - `MCP_PROBE_TRANSPORT`/`MCP_PROBE_MODE` constants stamped onto the MCP
   interface snapshot (`parsers/mcp.py`), recording that the probe itself
   used `streamable_http` in `stateless_probe` mode.
