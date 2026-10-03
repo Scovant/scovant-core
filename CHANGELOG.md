@@ -8,6 +8,10 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.7.0] - 2026-10-03
+
+`ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.
+
 ### Added
 - `MCP_PROBE_TRANSPORT`/`MCP_PROBE_MODE` constants stamped onto the MCP
   interface snapshot (`parsers/mcp.py`), recording that the probe itself
