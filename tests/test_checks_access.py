@@ -980,3 +980,25 @@ def test_engine_metrics_ai_crawler_policy_is_none_when_robots_was_never_gathered
         transport=FixtureTransport(FIXTURES / "sites" / "commerce-good", "example.com"),
     )
     assert rep.metrics["ai_crawler_policy"] is None
+
+
+def _declared_sitemap_unreachable_handler(request: httpx.Request) -> httpx.Response:
+    if request.url.host != "example.com":
+        return httpx.Response(404, text="wrong host")
+    if request.url.path == "/robots.txt":
+        return httpx.Response(200, text="User-agent: *\nAllow: /\nSitemap: https://example.com/declared-map.xml\n",
+                              headers={"content-type": "text/plain"})
+    if request.url.path == "/declared-map.xml":
+        raise httpx.ConnectError("simulated network failure", request=request)
+    if request.url.path == "/":
+        return httpx.Response(200, content=_DEFAULT_INDEX.encode(), headers={"content-type": "text/html"})
+    return httpx.Response(404, text="not found")
+
+
+def test_005_error_when_the_declared_sitemap_never_answered_and_the_fallbacks_404():
+    store, ctx = _scan(make_client(_declared_sitemap_unreachable_handler), options=ScanOptions(profile="commerce"))
+    result = SitemapAvailability().run(store, ctx)
+    assert result.status == CheckStatus.ERROR
+    assert "simulated network failure" in result.evidence["fetch_error"]
+    assert "could not be" in result.summary.lower()
+    assert SitemapAvailability.check_version == "1.1"

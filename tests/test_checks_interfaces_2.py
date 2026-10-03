@@ -639,3 +639,18 @@ def test_009_text_only_surface_recorded_but_not_scored():
     assert result.status == CheckStatus.NA
     assert result.evidence["agents_txt_present"] is True
     assert result.evidence["found"] == []
+
+
+def test_009_error_when_nothing_found_and_a_candidate_never_answered():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/":
+            return httpx.Response(200, content=_DEFAULT_INDEX.encode(), headers={"content-type": "text/html"})
+        if request.url.path == "/.well-known/agent-card.json":
+            raise httpx.ConnectError("simulated network failure", request=request)
+        return httpx.Response(404, text="not found")
+
+    store, ctx = _scan(make_client(handler), options=ScanOptions(profile="api"))
+    result = AgentDiscoverySurfacePresence().run(store, ctx)
+    assert result.status == CheckStatus.ERROR
+    assert "simulated network failure" in result.evidence["fetch_error"]
+    assert AgentDiscoverySurfacePresence.check_version == "1.1"

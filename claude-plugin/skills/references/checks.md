@@ -466,7 +466,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Status:** experimental · scored: no · reason: A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there. · promotion: ≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, together with a decided status vocabulary for partially-unread surfaces; a documented link between a published discovery surface and agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump.
 
-**Limitations:** Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document could not be fetched or did not parse is indistinguishable here from one that is absent; this check therefore never reports WARN or ERROR.
+**Limitations:** Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document did not parse is indistinguishable here from one that is absent, and this check never reports WARN; when no surface was found and at least one candidate could not be fetched at all, it reports ERROR rather than N/A.
 
 **Standards:** AR-READ-06, AR-ACT-04
 

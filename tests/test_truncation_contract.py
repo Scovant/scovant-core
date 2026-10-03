@@ -102,7 +102,7 @@ def _modules() -> dict[str, str]:
 # its body, and truncation of a body neither of them ever looks at is not
 # evidence they are missing anything.
 _TEXT_MARKER = re.compile(r"\bres(?:ult)?\.text\b|\.text\b")
-_PROBE_HELPER_MARKER = re.compile(r"_probe_json\(|_probe_text_exists\(|_capped_body\(")
+_PROBE_HELPER_MARKER = re.compile(r"_probe_json(?:_ex)?\(|_probe_text_exists\(|_capped_body\(")
 
 
 def _reads_a_body(src: str) -> bool:
@@ -119,7 +119,7 @@ def _reads_a_body(src: str) -> bool:
 # derived reads. A module that writes the key without ever touching one of
 # these markers belongs in `EXEMPT_NO_REAL_SIGNAL` above, audited, or it is
 # almost certainly faking the propagation.
-_DERIVATION_MARKER = re.compile(r"\.truncated\b|_capped_body\(|_probe_json\(")
+_DERIVATION_MARKER = re.compile(r"\.truncated\b|_capped_body\(|_probe_json(?:_ex)?\(")
 
 
 def test_the_body_reading_set_is_exactly_what_we_think_it_is():

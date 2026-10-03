@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.7.0",
+  "core_version": "0.8.0",
   "findings": [
     {
       "category": "access",
@@ -170,7 +170,7 @@
     },
     {
       "category": "access",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud validates every child sitemap in an index and samples the full URL count.",
       "confidence": "high",
       "evidence": {
@@ -574,7 +574,7 @@
     },
     {
       "category": "interfaces",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud validates each discovered surface's own schema, not just that a document is present.",
       "confidence": "high",
       "evidence": {},
@@ -582,7 +582,7 @@
       "family_id": "",
       "fix_owner": "",
       "id": "CORE-INTERFACE-009",
-      "limitations": "Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document could not be fetched or did not parse is indistinguishable here from one that is absent; this check therefore never reports WARN or ERROR.",
+      "limitations": "Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document did not parse is indistinguishable here from one that is absent, and this check never reports WARN; when no surface was found and at least one candidate could not be fetched at all, it reports ERROR rather than N/A.",
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -2050,7 +2050,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.7.0",
+    "core_version": "0.8.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2063,11 +2063,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "fd062c67627f",
+    "ruleset_digest": "ab2a8e0e0faa",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.7.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.8.0 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",

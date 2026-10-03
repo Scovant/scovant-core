@@ -42,7 +42,7 @@ def test_sitemap_urlset_at_default_path():
 
     r = check_sitemap(_client(handler), DOMAIN, [])
     assert r == {"exists": True, "valid": True, "url": f"{DOMAIN}/sitemap.xml", "kind": "urlset",
-                 "truncated": False}
+                 "truncated": False, "fetch_status": "ok", "error": None}
 
 
 def test_sitemap_robots_directive_takes_priority():
@@ -67,7 +67,8 @@ def test_sitemap_html_response_invalid():
 
 def test_sitemap_nothing_found():
     r = check_sitemap(_client(lambda req: httpx.Response(404)), DOMAIN, [])
-    assert r == {"exists": False, "valid": False, "url": None, "kind": None, "truncated": False}
+    assert r == {"exists": False, "valid": False, "url": None, "kind": None, "truncated": False,
+                 "fetch_status": "ok", "error": None}
 
 
 # ── check_link_headers ────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ def test_sitemap_nothing_found():
 
 def test_link_headers_absent():
     result = check_link_headers(_client(lambda r: httpx.Response(200)), DOMAIN)
-    assert result == {"present": False, "rels": [], "agent_relevant": False}
+    assert result == {"present": False, "rels": [], "agent_relevant": False, "fetch_status": "ok", "error": None}
 
 
 def test_link_headers_present_but_not_agent_relevant():
@@ -137,12 +138,13 @@ def test_link_headers_probe_hits_homepage_with_probe_timeout():
                                "write": _PROBE_TIMEOUT, "pool": _PROBE_TIMEOUT})]
 
 
-def test_link_headers_transport_error_degrades_to_absent():
+def test_link_headers_transport_error_is_reported():
     def handler(request):
         raise httpx.ConnectError("boom")
 
     result = check_link_headers(_client(handler), DOMAIN)
-    assert result == {"present": False, "rels": [], "agent_relevant": False}
+    assert result == {"present": False, "rels": [], "agent_relevant": False,
+                      "fetch_status": "error", "error": "ConnectError: boom"}
 
 
 def test_link_headers_soft_time_limit_propagates():
@@ -823,3 +825,98 @@ def test_payment_probes_nothing_detected_on_404s():
     # result shape identical across every protocol
     for p in result["protocols"].values():
         assert set(p) == {"detected", "evidence"}
+
+
+# ── fetch_status: a request that never answered is not an absence ──────
+
+
+def test_sitemap_candidate_transport_error_is_reported():
+    def handler(request):
+        if request.url.path == "/declared.xml":
+            raise httpx.ConnectError("boom")
+        return httpx.Response(404)
+
+    r = check_sitemap(_client(handler), DOMAIN, [f"{DOMAIN}/declared.xml"])
+    assert r["exists"] is False
+    assert (r["fetch_status"], r["error"]) == ("error", "ConnectError: boom")
+
+
+def test_sitemap_valid_candidate_outweighs_a_failed_one():
+    def handler(request):
+        if request.url.path == "/declared.xml":
+            raise httpx.ConnectError("boom")
+        if request.url.path == "/sitemap.xml":
+            return httpx.Response(200, text=_URLSET)
+        return httpx.Response(404)
+
+    r = check_sitemap(_client(handler), DOMAIN, [f"{DOMAIN}/declared.xml"])
+    assert r["valid"] is True
+    assert (r["fetch_status"], r["error"]) == ("ok", None)
+
+
+@pytest.mark.parametrize("declared", ["/sitemap.xml", "sitemap.xml", "ftp://example.com/sitemap.xml", ""])
+def test_sitemap_unusable_declared_url_is_the_sites_answer_not_our_failure(declared):
+    """A `Sitemap:` value no client could request (relative, non-http) was
+    never sent, so it cannot be a request that went unanswered."""
+    r = check_sitemap(_client(lambda request: httpx.Response(404)), DOMAIN, [declared])
+    assert r["exists"] is False
+    assert (r["fetch_status"], r["error"]) == ("ok", None)
+
+
+def test_sitemap_declared_url_the_client_refuses_is_not_our_failure():
+    from scovant_core.security.url_safety import SSRFBlocked
+
+    def handler(request):
+        if request.url.host == "10.0.0.5":
+            raise SSRFBlocked("private address")
+        return httpx.Response(404)
+
+    r = check_sitemap(_client(handler), DOMAIN, ["http://10.0.0.5/sitemap.xml"])
+    assert (r["fetch_status"], r["error"]) == ("ok", None)
+
+
+@pytest.mark.parametrize("failing_path", ["/.well-known/agent-card.json", "/agents.txt"])
+def test_agent_discovery_reports_a_transport_error_only_when_nothing_was_found(failing_path):
+    def failing(request):
+        if request.url.path == failing_path:
+            raise httpx.ConnectError("boom")
+        return httpx.Response(404)
+
+    r = check_agent_discovery(_client(failing), DOMAIN)
+    assert r["any_found"] is False
+    assert (r["fetch_status"], r["error"]) == ("error", "ConnectError: boom")
+
+    def found_elsewhere(request):
+        if request.url.path == failing_path:
+            raise httpx.ConnectError("boom")
+        if request.url.path == "/.well-known/ai-plugin.json":
+            return httpx.Response(200, json={"schema_version": "v1"})
+        return httpx.Response(404)
+
+    r = check_agent_discovery(_client(found_elsewhere), DOMAIN)
+    assert r["any_found"] is True and r["fetch_status"] == "ok" and r["error"] is None
+    clean = check_agent_discovery(_client(lambda req: httpx.Response(404)), DOMAIN)
+    assert (clean["fetch_status"], clean["error"]) == ("ok", None)
+
+
+def test_agent_discovery_with_every_surface_known_is_not_attempted():
+    from scovant_core.gatherers.probe_tables import DISCOVERY_PROBES
+
+    def must_not_fetch(request):
+        raise AssertionError(f"fetched {request.url}")
+
+    r = check_agent_discovery(_client(must_not_fetch), DOMAIN, known={k: False for k in DISCOVERY_PROBES})
+    assert (r["fetch_status"], r["error"]) == ("not_attempted", None)
+
+
+def test_agent_payments_reports_a_transport_error_only_when_nothing_was_detected():
+    def handler(request):
+        if request.url.path == "/":
+            raise httpx.ConnectError("boom")
+        return httpx.Response(404)
+
+    r = check_agent_payments(_client(handler), DOMAIN)
+    assert r["any_non_ucp"] is False
+    assert (r["fetch_status"], r["error"]) == ("error", "ConnectError: boom")
+    clean = check_agent_payments(_client(lambda req: httpx.Response(404)), DOMAIN)
+    assert (clean["fetch_status"], clean["error"]) == ("ok", None)

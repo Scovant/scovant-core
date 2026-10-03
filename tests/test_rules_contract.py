@@ -44,3 +44,29 @@ def test_register_rule_refuses_a_duplicate_code():
 def test_finding_defaults_are_independent():
     a, b = Finding("t", "d", "r"), Finding("t", "d", "r")
     assert a.metadata == {} and a.metadata is not b.metadata and a.example is None and a.url is None
+
+
+def test_probe_measured_reads_a_reported_fetch_failure():
+    failed = {"sitemap": {"exists": False, "valid": False, "fetch_status": "error",
+                          "error": "ConnectError: boom"}}
+    assert probe_measured(failed, CTX, "sitemap") is OutcomeState.NOT_MEASURED
+    answered = {"sitemap": {"exists": False, "valid": False, "fetch_status": "ok", "error": None}}
+    assert probe_measured(answered, CTX, "sitemap") is None
+    # evidence written before the field existed, and a shared (not fetched) answer, are measured
+    assert probe_measured({"sitemap": {"exists": False, "valid": False}}, CTX, "sitemap") is None
+    assert probe_measured({"sitemap": {"exists": False, "fetch_status": "not_attempted"}}, CTX, "sitemap") is None
+
+
+def test_every_rule_module_is_imported_by_the_package_init():
+    import ast
+    import pkgutil
+    from pathlib import Path
+
+    import scovant_core.rules as pkg
+
+    tree = ast.parse(Path(pkg.__file__).read_text(encoding="utf-8"))
+    imported = {alias.name for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) and node.module == "scovant_core.rules"
+                for alias in node.names}
+    modules = {m.name for m in pkgutil.iter_modules(pkg.__path__)} - {"base", "evidence"}
+    assert modules <= imported, modules - imported

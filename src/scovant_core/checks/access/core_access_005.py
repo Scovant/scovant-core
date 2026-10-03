@@ -13,6 +13,7 @@ class SitemapAvailability(CoreCheck):
     verification_mode = "DECLARED"
     weight = 3
     severity_on_fail = Severity.MEDIUM
+    check_version = "1.1"
     references = ("https://www.sitemaps.org/protocol.html",)
     why_it_matters = "A sitemap is the most reliable way for a crawler to discover a site's full page inventory without following every link."
     limitations = "Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated."
@@ -67,6 +68,14 @@ class SitemapAvailability(CoreCheck):
         # genuinely unreadable non-200/non-404/410 status, e.g. 401/403).
         # A real 404/410 or a served-as-html catch-all falls through to the
         # profile-based verdict below unchanged.
+        # A candidate that never answered (the gatherer's `fetch_status`)
+        # means absence was not established — e.g. a robots.txt-declared
+        # sitemap that timed out while the fallback paths answered 404.
+        if sitemap.get("fetch_status") == "error":
+            return self.error(
+                "a sitemap candidate could not be fetched, so its absence was not established.",
+                {**ev, "fetch_error": sitemap.get("error")},
+            )
         probe_record = {"status": sitemap["probe_status"], "served_as_html": sitemap.get("served_as_html", False)}
         v = document_status(probe_record, what="sitemap")
         if v and v.status is CheckStatus.ERROR:

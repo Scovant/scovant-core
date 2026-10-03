@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 from scovant_core.compat import SoftTimeLimitExceeded
 
-from ._http import _PROBE_TIMEOUT
+from ._http import _PROBE_TIMEOUT, _transport_error
 
 if TYPE_CHECKING:
     import httpx
@@ -21,11 +21,19 @@ def check_link_headers(client: httpx.Client, domain: str) -> dict[str, Any]:
     Returns:
         {"present": bool,           # any Link header on the homepage response
          "rels": list[str],         # all relation types, lowercased, deduped
-         "agent_relevant": bool}    # any rel in _AGENT_RELEVANT_LINK_RELS
+         "agent_relevant": bool,    # any rel in _AGENT_RELEVANT_LINK_RELS
+         "fetch_status": "ok" | "error",  # "error": the homepage never answered
+         "error": str | None}       # that transport failure, when there was one
     """
-    result: dict[str, Any] = {"present": False, "rels": [], "agent_relevant": False}
+    result: dict[str, Any] = {"present": False, "rels": [], "agent_relevant": False,
+                              "fetch_status": "ok", "error": None}
     try:
         resp = client.get(f"{domain}/", timeout=_PROBE_TIMEOUT)
+    except SoftTimeLimitExceeded:
+        raise
+    except Exception as exc:
+        return {**result, "fetch_status": "error", "error": _transport_error(exc)}
+    try:
         links = resp.links  # httpx's RFC 8288 parser (handles quoted params)
         if not links:
             return result
@@ -35,11 +43,11 @@ def check_link_headers(client: httpx.Client, domain: str) -> dict[str, Any]:
             for rel in (link.get("rel") or "").lower().split():
                 if rel not in rels:
                     rels.append(rel)
-        result["present"] = True
-        result["rels"] = rels
-        result["agent_relevant"] = any(r in _AGENT_RELEVANT_LINK_RELS for r in rels)
-    except SoftTimeLimitExceeded:
-        raise
     except Exception:
-        return {"present": False, "rels": [], "agent_relevant": False}
+        # an unparseable Link header: the site answered, nothing usable in it
+        return {"present": False, "rels": [], "agent_relevant": False,
+                "fetch_status": "ok", "error": None}
+    result["present"] = True
+    result["rels"] = rels
+    result["agent_relevant"] = any(r in _AGENT_RELEVANT_LINK_RELS for r in rels)
     return result

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from scovant_core.compat import SoftTimeLimitExceeded
 
-from ._http import _PROBE_TIMEOUT, _capped_body, _probe_json
+from ._http import _PROBE_TIMEOUT, _capped_body, _probe_json_ex, _transport_error
 from .probe_tables import PAYMENT_PROBES
 
 if TYPE_CHECKING:
@@ -23,7 +23,8 @@ def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
 
     Returns:
         {"any_non_ucp": bool, "truncated": bool,
-         "protocols": {key: {"detected": bool | None, "evidence": str | None}}}
+         "protocols": {key: {"detected": bool | None, "evidence": str | None}},
+         "fetch_status": "ok" | "error", "error": str | None}
 
     `truncated` is True when ANY body this probe actually read was cut off
     at `_PROBE_BODY_CAP`. Per-protocol, `detected` is `None` (never a
@@ -33,14 +34,31 @@ def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
     through the shared `_probe_json` helper, whose `(parsed, truncated)`
     return makes that distinction explicit; `json_text_marker` and the
     x402 status-path loop read directly via `_capped_body`.
+
+    `fetch_status` is "error" when no protocol was detected and at least one
+    request never got an HTTP answer — absence is only established when every
+    request answered; `error` names the first such failure.
     """
     protocols: dict[str, Any] = {}
     truncated_flags: list[bool] = []
+    errors: list[str] = []
+
+    def _get(url: str):
+        try:
+            return client.get(url, timeout=_PROBE_TIMEOUT)
+        except SoftTimeLimitExceeded:
+            raise
+        except Exception as exc:
+            errors.append(_transport_error(exc))
+            return None
+
     for key, probe in PAYMENT_PROBES.items():
         detected: bool | None = False
         evidence: str | None = None
         if probe["kind"] == "well_known_json":
-            data, was_truncated = _probe_json(client, f"{domain}{probe['path']}")
+            data, was_truncated, err = _probe_json_ex(client, f"{domain}{probe['path']}")
+            if err is not None:
+                errors.append(err)
             truncated_flags.append(was_truncated)
             marker = probe.get("json_marker")
             if isinstance(data, dict) and (marker is None or marker in data):
@@ -48,57 +66,49 @@ def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
             elif was_truncated:
                 detected = None  # cut off before we could tell — not a claimed absence
         elif probe["kind"] == "challenge_header":
-            try:
-                resp = client.get(f"{domain}/", timeout=_PROBE_TIMEOUT)
+            resp = _get(f"{domain}/")
+            if resp is not None:
                 header_val = resp.headers.get(probe["header"], "")
                 if probe["marker"] in header_val.lower():
                     detected, evidence = True, f"{probe['header']}: {header_val[:100]}"
-            except SoftTimeLimitExceeded:
-                raise
-            except Exception:
-                pass
         elif probe["kind"] == "json_text_marker":
             # 200 + parseable JSON + marker substring anywhere in the document
             # (per-operation OpenAPI extensions sit at arbitrary nesting).
-            try:
-                resp = client.get(f"{domain}{probe['path']}", timeout=_PROBE_TIMEOUT)
-                if resp.status_code == 200:
-                    text, was_truncated = _capped_body(resp.text)
-                    truncated_flags.append(was_truncated and text != "")
-                else:
-                    text = None
-                if text is not None:
+            resp = _get(f"{domain}{probe['path']}")
+            if resp is not None and resp.status_code == 200:
+                text, was_truncated = _capped_body(resp.text)
+                truncated_flags.append(was_truncated and text != "")
+                try:
                     json.loads(text)
+                except (json.JSONDecodeError, ValueError):
+                    pass
+                else:
                     if probe["marker"] in text:
                         detected, evidence = True, f"{probe['path']} ({probe['marker']})"
-            except SoftTimeLimitExceeded:
-                raise
-            except Exception:
-                pass
         elif probe["kind"] == "x402":
             # Catalog descriptor first, then 402-status probing. The 402
             # body must carry the spec-required json_marker key — a bare
             # 402 (e.g. an L402 challenge, or a plain paywall) is not x402
             # evidence.
-            data, catalog_truncated = _probe_json(client, f"{domain}{probe['catalog_path']}")
+            data, catalog_truncated, err = _probe_json_ex(client, f"{domain}{probe['catalog_path']}")
+            if err is not None:
+                errors.append(err)
             truncated_flags.append(catalog_truncated)
             if isinstance(data, dict):
                 detected, evidence = True, probe["catalog_path"]
             else:
                 any_status_path_truncated = False
                 for path in probe["status_paths"]:
+                    resp = _get(f"{domain}{path}")
+                    if resp is None or resp.status_code != 402:
+                        continue
+                    capped, was_truncated = _capped_body(resp.text)
+                    was_truncated = was_truncated and capped != ""
+                    any_status_path_truncated = any_status_path_truncated or was_truncated
+                    truncated_flags.append(was_truncated)
                     try:
-                        resp = client.get(f"{domain}{path}", timeout=_PROBE_TIMEOUT)
-                        if resp.status_code != 402:
-                            continue
-                        capped, was_truncated = _capped_body(resp.text)
-                        was_truncated = was_truncated and capped != ""
-                        any_status_path_truncated = any_status_path_truncated or was_truncated
-                        truncated_flags.append(was_truncated)
                         body = json.loads(capped)
-                    except SoftTimeLimitExceeded:
-                        raise
-                    except Exception:
+                    except (json.JSONDecodeError, ValueError):
                         continue
                     if isinstance(body, dict) and probe["json_marker"] in body:
                         detected = True
@@ -110,8 +120,12 @@ def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
                 if not detected and (catalog_truncated or any_status_path_truncated):
                     detected = None
         protocols[key] = {"detected": detected, "evidence": evidence}
+    any_non_ucp = any(p["detected"] for p in protocols.values())
+    failed = bool(errors) and not any_non_ucp
     return {
-        "any_non_ucp": any(p["detected"] for p in protocols.values()),
+        "any_non_ucp": any_non_ucp,
         "truncated": any(truncated_flags),
         "protocols": protocols,
+        "fetch_status": "error" if failed else "ok",
+        "error": errors[0] if failed else None,
     }

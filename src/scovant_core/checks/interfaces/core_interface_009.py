@@ -16,8 +16,10 @@ independently tri-state surfaces means deciding what the overall verdict
 should be when some surfaces are confirmed absent and others are merely
 unread (ERROR? WARN? which one wins?) — and this check's own
 `limitations` above already documents a DELIBERATE, pre-existing design
-choice to never report WARN or ERROR at all, collapsing every failure
-mode into "absent". Changing that vocabulary is a bigger decision than
+choice to never report WARN, collapsing every partial failure mode into
+"absent" (since 1.1 a scan where nothing was found and a candidate never
+answered at all is ERROR, from the gatherer's `fetch_status`). Changing
+that vocabulary further is a bigger decision than
 threading a flag through a single `if`, so it is left unresolved and
 noted here rather than guessed at. Only the truncation NOTE/CONFIDENCE
 treatment is applied below; the status vocabulary is untouched.
@@ -47,6 +49,7 @@ class AgentDiscoverySurfacePresence(CoreCheck):
     weight = 2
     experimental = True
     severity_on_fail = Severity.LOW
+    check_version = "1.1"
     references = (
         "https://a2a-protocol.org/",
         "https://github.com/openai/plugins",
@@ -58,9 +61,10 @@ class AgentDiscoverySurfacePresence(CoreCheck):
     )
     limitations = (
         "Only a fixed set of conventional well-known paths is probed; a custom discovery "
-        "location is not found. A surface whose document could not be fetched or did not "
-        "parse is indistinguishable here from one that is absent; this check therefore "
-        "never reports WARN or ERROR."
+        "location is not found. A surface whose document did not parse is indistinguishable "
+        "here from one that is absent, and this check never reports WARN; when no surface "
+        "was found and at least one candidate could not be fetched at all, it reports ERROR "
+        "rather than N/A."
     )
     promotion_criteria = (
         "≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap "
@@ -98,6 +102,13 @@ class AgentDiscoverySurfacePresence(CoreCheck):
                 CheckStatus.PASS,
                 f"An agent discovery surface is published ({', '.join(found)})." + note,
                 evidence=ev, confidence=conf,
+            )
+
+        if surface.get("fetch_status") == "error":
+            return self.error(
+                "no agent discovery surface was found and at least one candidate could not be "
+                "fetched, so absence was not established.",
+                {**ev, "fetch_error": surface.get("error")},
             )
 
         return self.result(

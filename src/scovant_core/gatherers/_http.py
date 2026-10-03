@@ -72,36 +72,46 @@ def _capped_body(text: str, cap: int = _PROBE_BODY_CAP) -> tuple[str, bool]:
     return text[:cap], True
 
 
-def _probe_json(client: _ProbeClient, url: str) -> tuple[Any, bool]:
-    """GET url; return `(parsed, truncated)`.
+def _transport_error(exc: BaseException) -> str:
+    """One line naming a request that never got an HTTP answer — the
+    exception type and its message, capped so a hostile message stays small."""
+    return f"{type(exc).__name__}: {exc}"[:200]
+
+
+def _probe_json_ex(client: _ProbeClient, url: str) -> tuple[Any, bool, str | None]:
+    """GET url; return `(parsed, truncated, transport_error)`.
 
     `parsed` is the body as JSON (dict/list) on 200 + valid JSON, else
     `None` — but a `None` here is NOT, on its own, evidence that the
     document is absent or invalid: `truncated` distinguishes "the body
     genuinely isn't valid JSON" (`truncated=False`) from "the body was cut
-    off at `_PROBE_BODY_CAP` before we could tell" (`truncated=True`).
-    Collapsing both to a bare `None` was the original defect this
-    signature replaces — a caller that only checked "is `parsed` `None`"
-    reported a truncated-but-genuinely-present document as absent/invalid,
-    publishing our own read limit as a fact about the site. Every caller
-    MUST check `truncated` before treating a `None` `parsed` as a
-    confirmed negative; when truncated, the honest caller-side outcome is
-    "could not determine" (e.g. `exists: None`), never `False`.
+    off at `_PROBE_BODY_CAP` before we could tell" (`truncated=True`), and
+    `transport_error` is set (see `_transport_error`) when the request never
+    got an HTTP answer at all. Every caller MUST check both before treating a
+    `None` `parsed` as a confirmed negative; when either is set, the honest
+    caller-side outcome is "could not determine", never `False`.
     """
     try:
         resp = client.get(url, timeout=_PROBE_TIMEOUT)
     except SoftTimeLimitExceeded:
         raise
-    except Exception:
-        return None, False
+    except Exception as exc:
+        return None, False, _transport_error(exc)
     if resp.status_code != 200:
-        return None, False
+        return None, False, None
     body, was_truncated = _capped_body(resp.text)
     truncated = was_truncated and body != ""
     try:
-        return json.loads(body), truncated
+        return json.loads(body), truncated, None
     except (json.JSONDecodeError, ValueError):
-        return None, truncated
+        return None, truncated, None
+
+
+def _probe_json(client: _ProbeClient, url: str) -> tuple[Any, bool]:
+    """`_probe_json_ex` without the transport error — for callers that only
+    distinguish "parsed" from "not parsed / truncated"."""
+    parsed, truncated, _error = _probe_json_ex(client, url)
+    return parsed, truncated
 
 
 def _probe_text_exists(resp: _ProbeResponse) -> bool:

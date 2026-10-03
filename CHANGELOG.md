@@ -8,6 +8,36 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.8.0] - 2026-10-03
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` changed (CORE-ACCESS-005
+and CORE-INTERFACE-009 are 1.1), report schema `1.1`.
+
+### Changed
+- CORE-ACCESS-005 (1.1) reports ERROR instead of FAIL/WARN when no sitemap was
+  found and a candidate — e.g. a robots.txt-declared sitemap — could not be
+  fetched at all. CORE-INTERFACE-009 (1.1) reports ERROR instead of N/A when no
+  discovery surface was found and a candidate could not be fetched. Both read
+  the gatherers' new `fetch_status`; the ERROR evidence carries `fetch_error`.
+
+
+### Added
+- Thirteen more rules published from Scovant Cloud in `scovant_core.rules`:
+  `AI_CRAWLER_BLOCKED` and `AI-BOT-POLICY-001` (`robots_policy`),
+  `LLMS_TXT_MISSING_OR_INVALID`, `MARKDOWN_FOR_AGENTS_ABSENT`,
+  `LINK_HEADERS_ABSENT`, `CONTENT-NEG-002/-004` (`agent_formats`),
+  `MACHINE-REP-004/-005` (`machine_rep`), `CRAWL-GRAPH-001/-002/-005`
+  (`crawl_graph`) and the first page-scoped rule, `BLOCKED_CRAWLABILITY`
+  (`crawlability`). The evidence they read is documented in
+  `scovant_core.rules.evidence`. `scovant scan` and the Core Score are unchanged.
+- `fetch_status` (`ok` | `error` | `not_attempted`) and `error` on the documents
+  returned by `check_sitemap`, `check_link_headers`, `check_agent_discovery`
+  and `check_agent_payments`. `error` means nothing positive was found and at
+  least one request never got an HTTP answer — a transport failure is no
+  longer indistinguishable from a site that lacks the document.
+  `scovant_core.rules.probe_measured` reads it: a rule over such evidence is
+  `NOT_MEASURED`.
+
 ## [0.7.0] - 2026-10-03
 
 `ruleset_version` UNCHANGED (`2026.10`), report schema `1.1`; no check changed.

@@ -53,14 +53,19 @@ class CoreRule(ABC):
 
 
 def probe_measured(domain: dict | None, ctx: MeasureCtx, *keys: str) -> OutcomeState | None:
-    """NOT_MEASURED when the domain evidence is absent, a block is missing, or
-    the probe that filled it fell back to its default; otherwise None."""
+    """NOT_MEASURED when the domain evidence is absent, a block is missing,
+    the probe that filled it fell back to its default, or the block itself
+    reports that a request never answered (`fetch_status: "error"`);
+    otherwise None."""
     if not domain:
         return OutcomeState.NOT_MEASURED
     for key in keys:
-        if not isinstance(domain.get(key), dict):
+        block = domain.get(key)
+        if not isinstance(block, dict):
             return OutcomeState.NOT_MEASURED
         if ctx.defaulted is not None and key in ctx.defaulted:
+            return OutcomeState.NOT_MEASURED
+        if block.get("fetch_status") == "error":
             return OutcomeState.NOT_MEASURED
     return None
 
