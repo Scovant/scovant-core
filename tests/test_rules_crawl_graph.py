@@ -1,4 +1,4 @@
-"""Wave-2 rules published in Core: the crawl graph of the sampled pages."""
+"""Rules published in Core: the crawl graph of the sampled pages."""
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules import RULES, MeasureCtx
 

@@ -113,6 +113,15 @@ class AiBotPolicyEvidence(TypedDict, total=False):
     declared_any: bool
 
 
+class TokenBloatSettingsEvidence(TypedDict, total=False):
+    """How the host runs the page token-cost rule: `enabled` must be true for
+    the rule to report anything; `low`/`medium` are token thresholds that
+    default to the rule's public values (`rules.token_bloat`)."""
+    enabled: bool
+    low: int
+    medium: int
+
+
 class DomainEvidence(TypedDict, total=False):
     content_signals: ContentSignalsEvidence
     sitemap: SitemapEvidence
@@ -123,11 +132,31 @@ class DomainEvidence(TypedDict, total=False):
     link_headers: LinkHeadersEvidence
     machine_rep: MachineRepEvidence
     crawl_graph: CrawlGraphEvidence
+    # Run-level values the host adds before the page rules run: how many pages
+    # were fetched (a page rule that normalises by page count reports 1/N of
+    # its penalty per page) and the token-cost rule's settings.
+    pages_scored: int
+    token_bloat_settings: TokenBloatSettingsEvidence
 
 
 class PageMetadataEvidence(TypedDict, total=False):
     robots_meta: str | None       # the page's <meta name="robots"> content
     canonical_url: str | None
+
+
+class HeadingEvidence(TypedDict, total=False):
+    level: str                    # "h1" … "h6"
+    text: str
+
+
+class SemanticSignalsEvidence(TypedDict, total=False):
+    add_to_cart_found: bool       # a button/link reads "add to cart" / "buy now" (English)
+
+
+class TokenCostEvidence(TypedDict, total=False):
+    total: int                    # tokens an agent spends to ingest the page
+    text: int
+    skeleton: int
 
 
 # One sampled page's extracted fields (the subset the page-scoped rules
@@ -138,3 +167,9 @@ class PageEvidence(TypedDict, total=False):
     metadata: PageMetadataEvidence | None
     http_status: int | None
     _http_status: int | None
+    schema_org: list[dict[str, Any]]          # JSON-LD / Microdata entities, @graph lifted
+    visible_text: str
+    headings: list[HeadingEvidence]
+    landmark_tags: dict[str, int] | None      # main/article/nav/section/header/footer/aside counts
+    semantic_signals: SemanticSignalsEvidence
+    token_cost: TokenCostEvidence

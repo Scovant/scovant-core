@@ -1,4 +1,4 @@
-"""Wave-2 rules published in Core: robots.txt crawler policy."""
+"""Rules published in Core: robots.txt crawler policy."""
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules import RULES, MeasureCtx
 

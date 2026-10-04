@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 
 from scovant_core.r2 import OutcomeState
 
+SEVERITIES: frozenset[str] = frozenset({"info", "low", "medium", "high", "critical"})
+
 
 @dataclass(frozen=True)
 class Finding:
@@ -26,6 +28,19 @@ class Finding:
     example: str | None = None
     metadata: dict = field(default_factory=dict)
     url: str | None = None
+    # A graded rule picks the severity of each finding (one of SEVERITIES);
+    # None = the rule's own `severity`.
+    severity: str | None = None
+    # The share of the rule's penalty this finding carries: a page rule that
+    # normalises by the number of sampled pages reports 1/N per page. 1.0 =
+    # the whole penalty.
+    weight_multiplier: float = 1.0
+
+    def __post_init__(self) -> None:
+        if self.severity is not None and self.severity not in SEVERITIES:
+            raise ValueError(f"unknown severity {self.severity!r}")
+        if not 0.0 < self.weight_multiplier <= 1.0:
+            raise ValueError(f"weight_multiplier must be in (0, 1], got {self.weight_multiplier!r}")
 
 
 @dataclass(frozen=True)

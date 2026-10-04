@@ -1,4 +1,4 @@
-"""Wave-2 rule published in Core: page crawlability (a page-scoped rule)."""
+"""Rule published in Core: page crawlability (a page-scoped rule)."""
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules import RULES, MeasureCtx
 

@@ -1,4 +1,4 @@
-"""Wave-1 rules published in Core: Content-Signal and sitemap."""
+"""Rules published in Core: Content-Signal and sitemap."""
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules import RULES, MeasureCtx
 

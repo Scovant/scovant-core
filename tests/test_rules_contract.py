@@ -70,3 +70,15 @@ def test_every_rule_module_is_imported_by_the_package_init():
                 for alias in node.names}
     modules = {m.name for m in pkgutil.iter_modules(pkg.__path__)} - {"base", "evidence"}
     assert modules <= imported, modules - imported
+
+
+def test_finding_carries_an_optional_severity_and_weight():
+    f = Finding("t", "d", "r")
+    assert (f.severity, f.weight_multiplier) == (None, 1.0)
+    g = Finding("t", "d", "r", severity="medium", weight_multiplier=0.25)
+    assert (g.severity, g.weight_multiplier) == ("medium", 0.25)
+    with pytest.raises(ValueError):
+        Finding("t", "d", "r", severity="severe")
+    for bad in (0.0, -0.5, 1.5):
+        with pytest.raises(ValueError):
+            Finding("t", "d", "r", weight_multiplier=bad)

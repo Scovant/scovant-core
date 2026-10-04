@@ -1,8 +1,8 @@
-"""Discoverability rules published from Scovant Cloud (SP-4 wave 1).
+"""Discoverability rules published from Scovant Cloud: robots.txt
+Content-Signal directives and the sitemap.
 
-Behaviour is byte-identical to the Cloud rules they replace: the findings'
-text, metadata and the measurability verdicts (pinned by Cloud's recorded
-goldens).
+The findings' text and metadata are the ones Scovant Cloud has always
+reported for these codes; `measure` says when silence is a pass.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ class ContentSignalsAbsent(CoreRule):
 
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "content_signals" not in domain:
-            return []  # legacy scan without the Wave-3 parse
+            return []  # evidence recorded before Content-Signal parsing
         if domain["content_signals"].get("present"):
             return []
         return [

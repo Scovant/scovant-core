@@ -8,6 +8,27 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.9.0] - 2026-10-04
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan` and the Core Score are unchanged.
+
+### Added
+- Eleven more rules published from Scovant Cloud in `scovant_core.rules`, all
+  page-scoped: `MISSING_PRODUCT_SCHEMA`, `MISSING_OFFER_DATA`,
+  `PRICE_MISSING_INVALID`, `MISSING_AVAILABILITY`, `VARIANT_INFO_MISSING`
+  (`structured`), `HEADING_HIERARCHY_POOR`, `SEMANTIC_HTML_ABSENT`
+  (`page_structure`), `PAGE_TOKEN_BLOAT` (`token_bloat`, public default
+  thresholds 8000 / 20000 tokens) and `PRICE_MISMATCH`,
+  `INCONSISTENT_STRUCTURED_DATA`, `DUPLICATE_CONFLICTING_ENTITIES`
+  (`consistency`). The page and run-level evidence they read is documented in
+  `scovant_core.rules.evidence`.
+- `scovant_core.rules.products` (Product/Offer helpers and the commerce gate)
+  and `scovant_core.rules.product_terms` (the add-to-cart wordings in 30
+  languages that mark a product page).
+- `Finding.severity` (a graded rule's per-finding severity) and
+  `Finding.weight_multiplier` (a page finding's share of the rule's penalty).
+
 ## [0.8.0] - 2026-10-03
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` changed (CORE-ACCESS-005

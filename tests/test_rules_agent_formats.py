@@ -1,4 +1,4 @@
-"""Wave-2 rules published in Core: llms.txt, Markdown for agents, Link headers,
+"""Rules published in Core: llms.txt, Markdown for agents, Link headers,
 content negotiation."""
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules import RULES, MeasureCtx
