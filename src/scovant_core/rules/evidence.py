@@ -262,6 +262,38 @@ class AgentDiscoveryEvidence(TypedDict, total=False):
     error: str | None
 
 
+class ReferenceResolutionEvidence(TypedDict, total=False):
+    """One existence lookup: a package-registry metadata GET or a DNS
+    lookup. `checked` False = we do not know (timeout, 429, 5xx, a temporary
+    resolver failure); only a definitive answer sets `exists`."""
+    checked: bool
+    exists: bool
+    error: str
+
+
+class InstructionReferenceEvidence(TypedDict, total=False):
+    """A package or domain named in machine-readable instructions
+    (`analysis.instruction_integrity.extract_references`)."""
+    kind: str                     # package_npm | package_pypi | domain
+    name: str
+    in_install_command: bool      # inside `npm install …` / `pip install …`, not merely named
+    status: str                   # VALID | UNCLAIMED | BROKEN | UNCHECKED (`classify_reference`)
+    resolution: ReferenceResolutionEvidence | None   # None = never looked up (budget, unknown kind)
+
+
+class InstructionIntegrityEvidence(TypedDict, total=False):
+    """Reference integrity of the site's machine-readable instructions
+    (llms.txt and MCP tool descriptions) —
+    `analysis.integrity_probe.check_instruction_integrity`. `attempted`
+    False: there was no instruction text to check (or extraction failed).
+    `budget_exhausted`: references past the lookup budget stay UNCHECKED."""
+    attempted: bool
+    checked: int                  # lookups spent
+    references: list[InstructionReferenceEvidence]
+    remote_exec: list[str]        # `curl … | sh`-style fragments, at most five
+    budget_exhausted: bool
+
+
 class DomainEvidence(TypedDict, total=False):
     content_signals: ContentSignalsEvidence
     sitemap: SitemapEvidence
@@ -285,6 +317,25 @@ class DomainEvidence(TypedDict, total=False):
     ucp: UcpEvidence
     agent_payments: AgentPaymentsEvidence
     agent_discovery: AgentDiscoveryEvidence
+    instruction_integrity: InstructionIntegrityEvidence
+
+
+class PolicyLinksEvidence(TypedDict, total=False):
+    """Policy pages linked from the page's anchors, resolved to absolute URLs
+    (`parsers.html.extract_policy_links`); None = no matching link."""
+    returns_policy_url: str | None
+    shipping_policy_url: str | None
+    privacy_policy_url: str | None
+    terms_url: str | None
+
+
+class OgMetaEvidence(TypedDict, total=False):
+    """OpenGraph meta (`parsers.html.extract_og_meta`); None = the tag or its
+    `content` attribute is absent (an empty `content` is the empty string)."""
+    og_title: str | None
+    og_description: str | None
+    og_image: str | None
+    og_url: str | None
 
 
 class PageMetadataEvidence(TypedDict, total=False):
@@ -326,3 +377,5 @@ class PageEvidence(TypedDict, total=False):
     semantic_signals: SemanticSignalsEvidence
     token_cost: TokenCostEvidence
     product_data: dict[str, Any] | None       # the first Product's name/price/offers; None = no Product
+    policy_links: PolicyLinksEvidence | None
+    og_meta: OgMetaEvidence | None

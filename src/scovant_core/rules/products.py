@@ -21,6 +21,7 @@ NON_TRANSACTING_SITE_TYPES: frozenset[str] = frozenset({
 COMMERCE_GATED_CODES: frozenset[str] = frozenset({
     "MISSING_PRODUCT_SCHEMA", "MISSING_OFFER_DATA", "PRICE_MISSING_INVALID",
     "MISSING_AVAILABILITY", "VARIANT_INFO_MISSING", "PRICE_MISMATCH",
+    "MISSING_RETURNS_POLICY", "SHIPPING_INFO_UNAVAILABLE",
 })
 # Words in a product page's visible text that suggest it offers variants.
 VARIANT_KEYWORDS: frozenset[str] = frozenset({"size", "color", "colour", "variant", "style", "material"})

@@ -67,7 +67,8 @@ def test_variant_keywords():
 
 def test_commerce_gate():
     gated = {"MISSING_PRODUCT_SCHEMA", "MISSING_OFFER_DATA", "PRICE_MISSING_INVALID",
-             "MISSING_AVAILABILITY", "VARIANT_INFO_MISSING", "PRICE_MISMATCH"}
+             "MISSING_AVAILABILITY", "VARIANT_INFO_MISSING", "PRICE_MISMATCH",
+             "MISSING_RETURNS_POLICY", "SHIPPING_INFO_UNAVAILABLE"}
     assert gated == COMMERCE_GATED_CODES
     assert commerce_gated("PRICE_MISMATCH", "blog")
     assert commerce_gated("MISSING_PRODUCT_SCHEMA", "saas")

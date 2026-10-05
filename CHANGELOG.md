@@ -8,6 +8,29 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.11.0] - 2026-10-05
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan` and the Core Score are unchanged.
+
+### Added
+- Seven more rules published from Scovant Cloud in `scovant_core.rules`: the
+  trust rules over a page's policy links, structured shipping data and
+  OpenGraph meta (`trust`: `MISSING_RETURNS_POLICY`,
+  `SHIPPING_INFO_UNAVAILABLE`, `MISSING_OG_META_FOR_CITATION`) and the
+  instruction-supply rules over the reference integrity of llms.txt and MCP
+  tool descriptions (`supply_chain`: `LLMS-SUPPLY-001`, `LLMS-SUPPLY-002`,
+  `LLMS-SUPPLY-006`, `LLMS-SUPPLY-008`).
+- New modules `scovant_core.rules.trust` (with `has_structured_shipping`) and
+  `scovant_core.rules.supply_chain`.
+- Evidence types for the instruction-integrity block and the page's policy
+  links and OpenGraph meta (`scovant_core.rules.evidence`).
+
+### Changed
+- `scovant_core.rules.products.COMMERCE_GATED_CODES` now also holds
+  `MISSING_RETURNS_POLICY` and `SHIPPING_INFO_UNAVAILABLE`: on a site type
+  that never transacts they measure nothing.
+
 ## [0.10.0] - 2026-10-04
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

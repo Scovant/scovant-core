@@ -13,7 +13,9 @@ from scovant_core.rules import (  # noqa: E402,F401  (registers the rules)
     products,
     robots_policy,
     structured,
+    supply_chain,
     token_bloat,
+    trust,
     ucp,
     webmcp,
 )
