@@ -309,6 +309,9 @@ class DomainEvidence(TypedDict, total=False):
     # its penalty per page) and the token-cost rule's settings.
     pages_scored: int
     token_bloat_settings: TokenBloatSettingsEvidence
+    # On a content site, how many sampled pages carried at least one content
+    # block (the citability rule reports 1/N of its penalty per page).
+    content_pages_scored: int
     # The site's category as the host classified it (commerce, saas, blog,
     # …); rules that apply only to some site types read it.
     site_type: str | None
@@ -362,6 +365,16 @@ class TokenCostEvidence(TypedDict, total=False):
     skeleton: int
 
 
+class ContentBlockEvidence(TypedDict, total=False):
+    """One heading-bounded passage (`parsers.html.extract_content_blocks`):
+    the nearest preceding h1–h4 (None before the first heading) and the
+    paragraphs, lists and tables under it, whitespace collapsed to single
+    spaces; only blocks of at least 20 words are kept."""
+    heading: str | None
+    text: str
+    word_count: int               # len(text.split())
+
+
 # One sampled page's extracted fields (the subset the page-scoped rules
 # read). `_http_status` is the status of the fetch that produced the page,
 # attached by the producer beside the extracted fields; `http_status` is
@@ -379,3 +392,5 @@ class PageEvidence(TypedDict, total=False):
     product_data: dict[str, Any] | None       # the first Product's name/price/offers; None = no Product
     policy_links: PolicyLinksEvidence | None
     og_meta: OgMetaEvidence | None
+    content_blocks: list[ContentBlockEvidence]
+    page_language: str | None                 # <html lang> primary subtag, lowercased; None = absent

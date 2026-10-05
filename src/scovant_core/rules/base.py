@@ -35,12 +35,18 @@ class Finding:
     # normalises by the number of sampled pages reports 1/N per page. 1.0 =
     # the whole penalty.
     weight_multiplier: float = 1.0
+    # The issue code the finding is reported under when it is not the rule's
+    # own `code`: one of the rule's declared `aliases` (a rule that names its
+    # worst band separately, for instance). None = the rule's code.
+    code: str | None = None
 
     def __post_init__(self) -> None:
         if self.severity is not None and self.severity not in SEVERITIES:
             raise ValueError(f"unknown severity {self.severity!r}")
         if not 0.0 < self.weight_multiplier <= 1.0:
             raise ValueError(f"weight_multiplier must be in (0, 1], got {self.weight_multiplier!r}")
+        if self.code is not None and (not isinstance(self.code, str) or not self.code.strip()):
+            raise ValueError(f"code must be a non-empty string, got {self.code!r}")
 
 
 @dataclass(frozen=True)
@@ -59,6 +65,9 @@ class CoreRule(ABC):
     maturity: str = "required"
     rule_version: str = "1.0"
     scope: str = "domain"  # "page" | "domain"
+    # Other issue codes this rule's findings may carry (`Finding.code`); a
+    # host maps each back to `code`. No code is claimed by two rules.
+    aliases: tuple[str, ...] = ()
 
     @abstractmethod
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]: ...
@@ -89,8 +98,20 @@ RULES: list[CoreRule] = []
 
 
 def register_rule(cls: type[CoreRule]) -> type[CoreRule]:
-    """Class decorator: instantiate once and add to `RULES`."""
-    if any(r.code == cls.code for r in RULES):
-        raise ValueError(f"duplicate rule code {cls.code}")
+    """Class decorator: instantiate once and add to `RULES`.
+
+    `aliases` must be a tuple of non-empty codes, each different from the
+    rule's own code and from one another; no code or alias may already be
+    claimed by a registered rule."""
+    aliases = cls.aliases
+    if not isinstance(aliases, tuple) or any(
+            not isinstance(a, str) or not a.strip() for a in aliases):
+        raise ValueError(f"{cls.code}: aliases must be a tuple of non-empty codes")
+    if cls.code in aliases or len(set(aliases)) != len(aliases):
+        raise ValueError(f"{cls.code}: an alias repeats the rule's code or another alias")
+    claimed = {c for r in RULES for c in (r.code, *r.aliases)}
+    taken = sorted(claimed & {cls.code, *cls.aliases})
+    if taken:
+        raise ValueError(f"duplicate rule code {', '.join(taken)}")
     RULES.append(cls())
     return cls

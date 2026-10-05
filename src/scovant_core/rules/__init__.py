@@ -1,6 +1,9 @@
 """Scovant Cloud rules published in Core, one contract (`CoreRule`)."""
 from scovant_core.rules import (  # noqa: E402,F401  (registers the rules)
     agent_formats,
+    citability,
+    citability_scorer,
+    citability_terms,
     consistency,
     crawl_graph,
     crawlability,

@@ -82,3 +82,59 @@ def test_finding_carries_an_optional_severity_and_weight():
     for bad in (0.0, -0.5, 1.5):
         with pytest.raises(ValueError):
             Finding("t", "d", "r", weight_multiplier=bad)
+
+
+def test_a_finding_may_carry_another_issue_code():
+    assert Finding("t", "d", "r").code is None
+    assert Finding("t", "d", "r", code="TEST-ALIAS").code == "TEST-ALIAS"
+    for bad in ("", "  ", 7):
+        with pytest.raises(ValueError):
+            Finding("t", "d", "r", code=bad)
+
+
+def test_register_rule_refuses_a_code_or_alias_that_is_already_claimed():
+    before = list(RULES)
+    try:
+        @register_rule
+        class _A(CoreRule):
+            code, category, severity, title = "TEST-ALIAS-1", "citability", "low", "t"
+            aliases = ("TEST-ALIAS-2",)
+
+            def evaluate(self, page, domain):
+                return []
+
+            def measure(self, page, domain, ctx):
+                return None
+
+        assert _A.aliases == ("TEST-ALIAS-2",) and CoreRule.aliases == ()
+        for code, aliases in (("TEST-ALIAS-2", ()), ("TEST-ALIAS-3", ("TEST-ALIAS-1",)),
+                              ("TEST-ALIAS-4", ("TEST-ALIAS-2",))):
+            with pytest.raises(ValueError):
+                register_rule(type("_B", (_A,), {"code": code, "aliases": aliases}))
+        register_rule(type("_C", (_A,), {"code": "TEST-ALIAS-5", "aliases": ()}))
+    finally:
+        RULES[:] = before
+
+
+def test_register_rule_refuses_malformed_aliases():
+    """`aliases` is a tuple of other codes: a bare string (a forgotten comma)
+    would make every substring of it look declared, and claim its characters."""
+    before = list(RULES)
+
+    def _rule(code, aliases):
+        return type("_M", (CoreRule,), {
+            "code": code, "category": "citability", "severity": "low", "title": "t",
+            "aliases": aliases,
+            "evaluate": lambda self, page, domain: [],
+            "measure": lambda self, page, domain, ctx: None,
+        })
+
+    try:
+        for bad in ("TEST-MAL-POOR", ["TEST-MAL-POOR"], ("",), ("  ",), (7,), ("TEST-MAL-1",),
+                    ("TEST-MAL-A", "TEST-MAL-A")):
+            with pytest.raises(ValueError):
+                register_rule(_rule("TEST-MAL-1", bad))
+        assert [r.code for r in RULES] == [r.code for r in before]  # nothing was claimed
+        register_rule(_rule("TEST-MAL-1", ("TEST-MAL-POOR",)))
+    finally:
+        RULES[:] = before

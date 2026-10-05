@@ -8,6 +8,33 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.12.0] - 2026-10-05
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan` and the Core Score are unchanged.
+
+### Added
+- The citability rule published from Scovant Cloud in `scovant_core.rules`
+  (`citability`: `CITABILITY_WEAK`, page-scoped; a page under the lowest band
+  is reported as `CITABILITY_POOR`, a second code the same rule declares), with
+  its deterministic block scorer (`citability_scorer`: `score_block`,
+  `page_citability`) and its English and Russian term packs
+  (`citability_terms`: `get_pack`) as public defaults, the content site types
+  (`CITABILITY_TYPES`) and the page bands (`PASS_MIN`/`MEDIUM_BELOW`/
+  `POOR_BELOW`, `citability_band`).
+- New modules `scovant_core.rules.citability`,
+  `scovant_core.rules.citability_scorer` and
+  `scovant_core.rules.citability_terms`.
+- Evidence types for a page's content blocks and language and the host's
+  content-page count (`scovant_core.rules.evidence`).
+- Rule contract additions: `Finding.code` (optional, the last field) lets a
+  rule report a finding under a second code it declares in the new
+  `CoreRule.aliases`. A host maps each alias back to the rule's own code and
+  refuses a finding that names a code the rule does not declare;
+  `register_rule` raises when a rule's code or alias is already claimed by
+  another registered rule, when `aliases` is not a tuple of non-empty codes,
+  or when an alias repeats the rule's own code or another alias.
+
 ## [0.11.0] - 2026-10-05
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
