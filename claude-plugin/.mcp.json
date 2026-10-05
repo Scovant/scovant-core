@@ -2,7 +2,7 @@
   "mcpServers": {
     "scovant-core": {
       "command": "uvx",
-      "args": ["--from", "scovant-core[mcp]==0.9.0", "scovant", "mcp"],
+      "args": ["--from", "scovant-core[mcp]==0.10.0", "scovant", "mcp"],
       "env": { "SCOVANT_CTA_MEDIUM": "claude-code" }
     },
     "scovant-cloud": {

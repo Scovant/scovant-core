@@ -8,6 +8,32 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.10.0] - 2026-10-04
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan` and the Core Score are unchanged.
+
+### Added
+- Twenty-two more rules published from Scovant Cloud in `scovant_core.rules`:
+  the MCP discovery, handshake, tool-inventory and OAuth-discovery rules and
+  the machine-interface discovery rule (`mcp`: `MCP_ENDPOINT_ABSENT`,
+  `MCP_DISCOVERY_INVALID`, `AGENT_INTERFACE_DISCOVERY_ABSENT`,
+  `SERVER-CARD-004`, `SERVER-CARD-005`, `AGENT-META-001`, `AGENT-META-004`,
+  `AGENT-META-008`, `MCP-OBS-001`, `TOOL-RISK-001`, `MCP-AUTH-001`), the
+  in-page WebMCP rules (`webmcp`: `WEBMCP-001` to `WEBMCP-005`), the Universal
+  Commerce Protocol and agent-payment rules (`ucp`: `UCP_PROFILE_ABSENT`,
+  `UCP_PROFILE_INVALID`, `UCP_CHECKOUT_MISSING`, `UCP_SIGNING_KEYS_INVALID`,
+  `AGENT_PAYMENTS_ABSENT`) and `JS_ONLY_CRITICAL_CONTENT` (`js_content`,
+  public thresholds 100 characters of visible text and a 0.3 labelled share).
+- New modules `scovant_core.rules.mcp`, `scovant_core.rules.webmcp`,
+  `scovant_core.rules.ucp` and `scovant_core.rules.js_content`.
+- `scovant_core.rules.ucp.UCP_APPLICABLE_SITE_TYPES` / `UCP_CHECKOUT_SITE_TYPES`
+  and `scovant_core.rules.mcp.MCP_SITE_TYPES`: the site types each rule
+  applies to.
+- Evidence types for the MCP, WebMCP, UCP, agent-payment and agent-discovery
+  blocks, the host-written `site_type`, and the page's `product_data` and
+  interactive-element counts (`scovant_core.rules.evidence`).
+
 ## [0.9.0] - 2026-10-04
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

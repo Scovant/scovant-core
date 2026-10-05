@@ -122,6 +122,146 @@ class TokenBloatSettingsEvidence(TypedDict, total=False):
     medium: int
 
 
+class McpHandshakeEvidence(TypedDict, total=False):
+    """A JSON-RPC `initialize` sent to the first endpoint the discovery file
+    declares. `auth_required`: the answer was a 401 or carried a
+    WWW-Authenticate header. `response_headers` holds the lower-cased
+    MCP-relevant subset of the answer's headers."""
+    attempted: bool
+    ok: bool
+    error: str | None
+    server_info: dict[str, str | None] | None   # name, version, protocol_version
+    session_id: str | None
+    response_headers: dict[str, str]
+    init_status: int | None
+    auth_required: bool
+
+
+class McpToolEvidence(TypedDict, total=False):
+    name: str | None
+    description: str | None
+    input_schema_keys: list[str]       # top-level keys of the tool's inputSchema
+    deprecation: dict[str, Any] | None
+
+
+class McpInterfaceEvidence(TypedDict, total=False):
+    """The tool inventory (`tools/list`) read after a successful handshake —
+    no tool is ever called. `server_info`, `response_headers` and
+    `init_status` describe the initialize answer; evidence recorded before
+    headers were captured has no `response_headers` key. `tool_count` is the
+    server's real count, `tools` the capped list."""
+    attempted: bool
+    ok: bool
+    server_info: dict[str, str | None] | None
+    tools: list[McpToolEvidence]
+    tool_count: int
+    truncated: bool
+    error: str | None
+    response_headers: dict[str, str]
+    init_status: int | None
+    auth_required: bool
+    transport: str
+    mode: str
+
+
+class McpOAuthEvidence(TypedDict, total=False):
+    """RFC 9728 protected-resource discovery at the declared endpoint's
+    origin (one unauthenticated GET), run when the handshake demanded auth."""
+    attempted: bool
+    discovered: bool                   # a usable authorization_servers list
+    resource_metadata: dict[str, Any] | None
+    auth_server_metadata_ok: bool
+    error: str | None
+    truncated: bool
+
+
+class McpEvidence(TypedDict, total=False):
+    """/.well-known/mcp.json (`parsers.mcp.check_mcp_discovery`) plus what the
+    host learned from the endpoint it declares."""
+    exists: bool
+    valid: bool
+    endpoints: list[str]
+    declared_name: str | None          # the mcpServers key naming endpoints[0]
+    server_card: bool | None           # /.well-known/mcp/server-card(s).json; None = read cut off
+    server_card_truncated: bool
+    handshake: McpHandshakeEvidence
+    interface: McpInterfaceEvidence
+    oauth: McpOAuthEvidence
+
+
+class WebMcpToolEvidence(TypedDict, total=False):
+    name: str | None
+    description: str | None
+    input_schema_keys: list[str]
+    # Declared safety hints (readOnlyHint, destructiveHint, idempotentHint,
+    # openWorldHint, untrustedContentHint); None = the tool declared none, a
+    # hint set to None = declared nothing about it. Absent in evidence
+    # recorded before hints were captured.
+    annotations: dict[str, bool | None] | None
+
+
+class WebMcpEvidence(TypedDict, total=False):
+    """An in-browser look for `navigator.modelContext` on the homepage; tools
+    are listed, never invoked. `attempted` False: the probe did not run (or
+    has not finished — `pending`). An `error` with nothing `present` is a
+    failure of the observing browser, not evidence about the site."""
+    attempted: bool
+    present: bool
+    tools: list[WebMcpToolEvidence]
+    tool_count: int
+    truncated: bool
+    error: str | None
+    nav_timeout: bool
+    mode: str | None
+    support: dict[str, Any]
+    pending: bool                      # a host may queue the probe and mark the block pending until it reports
+    consumed: bool                     # marks a result that has been accounted for
+
+
+class UcpEvidence(TypedDict, total=False):
+    """/.well-known/ucp (`parsers.ucp.check_ucp_profile`)."""
+    exists: bool
+    valid: bool
+    validation_errors: list[str]
+    version: str | None
+    services: list[str]
+    capabilities: list[str]
+    has_checkout: bool
+    transports: list[str]
+    signing_keys_valid: bool
+
+
+class AgentPaymentProtocolEvidence(TypedDict, total=False):
+    detected: bool | None              # None = a read was cut off before we could tell
+    evidence: str | None
+
+
+class AgentPaymentsEvidence(TypedDict, total=False):
+    """Agent payment protocols beyond UCP (`gatherers.agent_payments`)."""
+    any_non_ucp: bool
+    truncated: bool
+    protocols: dict[str, AgentPaymentProtocolEvidence]
+    fetch_status: FetchStatus
+    error: str | None
+
+
+class DiscoverySurfaceEvidence(TypedDict, total=False):
+    exists: bool | None                # None = a read was cut off before we could tell
+    truncated: bool
+    text: str
+    source: str
+
+
+class AgentDiscoveryEvidence(TypedDict, total=False):
+    """Machine-interface discovery surfaces (`gatherers.agent_discovery`):
+    agents.txt/json, ai-plugin, OpenAPI, SKILL.md, A2A cards, OAuth metadata."""
+    any_found: bool
+    surfaces: dict[str, DiscoverySurfaceEvidence]
+    truncated: bool
+    fetch_status: FetchStatus
+    error: str | None
+
+
 class DomainEvidence(TypedDict, total=False):
     content_signals: ContentSignalsEvidence
     sitemap: SitemapEvidence
@@ -137,6 +277,14 @@ class DomainEvidence(TypedDict, total=False):
     # its penalty per page) and the token-cost rule's settings.
     pages_scored: int
     token_bloat_settings: TokenBloatSettingsEvidence
+    # The site's category as the host classified it (commerce, saas, blog,
+    # …); rules that apply only to some site types read it.
+    site_type: str | None
+    mcp: McpEvidence
+    webmcp: WebMcpEvidence
+    ucp: UcpEvidence
+    agent_payments: AgentPaymentsEvidence
+    agent_discovery: AgentDiscoveryEvidence
 
 
 class PageMetadataEvidence(TypedDict, total=False):
@@ -151,6 +299,10 @@ class HeadingEvidence(TypedDict, total=False):
 
 class SemanticSignalsEvidence(TypedDict, total=False):
     add_to_cart_found: bool       # a button/link reads "add to cart" / "buy now" (English)
+    interactive_elements_count: int   # buttons, inputs, selects, textareas, links, ARIA widgets
+    labeled_elements_count: int       # those with an accessible name
+    has_aria_labels: bool
+    signup_cta_found: bool
 
 
 class TokenCostEvidence(TypedDict, total=False):
@@ -173,3 +325,4 @@ class PageEvidence(TypedDict, total=False):
     landmark_tags: dict[str, int] | None      # main/article/nav/section/header/footer/aside counts
     semantic_signals: SemanticSignalsEvidence
     token_cost: TokenCostEvidence
+    product_data: dict[str, Any] | None       # the first Product's name/price/offers; None = no Product
