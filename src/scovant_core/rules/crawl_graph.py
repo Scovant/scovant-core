@@ -18,6 +18,7 @@ EXAMPLE_CAP = 5       # URLs named per finding
 @register_rule
 class CrawlGraphOrphanPages(CoreRule):
     code = "CRAWL-GRAPH-001"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -71,6 +72,7 @@ class CrawlGraphOrphanPages(CoreRule):
 @register_rule
 class CrawlGraphDeepPages(CoreRule):
     code = "CRAWL-GRAPH-002"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -130,6 +132,7 @@ class CrawlGraphDeepPages(CoreRule):
 @register_rule
 class CrawlGraphDeadEndPages(CoreRule):
     code = "CRAWL-GRAPH-005"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"

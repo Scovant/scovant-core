@@ -75,6 +75,8 @@ class LlmsSupplyPackageResolves(_InstructionRule):
     """
 
     code = "LLMS-SUPPLY-001"
+
+    since = "0.11.0"
     severity = "medium"
     title = "Referenced package does not exist"
 
@@ -113,6 +115,8 @@ class LlmsSupplyDomainResolves(_InstructionRule):
     """LLMS-SUPPLY-002 — a domain named in the instructions does not resolve."""
 
     code = "LLMS-SUPPLY-002"
+
+    since = "0.11.0"
     severity = "medium"
     title = "Referenced domain does not resolve"
 
@@ -157,6 +161,8 @@ class LlmsSupplyRemoteExec(_InstructionRule):
     """
 
     code = "LLMS-SUPPLY-006"
+
+    since = "0.11.0"
     severity = "high"
     title = "Instructions pipe a remote script into a shell"
 
@@ -200,6 +206,8 @@ class LlmsSupplyClaimableReference(_InstructionRule):
     """
 
     code = "LLMS-SUPPLY-008"
+
+    since = "0.11.0"
     severity = "high"
     title = "Install instructions name a claimable package or domain"
 

@@ -38,6 +38,7 @@ _SSR_EXAMPLE = (
 @register_rule
 class JsOnlyCriticalContent(CoreRule):
     code = "JS_ONLY_CRITICAL_CONTENT"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

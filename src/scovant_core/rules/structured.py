@@ -44,6 +44,7 @@ def _products_measured(code: str, page: dict, ctx: MeasureCtx, *,
 @register_rule
 class MissingProductSchema(CoreRule):
     code = "MISSING_PRODUCT_SCHEMA"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -107,6 +108,7 @@ class MissingProductSchema(CoreRule):
 @register_rule
 class MissingOfferData(CoreRule):
     code = "MISSING_OFFER_DATA"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -154,6 +156,7 @@ class MissingOfferData(CoreRule):
 @register_rule
 class PriceMissingOrInvalid(CoreRule):
     code = "PRICE_MISSING_INVALID"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -202,6 +205,7 @@ class PriceMissingOrInvalid(CoreRule):
 @register_rule
 class AvailabilityMissing(CoreRule):
     code = "MISSING_AVAILABILITY"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -248,6 +252,7 @@ class AvailabilityMissing(CoreRule):
 @register_rule
 class VariantInfoMissing(CoreRule):
     code = "VARIANT_INFO_MISSING"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

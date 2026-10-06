@@ -27,6 +27,7 @@ def _preference_measured(domain: dict | None, ctx: MeasureCtx) -> OutcomeState |
 @register_rule
 class MachineRepIndistinguishableFromHtml(CoreRule):
     code = "MACHINE-REP-004"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -86,6 +87,7 @@ class MachineRepIndistinguishableFromHtml(CoreRule):
 @register_rule
 class MachineRepVaryMissingPrefer(CoreRule):
     code = "MACHINE-REP-005"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"

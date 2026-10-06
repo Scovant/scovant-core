@@ -51,6 +51,7 @@ def _policy_measured(code: str, page: dict, ctx: MeasureCtx, *, schema_too: bool
 @register_rule
 class ReturnPolicyUnavailable(CoreRule):
     code = "MISSING_RETURNS_POLICY"
+    since = "0.11.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -95,6 +96,7 @@ class ReturnPolicyUnavailable(CoreRule):
 @register_rule
 class ShippingInfoUnavailable(CoreRule):
     code = "SHIPPING_INFO_UNAVAILABLE"
+    since = "0.11.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -147,6 +149,7 @@ class ShippingInfoUnavailable(CoreRule):
 @register_rule
 class MissingOgMeta(CoreRule):
     code = "MISSING_OG_META_FOR_CITATION"
+    since = "0.11.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

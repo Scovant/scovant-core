@@ -16,6 +16,7 @@ from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, probe_measure
 @register_rule
 class LlmsTxtMissing(CoreRule):
     code = "LLMS_TXT_MISSING_OR_INVALID"
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -67,6 +68,7 @@ class LlmsTxtMissing(CoreRule):
 @register_rule
 class MarkdownForAgentsAbsent(CoreRule):
     code = "MARKDOWN_FOR_AGENTS_ABSENT"
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -118,6 +120,7 @@ class MarkdownForAgentsAbsent(CoreRule):
 @register_rule
 class LinkHeadersAbsent(CoreRule):
     code = "LINK_HEADERS_ABSENT"
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -191,6 +194,7 @@ def _negotiation_measured(domain: dict | None, ctx: MeasureCtx, *,
 @register_rule
 class ContentNegotiationInconsistent(CoreRule):
     code = "CONTENT-NEG-002"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -257,6 +261,7 @@ class ContentNegotiationInconsistent(CoreRule):
 @register_rule
 class ContentNegotiationVaryMissing(CoreRule):
     code = "CONTENT-NEG-004"
+    since = "0.8.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"

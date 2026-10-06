@@ -13,6 +13,7 @@ from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, register_rule
 @register_rule
 class BlockedCrawlability(CoreRule):
     code = "BLOCKED_CRAWLABILITY"
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

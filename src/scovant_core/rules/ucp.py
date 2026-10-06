@@ -46,6 +46,7 @@ def _published(domain: dict | None, ctx: MeasureCtx, *, types: frozenset[str] | 
 @register_rule
 class UcpProfileAbsent(CoreRule):
     code = "UCP_PROFILE_ABSENT"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -109,6 +110,7 @@ class UcpProfileAbsent(CoreRule):
 @register_rule
 class UcpProfileInvalid(CoreRule):
     code = "UCP_PROFILE_INVALID"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -160,6 +162,7 @@ class UcpProfileInvalid(CoreRule):
 @register_rule
 class UcpCheckoutMissing(CoreRule):
     code = "UCP_CHECKOUT_MISSING"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -218,6 +221,7 @@ class UcpCheckoutMissing(CoreRule):
 @register_rule
 class UcpSigningKeysInvalid(CoreRule):
     code = "UCP_SIGNING_KEYS_INVALID"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -272,6 +276,7 @@ class UcpSigningKeysInvalid(CoreRule):
 @register_rule
 class AgentPaymentsAbsent(CoreRule):
     code = "AGENT_PAYMENTS_ABSENT"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"

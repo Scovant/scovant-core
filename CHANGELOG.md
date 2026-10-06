@@ -8,6 +8,22 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.12.2] - 2026-10-06
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan`, the Core Score and every rule verdict are unchanged — metadata only.
+
+### Added
+- `CoreRule.since` — the Core release that first shipped a rule (`"0.9.0"`),
+  set on all 57 published rules and required by `register_rule` (a release
+  version string, never the empty default). A host's rule catalog can state
+  "computed by Scovant Core ≥ since", and anyone can pin that version and get
+  the same verdicts. Values follow this changelog: `0.7.0` the Content-Signal
+  and sitemap rules; `0.8.0` the rest of discoverability and page
+  crawlability; `0.9.0` structured and consistency; `0.10.0` MCP, WebMCP, UCP,
+  payments, discovery and JS-only content; `0.11.0` trust and instruction
+  supply; `0.12.0` citability.
+
 ## [0.12.1] - 2026-10-06
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

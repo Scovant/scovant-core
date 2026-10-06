@@ -22,6 +22,7 @@ EXAMPLE_CAP = 5
 @register_rule
 class AiCrawlerBlocked(CoreRule):
     code = "AI_CRAWLER_BLOCKED"
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -90,6 +91,8 @@ class AiBotPolicyDeclared(CoreRule):
     not a defect judgement (a diagnostic marker in Scovant Cloud's scores)."""
 
     code = "AI-BOT-POLICY-001"
+
+    since = "0.8.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"

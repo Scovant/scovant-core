@@ -44,6 +44,7 @@ def _two_products_measured(page: dict) -> OutcomeState | None:
 @register_rule
 class PriceMismatch(CoreRule):
     code = "PRICE_MISMATCH"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -114,6 +115,7 @@ class PriceMismatch(CoreRule):
 @register_rule
 class InconsistentStructuredData(CoreRule):
     code = "INCONSISTENT_STRUCTURED_DATA"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -172,6 +174,7 @@ class InconsistentStructuredData(CoreRule):
 @register_rule
 class DuplicateConflictingEntities(CoreRule):
     code = "DUPLICATE_CONFLICTING_ENTITIES"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

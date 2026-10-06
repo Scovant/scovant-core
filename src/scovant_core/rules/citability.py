@@ -54,6 +54,7 @@ def citability_band(score: float) -> tuple[str, str] | None:
 @register_rule
 class LowCitability(CoreRule):
     code = WEAK_CODE
+    since = "0.12.0"
     aliases = (POOR_CODE,)
     maturity = "required"
     rule_version = "1.0"

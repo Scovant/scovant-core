@@ -49,6 +49,7 @@ def _tool_text(tool: dict) -> str:
 @register_rule
 class WebMcpCapabilityPresent(CoreRule):
     code = "WEBMCP-001"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -94,6 +95,7 @@ class WebMcpCapabilityPresent(CoreRule):
 @register_rule
 class WebMcpToolsNotEnumerable(CoreRule):
     code = "WEBMCP-002"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -142,6 +144,7 @@ class WebMcpToolsNotEnumerable(CoreRule):
 @register_rule
 class WebMcpToolMetadataIncomplete(CoreRule):
     code = "WEBMCP-003"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -204,6 +207,7 @@ class WebMcpToolMetadataIncomplete(CoreRule):
 @register_rule
 class WebMcpToolMetadataInjection(CoreRule):
     code = "WEBMCP-004"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -312,6 +316,7 @@ def _annotation_conflict(tool: dict) -> str | None:
 @register_rule
 class WebMcpAnnotationsInconsistent(CoreRule):
     code = "WEBMCP-005"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"

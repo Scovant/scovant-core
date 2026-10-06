@@ -24,7 +24,7 @@ def test_register_rule_refuses_a_duplicate_code():
 
     @register_rule
     class _R(CoreRule):
-        code, category, severity, title = "TEST-DUP-1", "discoverability", "low", "t"
+        code, category, severity, title, since = "TEST-DUP-1", "discoverability", "low", "t", "0.12.0"
 
         def evaluate(self, page, domain):
             return []
@@ -97,7 +97,7 @@ def test_register_rule_refuses_a_code_or_alias_that_is_already_claimed():
     try:
         @register_rule
         class _A(CoreRule):
-            code, category, severity, title = "TEST-ALIAS-1", "citability", "low", "t"
+            code, category, severity, title, since = "TEST-ALIAS-1", "citability", "low", "t", "0.12.0"
             aliases = ("TEST-ALIAS-2",)
 
             def evaluate(self, page, domain):
@@ -124,7 +124,7 @@ def test_register_rule_refuses_malformed_aliases():
     def _rule(code, aliases):
         return type("_M", (CoreRule,), {
             "code": code, "category": "citability", "severity": "low", "title": "t",
-            "aliases": aliases,
+            "aliases": aliases, "since": "0.12.0",
             "evaluate": lambda self, page, domain: [],
             "measure": lambda self, page, domain, ctx: None,
         })
@@ -138,3 +138,43 @@ def test_register_rule_refuses_malformed_aliases():
         register_rule(_rule("TEST-MAL-1", ("TEST-MAL-POOR",)))
     finally:
         RULES[:] = before
+
+
+def test_register_rule_requires_a_release_in_since():
+    """`since` names the release that first shipped the rule; a host's catalog
+    states "computed by Scovant Core ≥ since", so it must be a real version
+    string, never the empty default."""
+    before = list(RULES)
+
+    def _rule(since):
+        return type("_S", (CoreRule,), {
+            "code": "TEST-SINCE-1", "category": "citability", "severity": "low", "title": "t",
+            "since": since,
+            "evaluate": lambda self, page, domain: [],
+            "measure": lambda self, page, domain, ctx: None,
+        })
+
+    try:
+        for bad in ("", "0.9", "v0.9.0", 9, None, "0.9.0-rc1"):
+            with pytest.raises(ValueError):
+                register_rule(_rule(bad))
+        assert [r.code for r in RULES] == [r.code for r in before]
+        register_rule(_rule("0.9.0"))
+    finally:
+        RULES[:] = before
+
+
+def test_every_rule_since_is_a_released_version_not_after_this_one():
+    import re
+    from pathlib import Path
+
+    from packaging.version import Version
+
+    import scovant_core
+
+    changelog = (Path(scovant_core.__file__).resolve().parents[2] / "CHANGELOG.md").read_text(encoding="utf-8")
+    released = set(re.findall(r"^## \[(\d+\.\d+\.\d+)\]", changelog, re.M))
+    current = Version(scovant_core.__version__)
+    for rule in RULES:
+        assert rule.since in released, f"{rule.code}: since {rule.since} is not a CHANGELOG release"
+        assert Version(rule.since) <= current, f"{rule.code}: since {rule.since} is after {current}"

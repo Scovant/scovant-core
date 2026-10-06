@@ -50,6 +50,7 @@ def _declared(domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
 @register_rule
 class McpEndpointAbsent(CoreRule):
     code = "MCP_ENDPOINT_ABSENT"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -104,6 +105,7 @@ class McpEndpointAbsent(CoreRule):
 @register_rule
 class McpDiscoveryInvalid(CoreRule):
     code = "MCP_DISCOVERY_INVALID"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -176,6 +178,7 @@ class McpDiscoveryInvalid(CoreRule):
 @register_rule
 class AgentInterfaceDiscoveryAbsent(CoreRule):
     code = "AGENT_INTERFACE_DISCOVERY_ABSENT"
+    since = "0.10.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -264,6 +267,7 @@ def _tool_text(tool: dict) -> str:
 @register_rule
 class ServerCardInterfaceUnreachable(CoreRule):
     code = "SERVER-CARD-004"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -319,6 +323,7 @@ class ServerCardInterfaceUnreachable(CoreRule):
 @register_rule
 class ServerCardIdentityMismatch(CoreRule):
     code = "SERVER-CARD-005"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -382,6 +387,7 @@ class ServerCardIdentityMismatch(CoreRule):
 @register_rule
 class AgentMetaPromptInjection(CoreRule):
     code = "AGENT-META-001"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -446,6 +452,7 @@ class AgentMetaPromptInjection(CoreRule):
 @register_rule
 class AgentMetaHiddenChars(CoreRule):
     code = "AGENT-META-008"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -508,6 +515,7 @@ class AgentMetaHiddenChars(CoreRule):
 @register_rule
 class AgentMetaNameCollision(CoreRule):
     code = "AGENT-META-004"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -574,6 +582,7 @@ class AgentMetaNameCollision(CoreRule):
 @register_rule
 class McpObservabilityMissingProtocolVersionHeader(CoreRule):
     code = "MCP-OBS-001"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -630,6 +639,7 @@ class McpObservabilityMissingProtocolVersionHeader(CoreRule):
 @register_rule
 class ToolRiskClassification(CoreRule):
     code = "TOOL-RISK-001"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -702,6 +712,7 @@ class ToolRiskClassification(CoreRule):
 @register_rule
 class McpOAuthDiscoveryMissing(CoreRule):
     code = "MCP-AUTH-001"
+    since = "0.10.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"

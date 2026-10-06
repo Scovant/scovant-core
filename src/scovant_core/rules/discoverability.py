@@ -13,6 +13,7 @@ from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, probe_measure
 @register_rule
 class ContentSignalsAbsent(CoreRule):
     code = "CONTENT_SIGNALS_ABSENT"
+    since = "0.7.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"
@@ -71,6 +72,8 @@ class ContentSignalSyntax(CoreRule):
     """
 
     code = "CONTENT-SIGNAL-001"
+
+    since = "0.7.0"
     maturity = "experimental"
     rule_version = "1.0"
     scope = "domain"
@@ -128,6 +131,7 @@ class ContentSignalSyntax(CoreRule):
 @register_rule
 class SitemapMissingOrInvalid(CoreRule):
     code = "SITEMAP_MISSING_OR_INVALID"
+    since = "0.7.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "domain"

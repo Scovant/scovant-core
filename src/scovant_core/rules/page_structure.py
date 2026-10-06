@@ -29,6 +29,7 @@ def page_share(domain: dict | None) -> float:
 @register_rule
 class HeadingHierarchyPoor(CoreRule):
     code = "HEADING_HIERARCHY_POOR"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"
@@ -85,6 +86,7 @@ class HeadingHierarchyPoor(CoreRule):
 @register_rule
 class SemanticHtmlAbsent(CoreRule):
     code = "SEMANTIC_HTML_ABSENT"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

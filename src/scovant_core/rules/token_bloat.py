@@ -25,6 +25,7 @@ MEDIUM_TOKENS_DEFAULT = 20000
 @register_rule
 class PageTokenBloat(CoreRule):
     code = "PAGE_TOKEN_BLOAT"
+    since = "0.9.0"
     maturity = "required"
     rule_version = "1.0"
     scope = "page"

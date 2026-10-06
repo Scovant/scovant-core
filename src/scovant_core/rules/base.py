@@ -12,6 +12,7 @@ and answers two questions:
 """
 from __future__ import annotations
 
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
@@ -68,6 +69,10 @@ class CoreRule(ABC):
     # Other issue codes this rule's findings may carry (`Finding.code`); a
     # host maps each back to `code`. No code is claimed by two rules.
     aliases: tuple[str, ...] = ()
+    # The Core release that first shipped this rule ("X.Y.Z"): a host's
+    # catalog states "computed by Scovant Core ≥ since", and anyone can pin
+    # that version and get the same verdicts. Required at registration.
+    since: str = ""
 
     @abstractmethod
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]: ...
@@ -94,6 +99,7 @@ def probe_measured(domain: dict | None, ctx: MeasureCtx, *keys: str) -> OutcomeS
     return None
 
 
+_RELEASE = re.compile(r"\d+\.\d+\.\d+")
 RULES: list[CoreRule] = []
 
 
@@ -123,7 +129,9 @@ def register_rule(cls: type[CoreRule]) -> type[CoreRule]:
 
     `aliases` must be a tuple of non-empty codes, each different from the
     rule's own code and from one another; no code or alias may already be
-    claimed by a registered rule."""
+    claimed by a registered rule. `since` must name a release ("X.Y.Z")."""
+    if not isinstance(cls.since, str) or not _RELEASE.fullmatch(cls.since):
+        raise ValueError(f"{cls.code}: since must be a release version like '0.9.0', got {cls.since!r}")
     aliases = cls.aliases
     if not isinstance(aliases, tuple) or any(
             not isinstance(a, str) or not a.strip() for a in aliases):
