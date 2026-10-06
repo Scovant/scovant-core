@@ -8,6 +8,19 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.12.3] - 2026-10-06
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+Every check verdict and the Core Score are unchanged.
+
+### Fixed
+- `CORE-SECURITY-001` (HTTPS baseline) returned its FAIL for a TLS or
+  certificate error on the https origin without a `remediation` — the one
+  FAIL or WARN among the security checks that did not say what to change. It
+  now names the fix (a valid, unexpired certificate covering the host, the
+  full intermediate chain, TLS 1.2 or later), and a test holds every security
+  check's FAIL and WARN results to carrying one.
+
 ## [0.12.2] - 2026-10-06
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

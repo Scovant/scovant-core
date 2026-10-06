@@ -40,7 +40,9 @@ class HttpsBaseline(_Web):
         if http.get("error"):
             if http["error"]["kind"] == "security":
                 return self.result(CheckStatus.FAIL, "TLS/security error on the https origin.",
-                                    evidence={"error": http["error"]["kind"]})
+                                    evidence={"error": http["error"]["kind"]},
+                                    remediation="Serve a valid, unexpired certificate whose names cover the "
+                                                "host, with the full intermediate chain, over TLS 1.2 or later.")
             return self.error("entry URL could not be fetched")
         final_scheme = urlsplit(http["final_url"] or ctx.input_url).scheme
         d = http["downgrade"]

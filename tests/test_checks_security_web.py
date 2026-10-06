@@ -152,3 +152,17 @@ def test_security_txt_validity_declares_a_partial_read_when_truncated(monkeypatc
     assert r.evidence["truncated"] is True
     assert r.confidence == Confidence.MEDIUM
     assert "read only in part" in r.summary
+
+
+def test_https_baseline_tls_failure_says_how_to_fix_it():
+    """Every FAIL/WARN a security check returns tells the owner what to change
+    (spec §60). The TLS-error branch was the one that shipped without it."""
+    class _Store:
+        def get(self, name):
+            assert name == "http"
+            return {"error": {"kind": "security"}}
+
+    ctx = ScanContext("https://example.com/", ScanOptions())
+    r = HttpsBaseline().evaluate(_Store(), ctx)
+    assert r.status == CheckStatus.FAIL
+    assert "certificate" in r.remediation

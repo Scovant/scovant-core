@@ -200,3 +200,30 @@ def test_every_readiness_check_declares_verification_mode_explicitly():
         assert "verification_mode" in vars(type(c)), f"{check_id} does not declare verification_mode explicitly"
         expected = "DECLARED" if check_id in DECLARED_READINESS else "PASSIVE_OBSERVED"
         assert c.verification_mode == expected, check_id
+
+
+def test_every_security_fail_or_warn_says_how_to_fix_it():
+    """Spec §60: a security finding the owner can act on carries a concrete
+    remediation. Read off the source: every result call in a security check
+    that returns a FAIL or WARN status passes `remediation=`."""
+    import inspect
+    import re
+
+    from scovant_core.checks.registry import CHECKS
+
+    missing = []
+    for check in CHECKS:
+        if not getattr(check, "security_domain", None):
+            continue
+        src = inspect.getsource(type(check))
+        for m in re.finditer(r"self\.result\(\s*CheckStatus\.(FAIL|WARN)", src):
+            start = m.start() + len("self.result")
+            depth = 0
+            for end in range(start, len(src)):
+                depth += {"(": 1, ")": -1}.get(src[end], 0)
+                if depth == 0:
+                    break
+            if "remediation=" not in src[start:end]:
+                missing.append(check.id)
+    assert missing == []
+    assert sum(1 for c in CHECKS if getattr(c, "security_domain", None)) == 16
