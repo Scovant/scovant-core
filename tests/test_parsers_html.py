@@ -355,3 +355,41 @@ class TestExtractSemanticSignals:
         result = extract_semantic_signals(spa_html)
         assert result["has_aria_labels"] is False
         assert result["interactive_elements_count"] == 0
+
+
+class TestExtractProductDataMalformedPublishedJsonLd:
+    """JSON-LD a site publishes is not under our control: an `offers` list
+    whose first entry is a string, a `hasVariant` that is not a list, an
+    entity that is not an object. None of it may raise; the offer entries
+    that are objects are read, the rest is dropped."""
+
+    def test_non_object_offer_entries_are_dropped_and_the_first_object_is_primary(self):
+        product = {"@type": "Product", "name": "Widget",
+                   "offers": ["29.99", None, {"@type": "Offer", "price": "19.99", "priceCurrency": "EUR"}]}
+        result = extract_product_data([product])
+        assert result["offers"] == [{"@type": "Offer", "price": "19.99", "priceCurrency": "EUR"}]
+        assert (result["price"], result["currency"]) == ("19.99", "EUR")
+
+    def test_offers_of_an_unexpected_type_read_as_no_offers(self):
+        for offers in ("29.99", 7, True):
+            result = extract_product_data([{"@type": "Product", "name": "W", "offers": offers}])
+            assert result["offers"] == [] and result["price"] is None
+
+    def test_has_variant_that_is_not_a_list_reads_as_no_variants(self):
+        for variants in ("Red", {"@type": "Product"}, None, 3):
+            result = extract_product_data([{"@type": "Product", "name": "W", "hasVariant": variants}])
+            assert result["variants"] == []
+        result = extract_product_data([{"@type": "Product", "hasVariant": [{"name": "Red"}, "Blue", None]}])
+        assert result["variants"] == [{"name": "Red"}]
+
+    def test_non_object_entities_and_a_non_list_input_are_skipped(self):
+        product = {"@type": "Product", "name": "Widget"}
+        assert extract_product_data(["x", None, 7, product])["product_name"] == "Widget"
+        assert extract_product_data(None) is None
+        assert extract_product_data("not a list") is None
+
+    def test_a_graph_that_is_not_a_list_is_ignored(self):
+        html = '<script type="application/ld+json">{"@graph": 5}</script>' \
+               '<script type="application/ld+json">{"@graph": {"@type": "Product"}}</script>' \
+               '<script type="application/ld+json">{"@type": "WebPage"}</script>'
+        assert extract_schema_org(html) == [{"@type": "WebPage"}]

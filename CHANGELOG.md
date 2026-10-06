@@ -8,6 +8,43 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.12.1] - 2026-10-06
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.
+`scovant scan` and the Core Score are unchanged. A hardening release: no rule's
+verdict on well-formed evidence changes.
+
+### Fixed
+- `parsers.html.extract_product_data` raised on a Product whose `offers` list
+  began with a non-object entry (a string price, `null`) — JSON-LD a page can
+  publish; it now reads the offer entries that are objects and skips the rest,
+  and reads a `hasVariant` that is not a list, or an entity that is not an
+  object, as absent. `extract_schema_org` ignores a `@graph` that is not a list.
+- `rules.products.find_products`/`get_offers` raised on `schema_org: None` (a
+  producer's "nothing extracted") and on non-object entities or offers; both
+  now read them as no products / no offers.
+- The `DUPLICATE_CONFLICTING_ENTITIES` rule raised when a Product's `@id`,
+  `name` or `productID` was a list or an object; such values are compared by
+  their JSON text.
+- The UCP rules raised on a `None` block or non-string validation errors.
+
+### Added
+- `scovant_core.rules.conform` — `conform_page`/`conform_domain` read evidence
+  as `scovant_core.rules.evidence` documents it: a value that contradicts the
+  documented shape (a string where a block belongs, a tool entry that is not an
+  object, a list in a text field, a non-number in a number field, a `None`
+  entry in a list or mapping) is read as absent, at the finest grain the
+  documentation allows; `None` in a text, flag, block or list field and every
+  undocumented key pass through unchanged; a well-formed document is unchanged
+  in content. `register_rule` wraps every rule's `evaluate` and `measure` with
+  it, so a rule never sees evidence that contradicts `evidence.py`, whoever
+  calls it. The conformed copy of the last few page/domain objects is
+  remembered by identity (a host hands the same objects to every rule), so the
+  cost is one pass per page, not one per rule.
+- `tests/test_rules_conform.py`: the policy, and every registered rule run over
+  every one-value mutation of a full synthetic evidence document — a rule that
+  raises on a malformed shape fails there before it fails inside a scan.
+
 ## [0.12.0] - 2026-10-05
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

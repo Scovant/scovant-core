@@ -25,7 +25,7 @@ class ContentSignalsAbsent(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "content_signals" not in domain:
             return []  # evidence recorded before Content-Signal parsing
-        if domain["content_signals"].get("present"):
+        if (domain.get("content_signals") or {}).get("present"):
             return []
         return [
             Finding(
@@ -81,7 +81,7 @@ class ContentSignalSyntax(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "content_signals" not in domain:
             return []  # legacy scan without the clarity parse
-        cs = domain["content_signals"]
+        cs = (domain.get("content_signals") or {})
         errors = cs.get("syntax_errors") or []
         # `declared` (a Content-Signal line exists), NOT `present` (a well-formed
         # directive was adopted): a wholly-malformed declaration must still be
@@ -122,7 +122,7 @@ class ContentSignalSyntax(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        return None if domain["content_signals"].get("declared") else OutcomeState.NA
+        return None if (domain.get("content_signals") or {}).get("declared") else OutcomeState.NA
 
 
 @register_rule
@@ -138,7 +138,7 @@ class SitemapMissingOrInvalid(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "sitemap" not in domain:
             return []  # legacy scan without the probe
-        sm = domain["sitemap"]
+        sm = (domain.get("sitemap") or {})
         if sm.get("valid"):
             return []
         missing = not sm.get("exists")

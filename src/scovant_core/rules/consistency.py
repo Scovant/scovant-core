@@ -10,6 +10,8 @@ the first "$<number>" in the page text, so it compares dollar prices only.
 """
 from __future__ import annotations
 
+import json
+
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, register_rule
 from scovant_core.rules.products import (
@@ -20,6 +22,14 @@ from scovant_core.rules.products import (
     normalize_price,
     schema_offer_price,
 )
+
+
+def _hashable(value):
+    """A set member for a JSON-LD value: scalars as they are, containers by
+    their canonical JSON text."""
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, sort_keys=True, default=str)
+    return value
 
 NA = OutcomeState.NA
 NM = OutcomeState.NOT_MEASURED
@@ -175,9 +185,11 @@ class DuplicateConflictingEntities(CoreRule):
         if len(products) < 2:
             return []
 
-        names = {p.get("name") for p in products if p.get("name")}
-        ids = {p.get("@id") for p in products if p.get("@id")}
-        product_ids = {p.get("productID") for p in products if p.get("productID")}
+        # JSON-LD values are whatever the page published; a list or object
+        # where a name/id string belongs is compared by its JSON text.
+        names = {_hashable(p.get("name")) for p in products if p.get("name")}
+        ids = {_hashable(p.get("@id")) for p in products if p.get("@id")}
+        product_ids = {_hashable(p.get("productID")) for p in products if p.get("productID")}
 
         has_conflicting_names = len(names) > 1
         has_conflicting_ids = len(ids) > 1 or len(product_ids) > 1

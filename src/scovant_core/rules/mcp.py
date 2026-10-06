@@ -42,7 +42,7 @@ def _declared(domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
     if verdict:
         return verdict
     assert domain is not None
-    return None if domain["mcp"].get("exists") else NA
+    return None if (domain.get("mcp") or {}).get("exists") else NA
 
 
 # ── discovery ──────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ class McpEndpointAbsent(CoreRule):
         site_type: str = domain.get("site_type", "")
         if site_type not in MCP_SITE_TYPES:
             return []
-        mcp = domain.get("mcp", {})
+        mcp = (domain.get("mcp") or {})
         # A server card (/.well-known/mcp/server-card.json) is an MCP
         # discovery surface too — either surface suppresses ABSENT.
         if not mcp.get("exists") and not mcp.get("server_card"):
@@ -168,9 +168,9 @@ class McpDiscoveryInvalid(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        if (domain["mcp"].get("handshake") or {}).get("attempted"):
+        if ((domain.get("mcp") or {}).get("handshake") or {}).get("attempted"):
             return None
-        return NM if domain["mcp"].get("endpoints") else NA  # nothing declared = nothing to handshake
+        return NM if (domain.get("mcp") or {}).get("endpoints") else NA  # nothing declared = nothing to handshake
 
 
 @register_rule
@@ -188,7 +188,7 @@ class AgentInterfaceDiscoveryAbsent(CoreRule):
             return []
         if domain.get("site_type", "") not in MCP_SITE_TYPES:
             return []
-        discovery = domain.get("agent_discovery", {})
+        discovery = (domain.get("agent_discovery") or {})
         if discovery.get("any_found"):
             return []
         return [
@@ -227,9 +227,9 @@ def _interface_measured(domain: dict | None, ctx: MeasureCtx, *, need_ok: bool,
     if ctx.defaulted is not None and "mcp_interface" in ctx.defaulted:
         return NM
     assert domain is not None
-    interface = domain["mcp"].get("interface") or {}
+    interface = (domain.get("mcp") or {}).get("interface") or {}
     if not interface.get("attempted"):
-        return NM if domain["mcp"].get("endpoints") else NA
+        return NM if (domain.get("mcp") or {}).get("endpoints") else NA
     if need_ok and not interface.get("ok"):
         return NM
     if need_headers and "response_headers" not in interface:
@@ -313,7 +313,7 @@ class ServerCardInterfaceUnreachable(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        return None if domain["mcp"].get("endpoints") else NA
+        return None if (domain.get("mcp") or {}).get("endpoints") else NA
 
 
 @register_rule
@@ -375,8 +375,8 @@ class ServerCardIdentityMismatch(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        runtime = ((domain["mcp"].get("interface") or {}).get("server_info") or {}).get("name")
-        return None if runtime and domain["mcp"].get("declared_name") else NA
+        runtime = (((domain.get("mcp") or {}).get("interface") or {}).get("server_info") or {}).get("name")
+        return None if runtime and (domain.get("mcp") or {}).get("declared_name") else NA
 
 
 @register_rule
@@ -766,9 +766,9 @@ class McpOAuthDiscoveryMissing(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        handshake = domain["mcp"].get("handshake") or {}
+        handshake = (domain.get("mcp") or {}).get("handshake") or {}
         if not handshake.get("attempted"):
-            return NM if domain["mcp"].get("endpoints") else NA
+            return NM if (domain.get("mcp") or {}).get("endpoints") else NA
         if not handshake.get("auth_required"):
             return NA
-        return None if (domain["mcp"].get("oauth") or {}).get("attempted") else NM
+        return None if ((domain.get("mcp") or {}).get("oauth") or {}).get("attempted") else NM

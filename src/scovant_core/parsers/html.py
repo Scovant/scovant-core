@@ -88,9 +88,9 @@ def extract_schema_org(html: str) -> list[dict[str, Any]]:
         except json.JSONDecodeError:
             continue
 
-        # Handle @graph wrapper
+        # Handle @graph wrapper (a @graph that is not a list carries no entities)
         if isinstance(data, dict) and "@graph" in data:
-            for item in data["@graph"]:
+            for item in data["@graph"] if isinstance(data["@graph"], list) else []:
                 if isinstance(item, dict):
                     results.append(item)
         elif isinstance(data, list):
@@ -296,11 +296,15 @@ def extract_product_data(schema_org: list[dict[str, Any]]) -> dict[str, Any] | N
     """Extract product info from schema.org entities.
 
     Returns {product_name, price, currency, availability, variants, offers}
-    or None if no Product entity found.
+    or None if no Product entity found. The entities are JSON-LD a site
+    published: an entity, offer or variant that is not an object is skipped,
+    never raised on.
     """
     product: dict[str, Any] | None = None
 
-    for item in schema_org:
+    for item in schema_org if isinstance(schema_org, list) else []:
+        if not isinstance(item, dict):
+            continue
         item_type = item.get("@type", "")
         if isinstance(item_type, list):
             matches = any(t == "Product" for t in item_type)
@@ -320,18 +324,20 @@ def extract_product_data(schema_org: list[dict[str, Any]]) -> dict[str, Any] | N
     elif isinstance(raw_offers, dict):
         offers_list = [raw_offers]
     elif isinstance(raw_offers, list):
-        offers_list = raw_offers
+        offers_list = [o for o in raw_offers if isinstance(o, dict)]
     else:
         offers_list = []
 
-    # Pull primary price / currency / availability from first offer
+    # Pull primary price / currency / availability from the first offer object
     primary_offer = offers_list[0] if offers_list else {}
     price = primary_offer.get("price") or product.get("price")
     currency = primary_offer.get("priceCurrency") or product.get("priceCurrency")
     availability = primary_offer.get("availability") or product.get("availability")
 
     # Variants: schema.org doesn't have a standard field; capture hasVariant if present
-    variants: list[dict[str, Any]] = product.get("hasVariant", [])
+    raw_variants = product.get("hasVariant")
+    variants: list[dict[str, Any]] = (
+        [v for v in raw_variants if isinstance(v, dict)] if isinstance(raw_variants, list) else [])
 
     return {
         "product_name": product.get("name"),

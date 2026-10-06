@@ -16,7 +16,7 @@ def _preference_measured(domain: dict | None, ctx: MeasureCtx) -> OutcomeState |
     if verdict:
         return verdict
     assert domain is not None
-    mr = domain["machine_rep"]
+    mr = (domain.get("machine_rep") or {})
     if not mr.get("attempted") or mr.get("status") is None:
         return OutcomeState.NOT_MEASURED
     if mr.get("status") != 200 or not mr.get("preference_applied"):
@@ -42,7 +42,7 @@ class MachineRepIndistinguishableFromHtml(CoreRule):
         # distinguishable representation.
         if not domain or "machine_rep" not in domain:
             return []
-        mr = domain["machine_rep"]
+        mr = (domain.get("machine_rep") or {})
         if not mr.get("attempted") or mr.get("status") != 200:
             return []
         if not mr.get("preference_applied"):
@@ -96,7 +96,7 @@ class MachineRepVaryMissingPrefer(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "machine_rep" not in domain:
             return []
-        mr = domain["machine_rep"]
+        mr = (domain.get("machine_rep") or {})
         if not mr.get("attempted") or mr.get("status") != 200:
             return []
         if not mr.get("preference_applied"):

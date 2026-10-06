@@ -28,7 +28,7 @@ class CrawlGraphOrphanPages(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "crawl_graph" not in domain:
             return []
-        graph = domain["crawl_graph"]
+        graph = (domain.get("crawl_graph") or {})
         root = graph.get("root")
         sampled = graph.get("sampled", 0)
         pages = graph.get("pages") or {}
@@ -81,7 +81,7 @@ class CrawlGraphDeepPages(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "crawl_graph" not in domain:
             return []
-        graph = domain["crawl_graph"]
+        graph = (domain.get("crawl_graph") or {})
         sampled = graph.get("sampled", 0)
         pages = graph.get("pages") or {}
         deep = sorted(
@@ -140,7 +140,7 @@ class CrawlGraphDeadEndPages(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "crawl_graph" not in domain:
             return []
-        graph = domain["crawl_graph"]
+        graph = (domain.get("crawl_graph") or {})
         root = graph.get("root")
         sampled = graph.get("sampled", 0)
         pages = graph.get("pages") or {}

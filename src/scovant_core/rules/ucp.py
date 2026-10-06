@@ -37,7 +37,7 @@ def _published(domain: dict | None, ctx: MeasureCtx, *, types: frozenset[str] | 
     if verdict:
         return verdict
     assert domain is not None
-    ucp = domain["ucp"]
+    ucp = (domain.get("ucp") or {})
     if not ucp.get("exists") or (need_valid and not ucp.get("valid")):
         return OutcomeState.NA
     return None
@@ -61,7 +61,7 @@ class UcpProfileAbsent(CoreRule):
         site_type: str = domain.get("site_type", "")
         if site_type not in UCP_APPLICABLE_SITE_TYPES:
             return []
-        ucp = domain.get("ucp", {})
+        ucp = domain.get("ucp") or {}
         if ucp.get("exists"):
             return []
         return [
@@ -119,10 +119,10 @@ class UcpProfileInvalid(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        ucp = domain.get("ucp", {})
+        ucp = domain.get("ucp") or {}
         if not ucp.get("exists") or ucp.get("valid"):
             return []
-        errors = (ucp.get("validation_errors") or [])[:5]
+        errors = [e for e in (ucp.get("validation_errors") or []) if isinstance(e, str)][:5]
         return [
             Finding(
                 title="Universal Commerce Protocol profile invalid",
@@ -173,7 +173,7 @@ class UcpCheckoutMissing(CoreRule):
         site_type: str = domain.get("site_type", "")
         if site_type not in UCP_CHECKOUT_SITE_TYPES:
             return []
-        ucp = domain.get("ucp", {})
+        ucp = domain.get("ucp") or {}
         if not ucp.get("exists") or not ucp.get("valid"):
             return []
         if ucp.get("has_checkout"):
@@ -228,7 +228,7 @@ class UcpSigningKeysInvalid(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        ucp = domain.get("ucp", {})
+        ucp = domain.get("ucp") or {}
         # Only fires when profile is structurally valid — a broken profile is
         # reported via UCP_PROFILE_INVALID instead, to avoid cascading noise.
         if not ucp.get("exists") or not ucp.get("valid"):
@@ -288,9 +288,9 @@ class AgentPaymentsAbsent(CoreRule):
             return []
         # Non-overlap invariant: if UCP itself is absent, UCP_PROFILE_ABSENT
         # already reports "no agent commerce at all" — stay silent.
-        if not domain.get("ucp", {}).get("exists"):
+        if not (domain.get("ucp") or {}).get("exists"):
             return []
-        payments = domain.get("agent_payments", {})
+        payments = domain.get("agent_payments") or {}
         if payments.get("any_non_ucp"):
             return []
         return [
@@ -322,4 +322,4 @@ class AgentPaymentsAbsent(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        return None if domain["ucp"].get("exists") else OutcomeState.NA
+        return None if (domain.get("ucp") or {}).get("exists") else OutcomeState.NA

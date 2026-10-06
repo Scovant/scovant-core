@@ -36,9 +36,12 @@ def commerce_gated(code: str, site_category: str | None) -> bool:
 
 
 def find_products(schema_org: list[dict]) -> list[dict]:
-    """Return all Product entities from schema_org list (including @graph)."""
+    """Return all Product entities from schema_org list (including @graph).
+    `None` (nothing extracted) and non-object entries read as no products."""
     products: list[dict] = []
-    for entity in schema_org:
+    for entity in schema_org if isinstance(schema_org, list) else []:
+        if not isinstance(entity, dict):
+            continue
         if entity.get("@type") == "Product":
             products.append(entity)
         # Handle @graph wrapper
@@ -58,7 +61,7 @@ def get_offers(product: dict) -> list[dict]:
     if isinstance(raw, dict):
         return [raw]
     if isinstance(raw, list):
-        return raw
+        return [o for o in raw if isinstance(o, dict)]
     return []
 
 

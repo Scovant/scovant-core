@@ -4,6 +4,7 @@ from scovant_core.rules import (  # noqa: E402,F401  (registers the rules)
     citability,
     citability_scorer,
     citability_terms,
+    conform,
     consistency,
     crawl_graph,
     crawlability,
@@ -30,5 +31,7 @@ from scovant_core.rules.base import (
     probe_measured,
     register_rule,
 )
+from scovant_core.rules.conform import conform_domain, conform_page
 
-__all__ = ["RULES", "CoreRule", "Finding", "MeasureCtx", "probe_measured", "register_rule"]
+__all__ = ["RULES", "CoreRule", "Finding", "MeasureCtx", "conform_domain", "conform_page",
+           "probe_measured", "register_rule"]

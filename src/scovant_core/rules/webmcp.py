@@ -20,7 +20,7 @@ def _measured(domain: dict | None, ctx: MeasureCtx, *, need_present: bool) -> Ou
     if verdict:
         return verdict
     assert domain is not None
-    w = domain["webmcp"]
+    w = (domain.get("webmcp") or {})
     if not w.get("attempted"):
         return OutcomeState.NOT_MEASURED
     if w.get("error") and not w.get("present"):

@@ -5,6 +5,12 @@ page evidence is one page's extracted fields). Producers: Scovant Cloud's
 crawler fills them for every scanned site; Core's own gatherers fill the
 same shapes for the pages they fetch. A missing block means "not measured",
 never "absent on the site".
+
+These shapes are load-bearing: `scovant_core.rules.conform` reads evidence
+against them before any rule sees it, and a value that contradicts its
+documented shape is read as absent (see that module for the exact policy).
+A field documented here too narrowly would therefore hide real data from a
+rule; the SP-4 goldens pin that every producer-built input is unchanged.
 """
 from __future__ import annotations
 

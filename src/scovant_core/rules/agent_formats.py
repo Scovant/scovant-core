@@ -26,7 +26,7 @@ class LlmsTxtMissing(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        llms_txt = domain.get("llms_txt", {})
+        llms_txt = (domain.get("llms_txt") or {})
         if not llms_txt.get("exists") or not llms_txt.get("valid"):
             return [
                 Finding(
@@ -79,7 +79,7 @@ class MarkdownForAgentsAbsent(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        md = domain.get("markdown_agents", {})
+        md = (domain.get("markdown_agents") or {})
         if md.get("negotiation") or md.get("mirror"):
             return []
         return [
@@ -112,7 +112,7 @@ class MarkdownForAgentsAbsent(CoreRule):
             return verdict
         assert domain is not None
         # the gatherer leaves `status` None when its negotiation request failed
-        return OutcomeState.NOT_MEASURED if domain["markdown_agents"].get("status") is None else None
+        return OutcomeState.NOT_MEASURED if (domain.get("markdown_agents") or {}).get("status") is None else None
 
 
 @register_rule
@@ -129,9 +129,9 @@ class LinkHeadersAbsent(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "link_headers" not in domain:
             return []  # evidence without the probe
-        if domain["link_headers"].get("agent_relevant"):
+        if (domain.get("link_headers") or {}).get("agent_relevant"):
             return []
-        rels = domain["link_headers"].get("rels", [])
+        rels = (domain.get("link_headers") or {}).get("rels", [])
         return [
             Finding(
                 title="No agent-relevant Link headers",
@@ -155,7 +155,7 @@ class LinkHeadersAbsent(CoreRule):
                     "spec or API documentation. One header on the homepage is "
                     "enough for discovery."
                 ),
-                metadata={"present": domain["link_headers"].get("present", False),
+                metadata={"present": (domain.get("link_headers") or {}).get("present", False),
                           "rels": rels},
             )
         ]
@@ -174,7 +174,7 @@ def _negotiation_measured(domain: dict | None, ctx: MeasureCtx, *,
     if verdict:
         return verdict
     assert domain is not None
-    md = domain["markdown_agents"]
+    md = (domain.get("markdown_agents") or {})
     if md.get("status") is None:
         return OutcomeState.NOT_MEASURED  # our negotiation request failed
     if md.get("status") != 200:
@@ -201,7 +201,7 @@ class ContentNegotiationInconsistent(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "markdown_agents" not in domain:
             return []
-        md = domain["markdown_agents"]
+        md = (domain.get("markdown_agents") or {})
         # `status` is None only when the negotiation request failed, so
         # status != 200 covers "not attempted" and non-200 alike.
         if md.get("status") != 200:
@@ -267,7 +267,7 @@ class ContentNegotiationVaryMissing(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain or "markdown_agents" not in domain:
             return []
-        md = domain["markdown_agents"]
+        md = (domain.get("markdown_agents") or {})
         if md.get("status") != 200:
             return []
         content_type = (md.get("content_type") or "").lower()

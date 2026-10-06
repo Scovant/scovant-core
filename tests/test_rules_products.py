@@ -86,3 +86,14 @@ def test_product_page_vocabulary():
     for text in ("Товар. В корзину", "Produkt In den Warenkorb", "Ajouter au panier", "ADD TO BAG"):
         assert mentions_add_to_cart(text), text
     assert not mentions_add_to_cart("A short story about bicycles")
+
+
+def test_find_products_and_get_offers_read_malformed_schema_as_nothing():
+    # `schema_org: None` is what a producer writes for "not extracted"; a
+    # non-object entity or offer entry is page-published JSON-LD.
+    assert find_products(None) == []
+    assert find_products("Product") == []
+    assert find_products([None, "Product", 7, PRODUCT]) == [PRODUCT]
+    assert find_products([{"@graph": 5}, {"@graph": {"@type": "Product"}}]) == []
+    assert get_offers({"offers": [{"price": "1"}, "2", None]}) == [{"price": "1"}]
+    assert get_offers({"offers": None}) == []

@@ -32,7 +32,7 @@ class AiCrawlerBlocked(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        robots = domain.get("robots", {})
+        robots = (domain.get("robots") or {})
         blocked_agents = [
             agent
             for agent in AI_CRAWLERS
@@ -153,7 +153,7 @@ class AiBotPolicyDeclared(CoreRule):
         if verdict:
             return verdict
         assert domain is not None
-        declared = domain["ai_bot_policy"].get("declared")
+        declared = (domain.get("ai_bot_policy") or {}).get("declared")
         if not isinstance(declared, dict) or not declared:
             return OutcomeState.NOT_MEASURED
-        return None if domain["ai_bot_policy"].get("declared_any") else OutcomeState.NA
+        return None if (domain.get("ai_bot_policy") or {}).get("declared_any") else OutcomeState.NA

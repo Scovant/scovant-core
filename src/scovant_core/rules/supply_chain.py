@@ -51,7 +51,7 @@ def _instructions_measured(domain: dict | None, ctx: MeasureCtx) -> OutcomeState
         return NM  # the probe read the MCP text only; llms.txt references were never checked
     assert domain is not None
     # not attempted and not defaulted: there was no instruction text to check
-    return None if domain["instruction_integrity"].get("attempted") else NA
+    return None if (domain.get("instruction_integrity") or {}).get("attempted") else NA
 
 
 class _InstructionRule(CoreRule):

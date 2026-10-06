@@ -97,8 +97,29 @@ def probe_measured(domain: dict | None, ctx: MeasureCtx, *keys: str) -> OutcomeS
 RULES: list[CoreRule] = []
 
 
+def _conforming(cls: type[CoreRule]) -> None:
+    """Make the rule read its evidence as `evidence.py` documents it (see
+    `scovant_core.rules.conform`): `evaluate` and `measure` receive the
+    conformed page and domain, whoever calls them."""
+    from scovant_core.rules.conform import conform_domain, conform_page  # noqa: PLC0415 (cycle)
+
+    evaluate, measure = cls.evaluate, cls.measure
+
+    def evaluate_conformed(self, page, domain):
+        return evaluate(self, conform_page(page), conform_domain(domain))
+
+    def measure_conformed(self, page, domain, ctx):
+        return measure(self, conform_page(page), conform_domain(domain), ctx)
+
+    evaluate_conformed.__wrapped__ = evaluate  # type: ignore[attr-defined]
+    measure_conformed.__wrapped__ = measure  # type: ignore[attr-defined]
+    cls.evaluate = evaluate_conformed  # type: ignore[method-assign]
+    cls.measure = measure_conformed  # type: ignore[method-assign]
+
+
 def register_rule(cls: type[CoreRule]) -> type[CoreRule]:
-    """Class decorator: instantiate once and add to `RULES`.
+    """Class decorator: instantiate once and add to `RULES`, reading
+    conformed evidence (`_conforming`).
 
     `aliases` must be a tuple of non-empty codes, each different from the
     rule's own code and from one another; no code or alias may already be
@@ -113,5 +134,6 @@ def register_rule(cls: type[CoreRule]) -> type[CoreRule]:
     taken = sorted(claimed & {cls.code, *cls.aliases})
     if taken:
         raise ValueError(f"duplicate rule code {', '.join(taken)}")
+    _conforming(cls)
     RULES.append(cls())
     return cls
