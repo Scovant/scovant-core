@@ -95,6 +95,7 @@ class ProtectedResourceConsistency(_Oauth):
         "resource_sibling_host": ("The declared `resource` names another host on this site (for example the "
                                   "apex instead of `www.`) than the one serving the document."),
         "resource_missing": "The document does not declare `resource`.",
+        "resource_not_a_string": "`resource` is published, but not as a string (it must be a URL).",
         "authorization_servers_invalid": "`authorization_servers` is missing, empty or not a list of URLs.",
         "authorization_server_not_https": "An authorization server is declared over plain HTTP.",
         "jwks_uri_not_https": "`jwks_uri` is declared over plain HTTP.",
@@ -104,6 +105,7 @@ class ProtectedResourceConsistency(_Oauth):
         "resource_sibling_host": ("Serve the document from the host `resource` names (redirect the other host "
                                   "to it), or set `resource` to the host that serves it."),
         "resource_missing": "Declare `resource` as this server's canonical URL (RFC 9728 §2).",
+        "resource_not_a_string": "Publish `resource` as a JSON string holding this server's canonical URL.",
         "authorization_servers_invalid": "Declare `authorization_servers` as a non-empty list of issuer URLs.",
         "authorization_server_not_https": "Declare every authorization server with an HTTPS URL.",
         "jwks_uri_not_https": "Serve `jwks_uri` over HTTPS.",
@@ -126,7 +128,9 @@ class ProtectedResourceConsistency(_Oauth):
                    "jwks_uri": pr["jwks_uri"]})
 
         fails, warns = [], []
-        if pr["resource"] is None:
+        if pr.get("resource_wrong_type"):
+            warns.append("resource_not_a_string")
+        elif pr["resource"] is None:
             if not truncated:
                 warns.append("resource_missing")
         elif pr["resource_matches_origin"] is False:
@@ -162,6 +166,7 @@ class AuthorizationServerConsistency(_Oauth):
 
     _MESSAGES = {
         "issuer_missing": "The metadata does not declare `issuer`.",
+        "issuer_not_a_string": "`issuer` is published, but not as a string (it must be a URL).",
         "issuer_mismatch": "`issuer` is not exactly the URL the metadata is served under.",
         "issuer_sibling_host": ("`issuer` names another host on this site than the one serving the metadata "
                                 "(for example the apex instead of `www.`)."),
@@ -171,6 +176,8 @@ class AuthorizationServerConsistency(_Oauth):
         "token_endpoint_not_https": "`token_endpoint` is declared over plain HTTP.",
         "pkce_s256_not_advertised": ("PKCE with S256 is not advertised in `code_challenge_methods_supported` "
                                      "(the server may still enforce it; agents cannot discover that it does)."),
+        "iss_parameter_not_boolean": ("`authorization_response_iss_parameter_supported` is published, but not "
+                                      "as a JSON boolean, so a client cannot read it as advertised."),
         "iss_parameter_not_advertised": ("The RFC 9207 `iss` authorization-response parameter is not advertised "
                                          "(the server may still enforce it; agents cannot discover that it does)."),
         "issuer_not_in_protected_resource": ("The protected-resource metadata does not list this authorization "
@@ -178,6 +185,7 @@ class AuthorizationServerConsistency(_Oauth):
     }
     _FIX = {
         "issuer_missing": "Declare `issuer` as this server's exact issuer URL (RFC 8414 §2).",
+        "issuer_not_a_string": "Publish `issuer` as a JSON string holding this server's exact issuer URL.",
         "issuer_mismatch": ("Serve the metadata at the well-known URL derived from the issuer, or set `issuer` "
                             "to exactly that URL (RFC 8414 issuer rule)."),
         "issuer_sibling_host": ("Serve the metadata from the issuer's own host (redirect the other host to it), "
@@ -187,6 +195,8 @@ class AuthorizationServerConsistency(_Oauth):
         "token_endpoint_missing": "Declare `token_endpoint` with an HTTPS URL.",
         "token_endpoint_not_https": "Serve `token_endpoint` over HTTPS.",
         "pkce_s256_not_advertised": "Require PKCE and list \"S256\" in `code_challenge_methods_supported`.",
+        "iss_parameter_not_boolean": ("Publish `authorization_response_iss_parameter_supported` as the JSON "
+                                      "boolean `true` (not a string)."),
         "iss_parameter_not_advertised": ("Return `iss` in authorization responses and set "
                                          "`authorization_response_iss_parameter_supported: true`."),
         "issuer_not_in_protected_resource": ("List this issuer in the protected-resource metadata's "
@@ -220,7 +230,9 @@ class AuthorizationServerConsistency(_Oauth):
         })
 
         fails, medium, low = [], [], []
-        if a["issuer"] is None:
+        if a.get("issuer_wrong_type"):
+            fails.append("issuer_not_a_string")
+        elif a["issuer"] is None:
             if not truncated:
                 fails.append("issuer_missing")
         elif a["issuer_exact"] is False:
@@ -240,7 +252,10 @@ class AuthorizationServerConsistency(_Oauth):
         methods = a["code_challenge_methods_supported"]
         if (methods is None and not truncated) or (methods is not None and "S256" not in methods):
             low.append("pkce_s256_not_advertised")
-        if a["iss_parameter_supported"] is False or (a["iss_parameter_supported"] is None and not truncated):
+        if a.get("iss_parameter_raw") is not None:
+            ev["iss_parameter_published"] = a["iss_parameter_raw"]
+            low.append("iss_parameter_not_boolean")
+        elif a["iss_parameter_supported"] is False or (a["iss_parameter_supported"] is None and not truncated):
             low.append("iss_parameter_not_advertised")
         if (a["issuer"] is not None and pr["parseable"] and pr["authorization_servers_valid"] is True
                 and normalize_issuer(a["issuer"]) not in {normalize_issuer(u) for u in pr["authorization_servers"]}):

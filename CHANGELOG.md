@@ -8,6 +8,20 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.15.1] - 2026-10-07
+
+`ruleset_version` UNCHANGED (`2026.10`). The Core Score is unchanged; two experimental security checks name a
+problem more precisely.
+
+### Fixed
+- `CORE-SECURITY-017` / `-018`: a `resource` or `issuer` published with the wrong JSON type (a number, an object)
+  is reported as `resource_not_a_string` / `issuer_not_a_string` instead of "does not declare". Severity is
+  unchanged (WARN medium for `resource`, FAIL for `issuer`).
+- `CORE-SECURITY-018`: `authorization_response_iss_parameter_supported` published as a non-boolean (for example the
+  string `"true"`) is reported as `iss_parameter_not_boolean`, with the published value in
+  `evidence.iss_parameter_published`, instead of "not advertised".
+- The `oauth_metadata` gatherer records `resource_wrong_type`, `issuer_wrong_type` and `iss_parameter_raw`.
+
 ## [0.15.0] - 2026-10-07
 
 `ruleset_version` UNCHANGED (`2026.10`). The Core Score and every check verdict are unchanged.

@@ -99,6 +99,13 @@ def _bool_or_none(value: Any) -> bool | None:
     return value if isinstance(value, bool) else None
 
 
+def _non_bool_raw(doc: dict[str, Any] | None, key: str) -> str | None:
+    """A short repr of `doc[key]` when it is present but not a JSON boolean."""
+    if not doc or key not in doc or isinstance(doc[key], bool):
+        return None
+    return str(doc[key])[:40]
+
+
 def _str_list_or_none(value: Any) -> list[str] | None:
     """A published list of strings, or None when the key is absent or is not
     a list. Non-string entries are dropped; an empty list stays empty."""
@@ -144,6 +151,8 @@ def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: Evidenc
         "status": as_status,
         "parseable": as_data is not None,
         "issuer": issuer if isinstance(issuer, str) else None,
+        # Published, but not as a JSON string — told apart from "absent".
+        "issuer_wrong_type": bool(as_data is not None and "issuer" in as_data and not isinstance(issuer, str)),
         "has_endpoints": bool(
             as_data is not None
             and isinstance(as_data.get("authorization_endpoint"), str)
@@ -159,6 +168,9 @@ def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: Evidenc
         "token_endpoint": _str_or_none((as_data or {}).get("token_endpoint")),
         "code_challenge_methods_supported": _str_list_or_none((as_data or {}).get("code_challenge_methods_supported")),
         "iss_parameter_supported": _bool_or_none((as_data or {}).get("authorization_response_iss_parameter_supported")),
+        # The raw value when the flag was published but is not a JSON boolean
+        # (e.g. the string "true"); None when absent or a real boolean.
+        "iss_parameter_raw": _non_bool_raw(as_data, "authorization_response_iss_parameter_supported"),
         "registration_endpoint": _str_or_none((as_data or {}).get("registration_endpoint")),
         "client_id_metadata_document_supported": _bool_or_none((as_data or {}).get("client_id_metadata_document_supported")),
     }
@@ -175,6 +187,7 @@ def gather_oauth_metadata(client: SecureClient, ctx: ScanContext, store: Evidenc
         "status": pr_status,
         "parseable": pr_data is not None,
         "resource": resource if isinstance(resource, str) else None,
+        "resource_wrong_type": bool(pr_data is not None and "resource" in pr_data and not isinstance(resource, str)),
         "authorization_servers": auth_servers if isinstance(auth_servers, list) else [],
         "served_as_html": pr_html,
         "truncated": pr_truncated,
