@@ -63,9 +63,6 @@ _YARN_INSTALL = re.compile(
 _PIP_INSTALL = re.compile(
     r"\b(?:pip3?|uv\s+pip|python3?\s+-m\s+pip)\s+install\s+(?:-[\w-]+\s+)*(?P<name>[A-Za-z][\w.-]*)", re.I)
 
-# A bare distribution-looking token mentioned in prose (no install verb).
-_PROSE_PACKAGE = re.compile(r"\b(?P<name>[a-z][a-z0-9]*(?:-[a-z0-9]+){1,4})\b")
-
 _URL = re.compile(r"https?://(?P<host>[A-Za-z0-9.-]+\.[A-Za-z]{2,})(?:[/\s)\]]|$)")
 _BARE_DOMAIN = re.compile(
     r"(?<![\w@./-])(?P<host>(?:[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?\.)+"
@@ -110,10 +107,10 @@ def extract_references(text: str, self_domain: str | None = None) -> list[dict[s
     Each reference is ``{kind, name, in_install_command}`` where kind is
     ``package_npm`` | ``package_pypi`` | ``domain``.
 
-    ``in_install_command`` is the load-bearing distinction: a package merely
-    NAMED in prose that does not exist is stale documentation, while the same
-    name inside `npm install …` is a slot an attacker can register and have
-    agents install — so the two are reported at different severities.
+    ``in_install_command`` is the load-bearing distinction: a name inside
+    `npm install …` is a slot an attacker can register and have agents
+    install. Packages are recorded only from install commands (always True);
+    domains are recorded from URLs and bare host names (always False).
 
     Deduplicated, capped at :data:`MAX_REFERENCES`, and never raises.
     """
@@ -148,8 +145,6 @@ def extract_references(text: str, self_domain: str | None = None) -> list[dict[s
         for m in pattern.finditer(text):
             add(kind, m.group("name"), True)
 
-    installed_names = {r["name"].lower() for r in refs}
-
     def _wanted(host: str) -> bool:
         if not host or host in _INFRASTRUCTURE_DOMAINS or _is_reserved(host):
             return False
@@ -161,15 +156,9 @@ def extract_references(text: str, self_domain: str | None = None) -> list[dict[s
             if _wanted(host):
                 add("domain", host, False)
 
-    # Prose package mentions are only recorded for names already seen in an
-    # install command elsewhere in the document — otherwise every hyphenated
-    # English phrase would become a "package reference" and the budget would
-    # be spent on noise.
-    for m in _PROSE_PACKAGE.finditer(text):
-        name = m.group("name").lower()
-        if name in installed_names:
-            continue
-        # not recorded: see docstring — deliberately conservative
+    # Packages merely NAMED in prose are not recorded: every hyphenated
+    # English phrase would look like one, and the lookup budget would be
+    # spent on noise. Only install commands name a package an agent acts on.
 
     return refs[:MAX_REFERENCES]
 

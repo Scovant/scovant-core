@@ -4,7 +4,7 @@ from scovant_core.rules import RULES, MeasureCtx
 
 NM, NA = OutcomeState.NOT_MEASURED, OutcomeState.NA
 CTX = MeasureCtx(site_category="commerce", defaulted=frozenset())
-CODES = ("LLMS-SUPPLY-001", "LLMS-SUPPLY-002", "LLMS-SUPPLY-006", "LLMS-SUPPLY-008")
+CODES = ("LLMS-SUPPLY-002", "LLMS-SUPPLY-006", "LLMS-SUPPLY-008")
 
 
 def _rule(code):
@@ -25,12 +25,20 @@ def _meta(finding):
     return finding.metadata
 
 
-def test_the_four_rules():
+def test_llms_supply_001_is_retired():
+    """Retired in 0.15.0: the producer records packages only inside install
+    commands (judged by -008), so a rule about packages merely NAMED in prose
+    could never fire."""
+    assert "LLMS-SUPPLY-001" not in {r.code for r in RULES}
+    assert "LLMS-SUPPLY-001" not in {a for r in RULES for a in r.aliases}
+
+
+def test_the_three_rules():
     for code in CODES:
         rule = _rule(code)
         assert (rule.scope, rule.category, rule.maturity, rule.rule_version) == \
             ("domain", "trust", "experimental", "1.0"), code
-    assert [_rule(c).severity for c in CODES] == ["medium", "medium", "high", "high"]
+    assert [_rule(c).severity for c in CODES] == ["medium", "high", "high"]
 
 
 def test_silent_without_an_attempted_block():
@@ -50,23 +58,11 @@ def test_unchecked_or_odd_statuses_never_fire():
         assert _rule(code).evaluate({}, _domain(refs)) == [], code
 
 
-def test_a_named_package_that_does_not_exist():
-    refs = [_ref("package_npm", "fine", "VALID")] + [_ref("package_npm", f"stale-{i}", "UNCLAIMED") for i in range(6)]
-    refs.append({"kind": "package_pypi", "status": "UNCLAIMED"})                 # no name, no install flag
-    finding, = _rule("LLMS-SUPPLY-001").evaluate({}, _domain(refs))
-    assert _meta(finding) == {"count": 7, "examples": [f"stale-{i}" for i in range(5)]}
-    assert finding.description.startswith("7 package name(s)")
-    finding, = _rule("LLMS-SUPPLY-001").evaluate({}, _domain(refs[-1:]))
-    assert _meta(finding) == {"count": 1, "examples": ["None"]}
-    assert _rule("LLMS-SUPPLY-008").evaluate({}, _domain(refs)) == []            # named, not installed
-
-
 def test_a_domain_that_does_not_resolve():
     refs = [_ref("domain", "dead.example.net", "BROKEN"), _ref("package_npm", "odd", "BROKEN"),
             _ref("domain", "dead-cdn.example.net", "BROKEN", install=True)]
     finding, = _rule("LLMS-SUPPLY-002").evaluate({}, _domain(refs))
     assert _meta(finding) == {"count": 1, "examples": ["dead.example.net"]}
-    assert _rule("LLMS-SUPPLY-001").evaluate({}, _domain(refs)) == []
 
 
 def test_remote_execution():

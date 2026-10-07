@@ -8,6 +8,24 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.15.0] - 2026-10-07
+
+`ruleset_version` UNCHANGED (`2026.10`). The Core Score and every check verdict are unchanged.
+
+### Removed
+- Rule `LLMS-SUPPLY-001` ("referenced package does not exist", experimental, never scored). It
+  judged packages merely NAMED in prose, but `analysis.instruction_integrity.extract_references`
+  records packages only inside install commands — those are `LLMS-SUPPLY-008`'s — so the rule could
+  never fire. Its OWASP mapping is removed with it. `LLMS-SUPPLY-002`, `-006` and `-008` are
+  unchanged; the exploitable case (an install command naming a claimable package) stays covered.
+- The extractor's no-op prose-package loop and its `_PROSE_PACKAGE` pattern.
+
+### Documentation
+- The 0.14.0 entry below predates a fix that shipped in the same release: `CORE-SECURITY-017` and
+  `-018` judge the documents against the origin that served them after redirects, a default port is
+  the same origin, and another host on the same registrable domain is a medium WARN
+  (`resource_sibling_host` / `issuer_sibling_host`) rather than a FAIL.
+
 ## [0.14.0] - 2026-10-07
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` CHANGED (two new checks), report schema `1.1`

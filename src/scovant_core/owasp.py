@@ -50,7 +50,6 @@ RULE_MAPPINGS: dict[str, tuple[tuple[str, str], ...]] = {
     # Authorization an agent cannot discover is authorization it cannot scope.
     "MCP-AUTH-001": (("ASI03", "PARTIAL"),),
     # Instructions that point an agent at packages or domains it will install.
-    "LLMS-SUPPLY-001": (("ASI04", "PARTIAL"),),
     "LLMS-SUPPLY-002": (("ASI04", "PARTIAL"),),
     "LLMS-SUPPLY-006": (("ASI04", "PARTIAL"), ("ASI05", "PARTIAL")),
     "LLMS-SUPPLY-008": (("ASI04", "PARTIAL"),),

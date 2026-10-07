@@ -3,7 +3,7 @@ site's machine-readable instructions (llms.txt, MCP tool descriptions) point
 at is real, and whether they tell an agent to run a remote script unseen.
 
 An agent does not merely read these instructions, it acts on them.
-Instructions naming a package that does not exist hand an attacker a
+An install command naming a package that does not exist hands an attacker a
 registrable name; instructions that pipe a remote script into a shell hand
 whoever controls that URL arbitrary execution on the agent's host. An unsafe
 instruction surface is therefore worse than none.
@@ -14,6 +14,10 @@ checked-and-negative evidence: an unchecked reference, an exhausted lookup
 budget or a registry timeout produces nothing. The findings' text and
 metadata are the ones Scovant Cloud has always reported for these codes;
 `measure` says when silence is a pass.
+
+LLMS-SUPPLY-001 (a package merely NAMED in prose that does not exist) was
+retired in 0.15.0: the extractor records packages only inside install
+commands, which LLMS-SUPPLY-008 judges, so it could never fire.
 """
 from __future__ import annotations
 
@@ -62,52 +66,6 @@ class _InstructionRule(CoreRule):
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
         return _instructions_measured(domain, ctx)
-
-
-@register_rule
-class LlmsSupplyPackageResolves(_InstructionRule):
-    """LLMS-SUPPLY-001 — a package named in the instructions does not exist.
-
-    Scoped to packages merely NAMED in the documentation. The exploitable
-    subset — a missing package inside an actual install command — is
-    reported once, and only, by LLMS-SUPPLY-008 at high severity, so one
-    fact never produces two findings at two severities.
-    """
-
-    code = "LLMS-SUPPLY-001"
-
-    since = "0.11.0"
-    severity = "medium"
-    title = "Referenced package does not exist"
-
-    def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
-        block = _block(domain)
-        if block is None:
-            return []
-        bad = [r for r in _refs(block)
-               if r.get("status") == "UNCLAIMED" and not r.get("in_install_command")]
-        if not bad:
-            return []
-        names = [str(r.get("name")) for r in bad]
-        return [
-            Finding(
-                title="Referenced package does not exist",
-                description=(
-                    f"{len(bad)} package name(s) referenced in this site's "
-                    "machine-readable instructions could not be found in their "
-                    "registry. An agent following the documentation would fail "
-                    "— and the unregistered name can be claimed by anyone."
-                ),
-                example="pip install acme-agent   # 404 from the package registry",
-                remediation_hint=(
-                    "Correct or remove the package names in your agent-facing "
-                    "documentation, and pin the ones that are real. A name that "
-                    "does not exist today can be registered by someone else "
-                    "tomorrow, at which point your own docs point agents at it."
-                ),
-                metadata={"count": len(bad), "examples": names[:_EXAMPLE_CAP]},
-            )
-        ]
 
 
 @register_rule

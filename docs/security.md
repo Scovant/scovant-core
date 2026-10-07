@@ -568,7 +568,6 @@ compliance claim)".
 | TOOL-RISK-001 | ASI02 | PARTIAL |
 | WEBMCP-005 | ASI02 | PARTIAL |
 | MCP-AUTH-001 | ASI03 | PARTIAL |
-| LLMS-SUPPLY-001 | ASI04 | PARTIAL |
 | LLMS-SUPPLY-002 | ASI04 | PARTIAL |
 | LLMS-SUPPLY-006 | ASI04 | PARTIAL |
 | LLMS-SUPPLY-006 | ASI05 | PARTIAL |
@@ -602,7 +601,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.14.0
+V=0.15.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys
