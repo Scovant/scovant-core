@@ -3,7 +3,7 @@ readiness signals. See https://github.com/Scovant/scovant-core.
 """
 from __future__ import annotations
 
-__version__ = "0.12.3"
+__version__ = "0.13.0"
 
 __all__ = ["ScanOptions", "__version__", "scan"]
 

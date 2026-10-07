@@ -59,7 +59,7 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.12.3</p>
+<p><strong>Core version:</strong> 0.13.0</p>
 <p>42 PASS, 11 WARN, 3 FAIL, 10 N/A, 0 ERROR (66 checks)</p>
 </section>
 <section id="score">
@@ -762,6 +762,7 @@ a { color: #0969da; }
 <p><strong>Fix owner:</strong> backend &middot; <strong>Domain:</strong> data_exposure</p>
 <p>1 possible credential-like value(s) (heuristic match, redacted).</p>
 <p><strong>Remediation:</strong> Confirm whether the value is live; rotate and remove if so.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI03 Identity &amp; Privilege Abuse (partial)</p>
 <p><strong>Limitations:</strong> Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.</p>
 </details>
 <details><summary><code>CORE-SECURITY-008</code> (MACHINE-DATA-002) — Internal network reference exposed <span class="badge badge-na">DECLARED</span></summary>
@@ -776,6 +777,7 @@ a { color: #0969da; }
 <p><strong>Fix owner:</strong> mcp &middot; <strong>Domain:</strong> data_exposure</p>
 <p>1 administrative/destructive interface(s) advertised to agents.</p>
 <p><strong>Remediation:</strong> Keep admin/destructive interfaces out of public agent metadata, or gate them behind explicit authorization and confirmation.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI02 Tool Misuse &amp; Exploitation (partial)</p>
 <p><strong>Limitations:</strong> Passive signal only. Scovant Core reports declared MCP server names and OpenAPI paths; the privileged/destructive classification is a NAME-BASED GUESS, never an inspection of actual behaviour, and it never authenticates, invokes a tool or submits a request.</p>
 </details>
 <details><summary><code>CORE-SECURITY-013</code> (PROMPT-SURFACE-003) — External transmission instruction <span class="badge badge-na">DECLARED</span></summary>
@@ -783,6 +785,7 @@ a { color: #0969da; }
 <p><strong>Fix owner:</strong> content &middot; <strong>Domain:</strong> prompt_surface</p>
 <p>Machine-facing text instructs sending data to an external host.</p>
 <p><strong>Remediation:</strong> Remove instructions that direct agents to third-party endpoints.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI01 Agent Goal Hijack (partial)</p>
 <p><strong>Limitations:</strong> Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.</p>
 </details>
 <details><summary><code>CORE-SECURITY-014</code> (PROMPT-SURFACE-004) — Policy/role override language <span class="badge badge-na">DECLARED</span></summary>
@@ -790,6 +793,7 @@ a { color: #0969da; }
 <p><strong>Fix owner:</strong> content &middot; <strong>Domain:</strong> prompt_surface</p>
 <p>Role/policy override language in machine-facing text.</p>
 <p><strong>Remediation:</strong> Remove the phrase(s).</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI01 Agent Goal Hijack (partial)</p>
 <p><strong>Limitations:</strong> Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.</p>
 </details>
 <details><summary><code>CORE-SECURITY-016</code> (PROMPT-SURFACE-006) — Tool/server description trust risk <span class="badge badge-na">DECLARED</span></summary>
@@ -797,6 +801,7 @@ a { color: #0969da; }
 <p><strong>Fix owner:</strong> mcp &middot; <strong>Domain:</strong> prompt_surface</p>
 <p>Tool/server description carries instructions unrelated to its purpose or obfuscated text.</p>
 <p><strong>Remediation:</strong> Descriptions must describe the tool only; strip imperatives and hidden Unicode.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI01 Agent Goal Hijack (partial)</p>
 <p><strong>Limitations:</strong> Heuristic passive indicator only: pattern matches over declared MCP server and WebMCP tool descriptions. It never executes an instruction, never invokes a tool, and a WARN is not a vulnerability claim.</p>
 </details>
 <p>This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.</p>
@@ -864,13 +869,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.1</dd>
-<dt>core_version</dt><dd>0.12.3</dd>
+<dt>core_version</dt><dd>0.13.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
 <dt>ruleset_digest</dt><dd>ab2a8e0e0faa</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.12.3 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.13.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

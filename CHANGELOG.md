@@ -8,6 +8,24 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.13.0] - 2026-10-07
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`
+(one additive key). Every check verdict, rule verdict and the Core Score are unchanged.
+
+### Added
+- `scovant_core.owasp` — the OWASP Top 10 for Agentic Applications (2026) as a
+  mapping layer: the ten ASI categories, the relation vocabulary, `parse_standards`
+  (reads the mapping a security check already declares in its `standards` tuple and
+  raises on an OWASP declaration it cannot read), `RULE_MAPPINGS` for the readiness
+  rules that produce evidence about a category, and `for_rule`/`describe`.
+- `owasp_agentic` on every check result: `[{framework, id, title, relation}]`, empty
+  when the check maps to no category. Markdown and HTML reports print it on each
+  security finding as "Mapped to OWASP Agentic Top 10 (not a compliance claim)".
+  Every mapping is `PARTIAL`; nothing here is a compliance claim.
+- `docs/security.md` lists the per-rule mappings beside the per-check table, pinned
+  against the code in both directions.
+
 ## [0.12.3] - 2026-10-06
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`.

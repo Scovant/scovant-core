@@ -1013,6 +1013,7 @@ _PASSIVE SIGNALS ONLY_
 - Fix owner: backend · Domain: data_exposure
 - 1 possible credential-like value(s) (heuristic match, redacted).
 - Remediation: Confirm whether the value is live; rotate and remove if so.
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI03 Identity & Privilege Abuse (partial)
 - Limitations: Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.
   - Remediation: Confirm whether the value is live; rotate and remove if so.
 
@@ -1075,6 +1076,7 @@ _PASSIVE SIGNALS ONLY_
 - Fix owner: mcp · Domain: data_exposure
 - 1 administrative/destructive interface(s) advertised to agents.
 - Remediation: Keep admin/destructive interfaces out of public agent metadata, or gate them behind explicit authorization and confirmation.
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI02 Tool Misuse & Exploitation (partial)
 - Limitations: Passive signal only. Scovant Core reports declared MCP server names and OpenAPI paths; the privileged/destructive classification is a NAME-BASED GUESS, never an inspection of actual behaviour, and it never authenticates, invokes a tool or submits a request.
   - Remediation: Keep admin/destructive interfaces out of public agent metadata, or gate them behind explicit authorization and confirmation.
 
@@ -1101,6 +1103,7 @@ _PASSIVE SIGNALS ONLY_
 - Fix owner: content · Domain: prompt_surface
 - Machine-facing text instructs sending data to an external host.
 - Remediation: Remove instructions that direct agents to third-party endpoints.
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI01 Agent Goal Hijack (partial)
 - Limitations: Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
   - Remediation: Remove instructions that direct agents to third-party endpoints.
 
@@ -1134,6 +1137,7 @@ _PASSIVE SIGNALS ONLY_
 - Fix owner: content · Domain: prompt_surface
 - Role/policy override language in machine-facing text.
 - Remediation: Remove the phrase(s).
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI01 Agent Goal Hijack (partial)
 - Limitations: Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.
   - Remediation: Remove the phrase(s).
 
@@ -1175,6 +1179,7 @@ _PASSIVE SIGNALS ONLY_
 - Fix owner: mcp · Domain: prompt_surface
 - Tool/server description carries instructions unrelated to its purpose or obfuscated text.
 - Remediation: Descriptions must describe the tool only; strip imperatives and hidden Unicode.
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI01 Agent Goal Hijack (partial)
 - Limitations: Heuristic passive indicator only: pattern matches over declared MCP server and WebMCP tool descriptions. It never executes an instruction, never invokes a tool, and a WARN is not a vulnerability claim.
   - Remediation: Descriptions must describe the tool only; strip imperatives and hidden Unicode.
 
@@ -1211,7 +1216,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.12.3 · ruleset 2026.10 (digest `ab2a8e0e0faa`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.13.0 · ruleset 2026.10 (digest `ab2a8e0e0faa`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

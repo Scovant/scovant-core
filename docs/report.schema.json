@@ -99,6 +99,14 @@
           "title": "Limitations",
           "type": "string"
         },
+        "owasp_agentic": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Owasp Agentic",
+          "type": "array"
+        },
         "remediation": {
           "default": "",
           "title": "Remediation",

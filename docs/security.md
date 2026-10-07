@@ -541,6 +541,30 @@ unauthenticated scan can observe a declared or served signal that is
 | PROMPT-SURFACE-005 | CORE-SECURITY-015 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
 | PROMPT-SURFACE-006 | CORE-SECURITY-016 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
 
+#### Per-rule mapping
+
+The readiness rules in `scovant_core.rules` that produce evidence about an
+ASI category, from `scovant_core.owasp.RULE_MAPPINGS` (pinned against this
+table by `tests/test_owasp.py`). A rule not listed maps to no category.
+Every relation is `PARTIAL`. Reports and findings carry the mapping as
+`owasp_agentic` and label it "Mapped to OWASP Agentic Top 10 (not a
+compliance claim)".
+
+| Rule | ASI | Relation |
+|---|---|---|
+| AGENT-META-001 | ASI01 | PARTIAL |
+| AGENT-META-008 | ASI01 | PARTIAL |
+| WEBMCP-004 | ASI01 | PARTIAL |
+| AGENT-META-004 | ASI02 | PARTIAL |
+| TOOL-RISK-001 | ASI02 | PARTIAL |
+| WEBMCP-005 | ASI02 | PARTIAL |
+| MCP-AUTH-001 | ASI03 | PARTIAL |
+| LLMS-SUPPLY-001 | ASI04 | PARTIAL |
+| LLMS-SUPPLY-002 | ASI04 | PARTIAL |
+| LLMS-SUPPLY-006 | ASI04 | PARTIAL |
+| LLMS-SUPPLY-006 | ASI05 | PARTIAL |
+| LLMS-SUPPLY-008 | ASI04 | PARTIAL |
+
 ### Disclaimer
 
 > A high Core Score does not prove that autonomous agents can complete real
@@ -569,7 +593,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.12.3
+V=0.13.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

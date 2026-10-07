@@ -86,6 +86,9 @@ class CheckResult(BaseModel):
     security_domain: str = ""
     fix_owner: str = ""
     security_tags: list[str] = Field(default_factory=list)
+    # OWASP Agentic Top 10 mapping (`scovant_core.owasp`) — read from the
+    # check's own `standards` declaration; a mapping, never a compliance claim.
+    owasp_agentic: list[dict] = Field(default_factory=list)
 
 
 class CategoryScore(BaseModel):

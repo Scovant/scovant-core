@@ -7,6 +7,7 @@ import html
 import json
 
 from scovant_core.models import CheckResult, CheckStatus, Report
+from scovant_core.owasp import describe
 from scovant_core.report._cloud_matrix import CORE_BOUNDARY, CORE_VS_CLOUD
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
@@ -278,6 +279,9 @@ def _security_section(r: Report) -> list[str]:
         out.append(f"<p>{e(f.summary)}</p>")
         if f.remediation:
             out.append(f"<p><strong>Remediation:</strong> {e(f.remediation)}</p>")
+        if f.owasp_agentic:
+            out.append("<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): "
+                       f"{e(describe(f.owasp_agentic))}</p>")
         if f.limitations:
             out.append(f"<p><strong>Limitations:</strong> {e(f.limitations)}</p>")
         out.append("</details>")

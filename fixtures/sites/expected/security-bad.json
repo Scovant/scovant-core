@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.12.3",
+  "core_version": "0.13.0",
   "findings": [
     {
       "category": "access",
@@ -56,6 +56,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-001",
       "limitations": "Scovant Core evaluates declared and static evidence only; it does not observe real agent traffic.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -86,6 +87,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-002",
       "limitations": "Only reachability and syntax are checked; per-agent policy is evaluated by the other CORE-ACCESS checks.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -126,6 +128,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-003",
       "limitations": "Only the declared robots.txt policy is evaluated; whether the crawler is actually served is not observed.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -157,6 +160,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-004",
       "limitations": "Only the declared robots.txt policy is evaluated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -189,6 +193,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-005",
       "limitations": "Only the first-declared sitemap (or its first child, for a sitemap index) is fetched and validated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -217,6 +222,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-006",
       "limitations": "Only ISO 8601 date-formatted lastmod values are parsed; malformed dates are ignored, not penalised.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -242,6 +248,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-007",
       "limitations": "Only the entry page's declared canonical is evaluated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -267,6 +274,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-008",
       "limitations": "Only the entry page's own robots meta tag and X-Robots-Tag header are checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -296,6 +304,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-009",
       "limitations": "Absence is not penalised; the convention is emerging. Reference checks are HTTP status only.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -326,6 +335,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-010",
       "limitations": "Absence is not penalised; the convention is emerging.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -354,6 +364,7 @@
       "fix_owner": "",
       "id": "CORE-ACCESS-011",
       "limitations": "Heuristics over the file text; a WARN is a prompt to review the file, not a defect. A bare `Disallow: /` in the robots.txt general (default) group does not itself count as an AI-crawler declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. Experimental: never scored.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -386,6 +397,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-001",
       "limitations": "Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -410,6 +422,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-002",
       "limitations": "Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -435,6 +448,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-003",
       "limitations": "This is a static text scan of already-fetched HTML for a marker string; the browser-side registration was not executed, so a marker's presence does not confirm the tools actually register or work.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -461,6 +475,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-004",
       "limitations": "Static extraction of `registerTool(` calls in already-fetched HTML on the sampled pages; a runtime-only or dynamically-constructed tool definition is not seen.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -483,6 +498,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-005",
       "limitations": "Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -505,6 +521,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-006",
       "limitations": "Only the conventional /.well-known/oauth-authorization-server path is probed.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -527,6 +544,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-007",
       "limitations": "Only the conventional /.well-known/oauth-protected-resource path is probed.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -561,6 +579,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-008",
       "limitations": "Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -583,6 +602,7 @@
       "fix_owner": "",
       "id": "CORE-INTERFACE-009",
       "limitations": "Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document did not parse is indistinguishable here from one that is absent, and this check never reports WARN; when no surface was found and at least one candidate could not be fetched at all, it reports ERROR rather than N/A.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -625,6 +645,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-001",
       "limitations": "Only well-formed-JSON parseability is checked; schema.org vocabulary correctness is not validated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -655,6 +676,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-002",
       "limitations": "Only the schema_org nodes on the sampled pages are checked; an Organization declared elsewhere on the site is not evaluated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -680,6 +702,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-003",
       "limitations": "Only the schema_org nodes on the sampled pages are checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -708,6 +731,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-004",
       "limitations": "Only the sampled pages are checked; a product catalog not represented in the sample is not evaluated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -736,6 +760,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-005",
       "limitations": "Only the first sampled page that exposes a Product entity is checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -765,6 +790,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-006",
       "limitations": "Only the sampled pages are checked; a product catalog not represented in the sample is not evaluated.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -794,6 +820,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-007",
       "limitations": "Only the non-entry pages in the sampled set are checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -822,6 +849,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-008",
       "limitations": "Only the entry page's metadata is checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -853,6 +881,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-009",
       "limitations": "Only the entry page's heading outline is checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -878,6 +907,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-010",
       "limitations": "Only the entry page's `<html lang>` attribute is checked.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -907,6 +937,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-011",
       "limitations": "Only the images on the sampled pages are counted.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -941,6 +972,7 @@
       "fix_owner": "",
       "id": "CORE-MACHINE-012",
       "limitations": "This is a fragile heuristic: the visible-price regex only matches a narrow set of currency-marked formats, and it compares only the first product page found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -967,6 +999,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-001",
       "limitations": "Static-HTML signal only: the raw fetched response is inspected, never rendered in a browser, so a site that hydrates real content very quickly may still be flagged here.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -992,6 +1025,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-002",
       "limitations": "Only the entry URL's own redirect chain is inspected; redirects encountered while fetching other sampled pages are not counted here.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1018,6 +1052,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-003",
       "limitations": "Only the entry response's own headers are checked; per-page-type validator strategy is not inspected.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1053,6 +1088,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-004",
       "limitations": "Only the capped set of references collected by the machine_links gatherer are checked; endpoints not linked from any declared document are not found. A declared MCP endpoint is recorded but never judged — Core does not perform the MCP handshake.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1086,6 +1122,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-005",
       "limitations": "`estimated_tokens` is a character-count estimate (chars / token_chars_ratio), never a real tokenizer count, and only the entry page is measured.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1116,6 +1153,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-006",
       "limitations": "Only forms on the sampled page set are inspected; a form behind client-side rendering that never appears in the static HTML is not seen.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1138,6 +1176,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-007",
       "limitations": "Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1166,6 +1205,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-008",
       "limitations": "One extra request to a path that cannot exist (the URL is in evidence); a site that deliberately serves a 200 landing page for every path fails this check by design. The shell heuristic errs on the lenient side: a very short 200 page that carries a script bundle is reported as an application shell (WARN) even when it is in fact a terse, genuinely server-rendered soft-404.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1190,6 +1230,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-009",
       "limitations": "Core never induces throttling; only 429 responses that happened to occur during the scan are examined, so most scans report N/A.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1216,6 +1257,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-010",
       "limitations": "Only the entry response and the sampled pages are inspected; a challenge served with an honest 403/429/503 is not a defect here (the access checks cover blocking).",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1268,6 +1310,7 @@
       "fix_owner": "",
       "id": "CORE-OPERABILITY-011",
       "limitations": "Only llms.txt, OpenAPI, MCP and UCP are considered (a markdown-mirror surface and Link-header attribution are not yet wired into the Core evidence pipeline, so they cannot be checked). This check never fetches OpenAPI or UCP itself — it reads them only if another applicable check for this profile already gathered that evidence (OpenAPI: `CORE-INTERFACE-005`, profiles api/saas; UCP: `CORE-INTERFACE-008`, profile commerce). On any other profile, an unfetched OpenAPI/UCP surface is treated as not probed on this profile (counted as absent), never actively probed to find out — an unscored experimental check must never add its own network requests. Exactly two link sources are walked: the anchor links on the entry page itself, and the `machine_links` reference inventory — whose entries are sourced from the canonical URL, a policy-page link, the sitemap document URL itself, the declared OpenAPI spec, an MCP endpoint, or an llms.txt reference — matched only when one of those reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL itself, not a URL it lists). Experimental: never scored.",
+      "owasp_agentic": [],
       "remediation": "Link llms.txt, OpenAPI, MCP and UCP documents from the entry page (e.g. a footer link), or reference them from the canonical URL, a policy page, or the OpenAPI spec.",
       "security_domain": "",
       "security_tags": [],
@@ -1295,6 +1338,7 @@
       "fix_owner": "edge_cdn",
       "id": "CORE-SECURITY-001",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Redirect http:// to https:// (301) at the edge.",
       "security_domain": "web_baseline",
       "security_tags": [
@@ -1323,6 +1367,7 @@
       "fix_owner": "edge_cdn",
       "id": "CORE-SECURITY-002",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain is https).",
       "security_domain": "web_baseline",
       "security_tags": [
@@ -1353,6 +1398,7 @@
       "fix_owner": "frontend",
       "id": "CORE-SECURITY-003",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Send a Content-Security-Policy with frame-ancestors, or at least X-Frame-Options: DENY.",
       "security_domain": "web_baseline",
       "security_tags": [
@@ -1395,6 +1441,7 @@
       "fix_owner": "backend",
       "id": "CORE-SECURITY-004",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Set Secure and HttpOnly on session cookies; add SameSite=Lax or Strict.",
       "security_domain": "web_baseline",
       "security_tags": [
@@ -1427,6 +1474,7 @@
       "fix_owner": "edge_cdn",
       "id": "CORE-SECURITY-005",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Send Referrer-Policy: strict-origin-when-cross-origin and X-Content-Type-Options: nosniff.",
       "security_domain": "web_baseline",
       "security_tags": [
@@ -1459,6 +1507,7 @@
       "fix_owner": "security",
       "id": "CORE-SECURITY-006",
       "limitations": "Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.",
+      "owasp_agentic": [],
       "remediation": "Set Expires to a future date (RFC 3339) and keep it fresh.",
       "security_domain": "disclosure",
       "security_tags": [
@@ -1498,6 +1547,14 @@
       "fix_owner": "backend",
       "id": "CORE-SECURITY-007",
       "limitations": "Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI03",
+          "relation": "PARTIAL",
+          "title": "Identity & Privilege Abuse"
+        }
+      ],
       "remediation": "Confirm whether the value is live; rotate and remove if so.",
       "security_domain": "data_exposure",
       "security_tags": [
@@ -1537,6 +1594,7 @@
       "fix_owner": "devops",
       "id": "CORE-SECURITY-008",
       "limitations": "Passive signal only. Scovant Core reports declaration and exposure in public machine-facing documents; it never tests exploitability, authenticates or invokes tools.",
+      "owasp_agentic": [],
       "remediation": "Remove internal hostnames/addresses from public documents; keep them in internal docs only.",
       "security_domain": "data_exposure",
       "security_tags": [
@@ -1571,6 +1629,14 @@
       "fix_owner": "mcp",
       "id": "CORE-SECURITY-009",
       "limitations": "Passive signal only. Scovant Core reports declared MCP server names and OpenAPI paths; the privileged/destructive classification is a NAME-BASED GUESS, never an inspection of actual behaviour, and it never authenticates, invokes a tool or submits a request.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI02",
+          "relation": "PARTIAL",
+          "title": "Tool Misuse & Exploitation"
+        }
+      ],
       "remediation": "Keep admin/destructive interfaces out of public agent metadata, or gate them behind explicit authorization and confirmation.",
       "security_domain": "data_exposure",
       "security_tags": [
@@ -1596,6 +1662,7 @@
       "fix_owner": "backend",
       "id": "CORE-SECURITY-010",
       "limitations": "Passive signal only. Scovant Core reports declared OpenAPI schema field names and their example/default values; it never authenticates, invokes an endpoint or submits a request.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "data_exposure",
       "security_tags": [
@@ -1623,6 +1690,14 @@
       "fix_owner": "content",
       "id": "CORE-SECURITY-011",
       "limitations": "Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1650,6 +1725,14 @@
       "fix_owner": "content",
       "id": "CORE-SECURITY-012",
       "limitations": "Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1691,6 +1774,14 @@
       "fix_owner": "content",
       "id": "CORE-SECURITY-013",
       "limitations": "Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "Remove instructions that direct agents to third-party endpoints.",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1740,6 +1831,14 @@
       "fix_owner": "content",
       "id": "CORE-SECURITY-014",
       "limitations": "Heuristic passive indicator only: pattern matches over public machine-facing text. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "Remove the phrase(s).",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1767,6 +1866,14 @@
       "fix_owner": "content",
       "id": "CORE-SECURITY-015",
       "limitations": "Heuristic passive indicator only: compares an instruction phrase found in machine-facing text against the visible text of the rendered page (itself capped at 5000 characters) by normalized substring containment. It never executes an instruction, never tests a real agent, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1804,6 +1911,14 @@
       "fix_owner": "mcp",
       "id": "CORE-SECURITY-016",
       "limitations": "Heuristic passive indicator only: pattern matches over declared MCP server and WebMCP tool descriptions. It never executes an instruction, never invokes a tool, and a WARN is not a vulnerability claim.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI01",
+          "relation": "PARTIAL",
+          "title": "Agent Goal Hijack"
+        }
+      ],
       "remediation": "Descriptions must describe the tool only; strip imperatives and hidden Unicode.",
       "security_domain": "prompt_surface",
       "security_tags": [
@@ -1832,6 +1947,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-001",
       "limitations": "Only the entry page's anchors are scanned; a contact method reachable only from a deeper page is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1859,6 +1975,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-002",
       "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a shipping policy reachable only from a deeper page is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1886,6 +2003,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-003",
       "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a returns policy reachable only from a deeper page is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1913,6 +2031,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-004",
       "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; a privacy policy reachable only from a deeper page is not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1940,6 +2059,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-005",
       "limitations": "Only a same-origin link discovered from the entry page's nav/footer/anchors is followed; terms reachable only from a deeper page are not found.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -1968,6 +2088,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-006",
       "limitations": "Only the conventional /.well-known/security.txt and legacy /security.txt paths are probed.",
+      "owasp_agentic": [],
       "remediation": "Update the Expires field in security.txt to a future date.",
       "security_domain": "",
       "security_tags": [],
@@ -1993,6 +2114,7 @@
       "fix_owner": "",
       "id": "CORE-TRUST-007",
       "limitations": "Pricing-page discovery follows only a same-origin link from the entry page; the structured-price fallback checks only the sampled pages.",
+      "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
       "security_tags": [],
@@ -2126,7 +2248,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.12.3",
+    "core_version": "0.13.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2143,7 +2265,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.12.3 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.13.0 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",

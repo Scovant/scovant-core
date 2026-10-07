@@ -24,6 +24,7 @@ from abc import ABC, abstractmethod
 from scovant_core.context import ScanContext
 from scovant_core.evidence import EvidenceStore, EvidenceUnavailable
 from scovant_core.models import Category, CheckResult, CheckStatus, Confidence, Severity
+from scovant_core.owasp import parse_standards
 
 
 class CoreCheck(ABC):
@@ -76,6 +77,7 @@ class CoreCheck(ABC):
             family_id=self.family_id, verification_mode=self.verification_mode,
             security_domain=self.security_domain, fix_owner=self.fix_owner,
             security_tags=list(self.security_tags),
+            owasp_agentic=parse_standards(self.standards),
         )
 
     def na(self, summary: str, evidence: dict | None = None, *,

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 from scovant_core.models import Category, CheckStatus, Report
+from scovant_core.owasp import describe
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
@@ -143,6 +144,8 @@ def render_markdown(report: Report, *, utm_medium: str = "cli") -> str:
         ]
         if f.remediation:
             out.append(f"- Remediation: {f.remediation}")
+        if f.owasp_agentic:
+            out.append(f"- Mapped to OWASP Agentic Top 10 (not a compliance claim): {describe(f.owasp_agentic)}")
         if f.limitations:
             out.append(f"- Limitations: {f.limitations}")
         out += _finding(f)[1:] if f.evidence else [""]
