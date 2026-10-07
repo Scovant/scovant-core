@@ -763,6 +763,8 @@ Weight is informational — security checks are never scored.
 | CORE-SECURITY-014 | Policy/role override language | PROMPT-SURFACE-004 | DECLARED | 1 | all | medium | yes |
 | CORE-SECURITY-015 | Human ↔ machine instruction divergence | PROMPT-SURFACE-005 | DECLARED | 1 | all | medium | yes |
 | CORE-SECURITY-016 | Tool/server description trust risk | PROMPT-SURFACE-006 | DECLARED | 1 | all | medium | yes |
+| CORE-SECURITY-017 | OAuth protected-resource metadata consistency | MCP-AUTH-011 | PASSIVE_OBSERVED | 1 | all | high | yes |
+| CORE-SECURITY-018 | OAuth authorization-server metadata consistency | MCP-AUTH-012 | PASSIVE_OBSERVED | 1 | all | high | yes |
 
 ### CORE-SECURITY-001 — HTTPS baseline
 
@@ -1035,3 +1037,40 @@ Weight is informational — security checks are never scored.
 **References:**
 
 - <https://owasp.org/www-project-top-10-for-large-language-model-applications/>
+
+### CORE-SECURITY-017 — OAuth protected-resource metadata consistency
+
+**Why it matters:** An agent obtains a token for the `resource` this document names. When that names a different origin, or points at authorization servers over plain HTTP, tokens are no longer bound to this server and can be minted, replayed or intercepted elsewhere.
+
+**Family:** MCP-AUTH-011 · **Verification:** PASSIVE_OBSERVED · **Domain:** auth · **Fix owner:** identity
+
+**Status:** experimental · scored: no · reason: An agent obtains a token for the `resource` this document names. · promotion: Calibrate on a large real-world scan corpus after two weekly rescans: every resource-origin FAIL reviewed by hand against the published document, none traced to our own fetch, and no FAIL caused by a legitimate resource identifier on a sibling host.
+
+**Limitations:** Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.
+
+**Standards:** RFC 9728, OWASP Agentic Top 10 2026: ASI03 (partial)
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking and an exact re-test command.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc9728>
+
+### CORE-SECURITY-018 — OAuth authorization-server metadata consistency
+
+**Why it matters:** An agent client trusts this document to tell it who issues tokens and where to send the user. An issuer that does not match where the document is served, endpoints over plain HTTP, or no advertised PKCE/issuer-identification leave room for mix-up and code interception attacks.
+
+**Family:** MCP-AUTH-012 · **Verification:** PASSIVE_OBSERVED · **Domain:** auth · **Fix owner:** identity
+
+**Status:** experimental · scored: no · reason: An agent client trusts this document to tell it who issues tokens and where to send the user. · promotion: Calibrate on a large real-world scan corpus after two weekly rescans: every issuer FAIL reviewed by hand (issuers that carry a path are the expected edge case), none traced to our own fetch, and the PKCE/iss low WARN rate reported separately from the FAILs.
+
+**Limitations:** Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.
+
+**Standards:** RFC 8414, RFC 9207, OWASP Agentic Top 10 2026: ASI03 (partial)
+
+**Cloud extension:** Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking and an exact re-test command.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc8414>
+- <https://www.rfc-editor.org/rfc/rfc9207>

@@ -325,7 +325,7 @@ repository again only in the next sync commit.
 
 ## Agentic Security & Trust (passive checks)
 
-Ruleset 2026.10 adds 16 `CORE-SECURITY-*` checks — the passive slice of a
+Ruleset 2026.10 ships 18 `CORE-SECURITY-*` checks — the passive slice of a
 larger Agentic Security & Trust program (this is check-level security
 *signal reporting*, distinct from everything above this section, which is
 about the security of Core's own network layer while it scans). Read this
@@ -401,7 +401,7 @@ the Core MUST NOT list above forbids outright.
 ### What is NOT tested
 
 Every report — `text`, `markdown`, `html`, `json` — states the same four
-labels, each marked `NOT TESTED`, regardless of what the 16 checks found
+labels, each marked `NOT TESTED`, regardless of what the 18 checks found
 (`security_summary.SECURITY_NOT_TESTED`, the report's single source of
 truth for this list):
 
@@ -418,9 +418,12 @@ fine" — it was not checked at all, by design, by Core.
 ### The WATCH list — deferred, Cloud/enterprise territory
 
 Scovant's security design defines ten security domains. Core implements
-the passive slice of three of them (Web Security Baseline → `SEC-WEB-*`/`SEC-TXT-*`;
+the passive slice of four of them (Web Security Baseline → `SEC-WEB-*`/`SEC-TXT-*`;
 Public machine-facing data exposure → `MACHINE-DATA-001..004`;
-Prompt/Instruction Manipulation Surface → `PROMPT-SURFACE-*`). The rest —
+Prompt/Instruction Manipulation Surface → `PROMPT-SURFACE-*`;
+OAuth / MCP Authentication & Authorization → `MCP-AUTH-011/012`, security
+domain `auth`: consistency of the published protected-resource and
+authorization-server metadata only). The rest —
 including two checks in a domain Core already partially covers — are
 explicitly out of scope for Core and watched for a future Cloud release:
 
@@ -435,7 +438,8 @@ explicitly out of scope for Core and watched for a future Cloud release:
 - **Agent Identity & Edge Trust** (observed agent-identity behavior, edge
   WAF/bot-firewall treatment of a real agent) — requires live traffic
   observation.
-- **OAuth / MCP Authentication & Authorization** (interoperability testing,
+- **OAuth / MCP Authentication & Authorization** beyond published-metadata
+  consistency (interoperability testing, token audience and scope behaviour,
   token handling under real exchanges) — requires authentication.
 - **MCP Gateway / Governance** — requires operating inside a customer's
   gateway deployment.
@@ -540,6 +544,11 @@ unauthenticated scan can observe a declared or served signal that is
 | PROMPT-SURFACE-004 | CORE-SECURITY-014 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
 | PROMPT-SURFACE-005 | CORE-SECURITY-015 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
 | PROMPT-SURFACE-006 | CORE-SECURITY-016 | OWASP Agentic Top 10 2026: ASI01 (partial) | OWASP mapping | PARTIAL |
+| MCP-AUTH-011 | CORE-SECURITY-017 | RFC 9728 | reference | PARTIAL |
+| MCP-AUTH-011 | CORE-SECURITY-017 | OWASP Agentic Top 10 2026: ASI03 (partial) | OWASP mapping | PARTIAL |
+| MCP-AUTH-012 | CORE-SECURITY-018 | RFC 8414 | reference | PARTIAL |
+| MCP-AUTH-012 | CORE-SECURITY-018 | RFC 9207 | reference | PARTIAL |
+| MCP-AUTH-012 | CORE-SECURITY-018 | OWASP Agentic Top 10 2026: ASI03 (partial) | OWASP mapping | PARTIAL |
 
 #### Per-rule mapping
 
@@ -593,7 +602,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.13.0
+V=0.14.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

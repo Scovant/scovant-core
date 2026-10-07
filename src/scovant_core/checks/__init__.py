@@ -20,5 +20,5 @@ registry.CHECKS.extend(TRUST_CHECKS)
 registry.CHECKS.extend(OPERABILITY_CHECKS)
 registry.CHECKS.extend(SECURITY_CHECKS)
 
-# This completes the registry of exactly 66 checks (see
-# `tests/test_registry.py::test_registry_has_sixty_six`).
+# This completes the registry of exactly 68 checks (see
+# `tests/test_registry.py::test_registry_has_sixty_eight`).

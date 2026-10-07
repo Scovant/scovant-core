@@ -39,7 +39,8 @@ pytestmark = pytest.mark.golden
 CLOCK = lambda: "2026-09-04T00:00:00Z"  # noqa: E731 — deterministic test clock
 FROZEN_TODAY = datetime.date(2026, 9, 4)
 URL = "https://example.com/"
-SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed", "security-good", "security-bad")
+SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed", "security-good", "security-bad",
+         "oauth-good", "oauth-bad")
 EXPECTED_DIR = FIXTURES / "sites" / "expected"
 
 

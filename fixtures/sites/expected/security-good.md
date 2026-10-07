@@ -19,7 +19,7 @@
 | Trust & Commerce | 15 | 100 | 15 / 15 |
 | Operability & Efficiency | 15 | 100 | 16 / 16 |
 
-66 checks: 55 PASS, 1 WARN, 0 FAIL, 10 N/A, 0 ERROR
+68 checks: 55 PASS, 1 WARN, 0 FAIL, 12 N/A, 0 ERROR
 
 ## Top findings
 
@@ -794,7 +794,7 @@
 - **CORE-SECURITY-015** (PASS) — No indicators found.
 - **CORE-SECURITY-016** (PASS) — No indicators found.
 
-N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`, `CORE-SECURITY-010`
+N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-OPERABILITY-007`, `CORE-SECURITY-010`, `CORE-SECURITY-017`, `CORE-SECURITY-018`
 
 ## Agentic Security & Trust
 
@@ -810,6 +810,7 @@ _PASSIVE SIGNALS ONLY_
 | Disclosure | PASS 1  WARN 0  FAIL 0 |
 | Data exposure | PASS 3  WARN 0  FAIL 0 |
 | Prompt surface | PASS 6  WARN 0  FAIL 0 |
+| auth | PASS 0  WARN 0  FAIL 0 |
 
 - Observed authorization: NOT TESTED
 - Verified agent identity: NOT TESTED
@@ -829,7 +830,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.13.0 · ruleset 2026.10 (digest `ab2a8e0e0faa`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.14.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

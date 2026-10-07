@@ -1,0 +1,1 @@
+{"issuer": "https://login.other.test", "authorization_endpoint": "https://example.com/authorize", "token_endpoint": "http://example.com/token"}

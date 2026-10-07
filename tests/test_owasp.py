@@ -37,7 +37,7 @@ def test_every_security_check_that_declares_an_owasp_standard_is_mapped():
     declared = {c.id for c in CHECKS if c.category == Category.SECURITY
                 and any(s.startswith("OWASP") for s in c.standards)}
     mapped = {c.id for c in CHECKS if parse_standards(c.standards)}
-    assert declared == mapped and len(declared) == 8
+    assert declared == mapped and len(declared) == 10
 
 
 def test_a_reference_that_is_not_owasp_is_not_a_mapping():

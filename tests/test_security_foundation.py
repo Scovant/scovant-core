@@ -226,4 +226,4 @@ def test_every_security_fail_or_warn_says_how_to_fix_it():
             if "remediation=" not in src[start:end]:
                 missing.append(check.id)
     assert missing == []
-    assert sum(1 for c in CHECKS if getattr(c, "security_domain", None)) == 16
+    assert sum(1 for c in CHECKS if getattr(c, "security_domain", None)) == 18

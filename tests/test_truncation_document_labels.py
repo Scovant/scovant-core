@@ -74,6 +74,9 @@ AUDITED_DOCUMENT_CALLS: set[tuple[str, str, str]] = {
     ("interfaces/core_interface_005.py", "openapi", "OpenAPI document"),
     ("interfaces/core_interface_006.py", "as_", "OAuth authorization-server metadata"),
     ("interfaces/core_interface_007.py", "pr", "OAuth protected-resource metadata"),
+    # CORE-SECURITY-017/018 read the same two OAuth documents as 006/007, one label each.
+    ("security/oauth.py", "pr", "OAuth protected-resource metadata"),
+    ("security/oauth.py", "a", "OAuth authorization-server metadata"),
     ("interfaces/core_interface_008.py", "ucp", "UCP profile"),
     ("trust/core_trust_001.py", "entry", "entry page"),
     ("trust/core_trust_006.py", "sec", "security.txt"),

@@ -198,9 +198,9 @@ Minimum evidence coverage: 60%. Below this coverage, no score is emitted (`INSUF
 
 ## v0.1 category coverage
 
-Ruleset 2026.10 ships 66 checks: 50 readiness checks (7 of them
+Ruleset 2026.10 ships 68 checks: 50 readiness checks (7 of them
 `experimental` — evaluated and reported, but excluded from the score until
-calibrated and promoted; see `docs/checks.md`) and 16 security checks (8
+calibrated and promoted; see `docs/checks.md`) and 18 security checks (10
 experimental) that never enter the score — see `docs/security.md`. The
 table below covers the 5 scored, weighted readiness categories only;
 "local weight" counts experimental checks in both columns:

@@ -1,0 +1,1 @@
+{"issuer": "https://example.com", "authorization_endpoint": "https://example.com/authorize", "token_endpoint": "https://example.com/token", "code_challenge_methods_supported": ["S256"], "authorization_response_iss_parameter_supported": true}

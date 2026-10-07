@@ -75,12 +75,13 @@ def test_registry_is_valid():
     assert re.fullmatch(r"\d{4}\.\d{2}", RULESET_VERSION) and re.fullmatch(r"[0-9a-f]{12}", RULESET_DIGEST)
 
 
-def test_registry_has_sixty_six():
+def test_registry_has_sixty_eight():
     # Ruleset 2026.10 (readiness) ships 50 checks (see the old docstring
     # this replaces for the five-check delta over 2026.09); AS-1 layers 16
     # unscored SECURITY-category checks (CORE-SECURITY-001..016) on top,
     # grouped into four families (SEC-WEB, SEC-TXT, MACHINE-DATA,
-    # PROMPT-SURFACE) — see docs/security.md.
+    # PROMPT-SURFACE), and 0.14.0 adds CORE-SECURITY-017/018 (MCP-AUTH) —
+    # see docs/security.md.
     ids = {c.id for c in CHECKS}
     readiness_expected = {
         "CORE-ACCESS-001", "CORE-ACCESS-002", "CORE-ACCESS-003", "CORE-ACCESS-004", "CORE-ACCESS-005",
@@ -98,11 +99,11 @@ def test_registry_has_sixty_six():
         "CORE-OPERABILITY-005", "CORE-OPERABILITY-006", "CORE-OPERABILITY-007", "CORE-OPERABILITY-008",
         "CORE-OPERABILITY-009", "CORE-OPERABILITY-010", "CORE-OPERABILITY-011",
     }
-    security_expected = {f"CORE-SECURITY-{n:03d}" for n in range(1, 17)}
+    security_expected = {f"CORE-SECURITY-{n:03d}" for n in range(1, 19)}
     assert ids == readiness_expected | security_expected
     assert len(readiness_expected) == 50
-    assert len(security_expected) == 16
-    assert len(CHECKS) == 66
+    assert len(security_expected) == 18
+    assert len(CHECKS) == 68
     assert RULESET_VERSION == "2026.10"
     validate_registry()
 
@@ -126,6 +127,7 @@ def test_experimental_set_is_exact():
         "CORE-SECURITY-009", "CORE-SECURITY-010",
         "CORE-SECURITY-011", "CORE-SECURITY-012", "CORE-SECURITY-013",
         "CORE-SECURITY-014", "CORE-SECURITY-015", "CORE-SECURITY-016",
+        "CORE-SECURITY-017", "CORE-SECURITY-018",
     }
     experimental_ids = {c.id for c in CHECKS if c.experimental}
     assert experimental_ids == expected
@@ -151,15 +153,15 @@ def test_scored_set_is_exact():
 
 def test_security_checks_declare_family_domain_owner_and_mode():
     sec = [c for c in CHECKS if c.category == Category.SECURITY]
-    assert len(sec) == 16
+    assert len(sec) == 18
     assert sorted(c.family_id for c in sec) == sorted([
         "SEC-WEB-001", "SEC-WEB-002", "SEC-WEB-003", "SEC-WEB-004", "SEC-WEB-005", "SEC-TXT-001",
         "MACHINE-DATA-001", "MACHINE-DATA-002", "MACHINE-DATA-003", "MACHINE-DATA-004",
         "PROMPT-SURFACE-001", "PROMPT-SURFACE-002", "PROMPT-SURFACE-003", "PROMPT-SURFACE-004",
-        "PROMPT-SURFACE-005", "PROMPT-SURFACE-006",
+        "PROMPT-SURFACE-005", "PROMPT-SURFACE-006", "MCP-AUTH-011", "MCP-AUTH-012",
     ])
     for c in sec:
-        assert c.security_domain in {"web_baseline", "disclosure", "data_exposure", "prompt_surface"}, c.id
+        assert c.security_domain in {"web_baseline", "disclosure", "data_exposure", "prompt_surface", "auth"}, c.id
         assert c.fix_owner in {
             "frontend", "backend", "identity", "mcp", "edge_cdn", "devops", "content", "commerce",
             "security", "platform",

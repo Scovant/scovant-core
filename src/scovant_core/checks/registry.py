@@ -27,7 +27,7 @@ _ID_CATEGORY = {
 # surface, e.g. every web-security-header check shares SEC-WEB-*) instead of
 # the flat id space the five scored categories use — `family_id` is what the
 # summary/report renderers group by, independent of check id ordering.
-_FAMILY_RE = re.compile(r"^(SEC-WEB|SEC-TXT|MACHINE-DATA|PROMPT-SURFACE)-\d{3}$")
+_FAMILY_RE = re.compile(r"^(SEC-WEB|SEC-TXT|MACHINE-DATA|PROMPT-SURFACE|MCP-AUTH)-\d{3}$")
 
 CHECKS: list[CoreCheck] = []  # populated by checks/__init__.py
 

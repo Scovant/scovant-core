@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.13.0",
+  "core_version": "0.14.0",
   "findings": [
     {
       "category": "access",
@@ -1797,6 +1797,99 @@
       "why_it_matters": "A tool description is injected into the agent's context on every call; unrelated instructions or hidden Unicode there are a supply-chain injection vector."
     },
     {
+      "category": "security",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking and an exact re-test command.",
+      "confidence": "high",
+      "evidence": {
+        "authorization_servers": [],
+        "document": "https://example.com/.well-known/oauth-protected-resource",
+        "http_status": 200,
+        "jwks_uri": null,
+        "problems": [
+          "authorization_servers_invalid"
+        ],
+        "resource": "https://example.com"
+      },
+      "experimental": true,
+      "family_id": "MCP-AUTH-011",
+      "fix_owner": "identity",
+      "id": "CORE-SECURITY-017",
+      "limitations": "Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI03",
+          "relation": "PARTIAL",
+          "title": "Identity & Privilege Abuse"
+        }
+      ],
+      "remediation": "Declare `authorization_servers` as a non-empty list of issuer URLs.",
+      "security_domain": "auth",
+      "security_tags": [
+        "agentic-security",
+        "oauth"
+      ],
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "`authorization_servers` is missing, empty or not a list of URLs.",
+      "title": "OAuth protected-resource metadata consistency",
+      "verification_mode": "PASSIVE_OBSERVED",
+      "weight": 1,
+      "why_it_matters": "An agent obtains a token for the `resource` this document names. When that names a different origin, or points at authorization servers over plain HTTP, tokens are no longer bound to this server and can be minted, replayed or intercepted elsewhere."
+    },
+    {
+      "category": "security",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud shows this finding in the Agentic Security & Trust section with regression tracking and an exact re-test command.",
+      "confidence": "high",
+      "evidence": {
+        "authorization_endpoint": null,
+        "code_challenge_methods_supported": null,
+        "document": "https://example.com/.well-known/oauth-authorization-server",
+        "http_status": 200,
+        "iss_parameter_supported": null,
+        "issuer": "https://example.com",
+        "problems": [
+          "authorization_endpoint_missing",
+          "token_endpoint_missing",
+          "pkce_s256_not_advertised",
+          "iss_parameter_not_advertised"
+        ],
+        "registration": {
+          "client_id_metadata_document": false,
+          "dynamic_registration": false
+        },
+        "token_endpoint": null
+      },
+      "experimental": true,
+      "family_id": "MCP-AUTH-012",
+      "fix_owner": "identity",
+      "id": "CORE-SECURITY-018",
+      "limitations": "Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.",
+      "owasp_agentic": [
+        {
+          "framework": "OWASP Top 10 for Agentic Applications 2026",
+          "id": "ASI03",
+          "relation": "PARTIAL",
+          "title": "Identity & Privilege Abuse"
+        }
+      ],
+      "remediation": "Declare `authorization_endpoint` with an HTTPS URL. Declare `token_endpoint` with an HTTPS URL. Require PKCE and list \"S256\" in `code_challenge_methods_supported`. Return `iss` in authorization responses and set `authorization_response_iss_parameter_supported: true`.",
+      "security_domain": "auth",
+      "security_tags": [
+        "agentic-security",
+        "oauth"
+      ],
+      "severity": "medium",
+      "status": "WARN",
+      "summary": "`authorization_endpoint` is not declared. `token_endpoint` is not declared. PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).",
+      "title": "OAuth authorization-server metadata consistency",
+      "verification_mode": "PASSIVE_OBSERVED",
+      "weight": 1,
+      "why_it_matters": "An agent client trusts this document to tell it who issues tokens and where to send the user. An issuer that does not match where the document is served, endpoints over plain HTTP, or no advertised PKCE/issuer-identification leave room for mix-up and code interception attacks."
+    },
+    {
       "category": "trust",
       "check_version": "1.0",
       "cloud_extension": "Scovant Cloud checks contact reachability across the full sampled page set, not only the entry page.",
@@ -2103,7 +2196,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.13.0",
+    "core_version": "0.14.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2116,11 +2209,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "ab2a8e0e0faa",
+    "ruleset_digest": "7f440d6205c3",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.13.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.14.0 (+https://github.com/Scovant/scovant-core)"
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
@@ -2135,6 +2228,13 @@
   },
   "security": {
     "by_domain": {
+      "auth": {
+        "ERROR": 0,
+        "FAIL": 0,
+        "N/A": 0,
+        "PASS": 0,
+        "WARN": 2
+      },
       "data_exposure": {
         "ERROR": 0,
         "FAIL": 0,
@@ -2169,7 +2269,7 @@
       "high": 0,
       "info": 0,
       "low": 2,
-      "medium": 2
+      "medium": 4
     },
     "label": "PASSIVE SIGNALS ONLY",
     "not_tested": [

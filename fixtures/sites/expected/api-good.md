@@ -19,7 +19,7 @@
 | Trust & Commerce | 15 | 75 | 8 / 8 |
 | Operability & Efficiency | 15 | 88 | 16 / 16 |
 
-66 checks: 31 PASS, 8 WARN, 1 FAIL, 26 N/A, 0 ERROR
+68 checks: 32 PASS, 9 WARN, 1 FAIL, 26 N/A, 0 ERROR
 
 ## Top findings
 
@@ -589,6 +589,8 @@
 - **CORE-SECURITY-012** (PASS) — No indicators found.
 - **CORE-SECURITY-013** (PASS) — No indicators found.
 - **CORE-SECURITY-014** (PASS) — No indicators found.
+- **CORE-SECURITY-017** (PASS) — Protected-resource metadata names this origin and uses https throughout.
+- **CORE-SECURITY-018** (WARN) — PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).
 
 N/A: `CORE-ACCESS-011`, `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`, `CORE-SECURITY-009`, `CORE-SECURITY-010`, `CORE-SECURITY-015`, `CORE-SECURITY-016`
 
@@ -601,11 +603,12 @@ _PASSIVE SIGNALS ONLY_
 | Critical | 0 |
 | High | 0 |
 | Medium | 1 |
-| Low | 2 |
+| Low | 3 |
 | Web baseline | PASS 1  WARN 2  FAIL 1 |
 | Disclosure | PASS 1  WARN 0  FAIL 0 |
 | Data exposure | PASS 2  WARN 0  FAIL 0 |
 | Prompt surface | PASS 4  WARN 0  FAIL 0 |
+| auth | PASS 1  WARN 1  FAIL 0 |
 
 - Observed authorization: NOT TESTED
 - Verified agent identity: NOT TESTED
@@ -678,6 +681,40 @@ _PASSIVE SIGNALS ONLY_
 
   </details>
 
+### CORE-SECURITY-018 (MCP-AUTH-012) — OAuth authorization-server metadata consistency
+
+- Status: WARN · Severity: low · Confidence: high · Verification: PASSIVE_OBSERVED
+- Fix owner: identity · Domain: auth
+- PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).
+- Remediation: Require PKCE and list "S256" in `code_challenge_methods_supported`. Return `iss` in authorization responses and set `authorization_response_iss_parameter_supported: true`.
+- Mapped to OWASP Agentic Top 10 (not a compliance claim): ASI03 Identity & Privilege Abuse (partial)
+- Limitations: Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.
+  - Remediation: Require PKCE and list "S256" in `code_challenge_methods_supported`. Return `iss` in authorization responses and set `authorization_response_iss_parameter_supported: true`.
+
+  <details><summary>evidence</summary>
+
+  ```json
+  {
+    "authorization_endpoint": "https://example.com/oauth/authorize",
+    "code_challenge_methods_supported": null,
+    "document": "https://example.com/.well-known/oauth-authorization-server",
+    "http_status": 200,
+    "iss_parameter_supported": null,
+    "issuer": "https://example.com",
+    "problems": [
+      "pkce_s256_not_advertised",
+      "iss_parameter_not_advertised"
+    ],
+    "registration": {
+      "client_id_metadata_document": false,
+      "dynamic_registration": false
+    },
+    "token_endpoint": "https://example.com/oauth/token"
+  }
+  ```
+
+  </details>
+
 This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.
 
 ## Not tested by Scovant Core
@@ -691,7 +728,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.13.0 · ruleset 2026.10 (digest `ab2a8e0e0faa`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.14.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

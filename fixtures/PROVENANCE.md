@@ -77,6 +77,14 @@ reporting it as a broken link.
 | sites/api-good/.well-known/oauth-authorization-server | synthetic |
 | sites/api-good/.well-known/oauth-protected-resource | synthetic |
 | sites/api-good/.well-known/agent-card.json | synthetic |
+| sites/oauth-good/index.html | synthetic |
+| sites/oauth-good/robots.txt | synthetic |
+| sites/oauth-good/.well-known/oauth-authorization-server | synthetic (consistent, https, advertises PKCE S256 and RFC 9207 `iss` so CORE-SECURITY-018 PASSes) |
+| sites/oauth-good/.well-known/oauth-protected-resource | synthetic (resource matches the origin, https throughout so CORE-SECURITY-017 PASSes) |
+| sites/oauth-bad/index.html | synthetic |
+| sites/oauth-bad/robots.txt | synthetic |
+| sites/oauth-bad/.well-known/oauth-authorization-server | synthetic (issuer on another host, plain-HTTP token endpoint so CORE-SECURITY-018 FAILs) |
+| sites/oauth-bad/.well-known/oauth-protected-resource | synthetic (resource names another origin, plain-HTTP authorization server so CORE-SECURITY-017 FAILs) |
 | sites/api-good/.well-known/security.txt | synthetic |
 | sites/saas-mixed/index.html | synthetic (one image deliberately lacks alt text; CORE-MACHINE-011 scopes to content/commerce only, so on this `saas`-profiled fixture that image is inert for scoring and exists only for the fixture's §6 shape) |
 | sites/saas-mixed/index.html.headers | synthetic (ETag sidecar so CORE-OPERABILITY-003 PASSes on this fixture) |
@@ -97,18 +105,24 @@ reporting it as a broken link.
 | sites/expected/saas-mixed.json | generated (golden) |
 | sites/expected/security-good.json | generated (golden) |
 | sites/expected/security-bad.json | generated (golden) |
+| sites/expected/oauth-good.json | generated (golden) |
+| sites/expected/oauth-bad.json | generated (golden) |
 | sites/expected/commerce-good.md | generated (golden) |
 | sites/expected/commerce-bad.md | generated (golden) |
 | sites/expected/api-good.md | generated (golden) |
 | sites/expected/saas-mixed.md | generated (golden) |
 | sites/expected/security-good.md | generated (golden) |
 | sites/expected/security-bad.md | generated (golden) |
+| sites/expected/oauth-good.md | generated (golden) |
+| sites/expected/oauth-bad.md | generated (golden) |
 | sites/expected/commerce-good.html | generated (golden) |
 | sites/expected/commerce-bad.html | generated (golden) |
 | sites/expected/api-good.html | generated (golden) |
 | sites/expected/saas-mixed.html | generated (golden) |
 | sites/expected/security-good.html | generated (golden) |
 | sites/expected/security-bad.html | generated (golden) |
+| sites/expected/oauth-good.html | generated (golden) |
+| sites/expected/oauth-bad.html | generated (golden) |
 | http-semantics/429-with-retry-after/case.json | synthetic (429 carrying Retry-After — CORE-OPERABILITY-009 PASS) |
 | http-semantics/429-without-retry-after/case.json | synthetic (429 with no Retry-After — CORE-OPERABILITY-009 FAIL) |
 | http-semantics/age-gate/case.json | synthetic (age-confirmation interstitial — negative, no challenge) |

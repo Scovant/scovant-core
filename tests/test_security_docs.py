@@ -20,7 +20,7 @@ def test_checks_md_has_security_section_with_family_ids():
 
 def test_docs_state_counts_and_boundary():
     meth = (ROOT / "docs/methodology.md").read_text(encoding="utf-8")
-    assert "66 checks" in meth and "16 security checks" in meth and "never enter the score" in meth
+    assert "68 checks" in meth and "18 security checks" in meth and "never enter the score" in meth
     sec = (ROOT / "docs/security.md").read_text(encoding="utf-8")
     for must in ("PASSIVE SIGNALS ONLY", "Core MUST NOT", "MACHINE-DATA-005", "RFC 9116", "RFC 9728", "No failures were observed"):
         assert must in sec
@@ -56,6 +56,9 @@ def test_standards_mapping_table_is_derived_from_the_registry():
     # not declare, so a stale row cannot survive a `standards` edit.
     declared = {(c.family_id, c.id, std) for c in security_checks for std in c.standards}
     for line in sec.splitlines():
-        if line.startswith(("| SEC-", "| MACHINE-DATA-", "| PROMPT-SURFACE-")):
-            cells = [cell.strip() for cell in line.split("|")[1:-1]]
+        cells = [cell.strip() for cell in line.split("|")[1:-1]]
+        # Five cells = a per-CHECK row (Family | Check | Standard | Type | Relation);
+        # the per-RULE table's three-cell rows (| MCP-AUTH-001 | ASI03 | PARTIAL |)
+        # share the MCP-AUTH prefix and are pinned by tests/test_owasp.py instead.
+        if line.startswith(("| SEC-", "| MACHINE-DATA-", "| PROMPT-SURFACE-", "| MCP-AUTH-")) and len(cells) == 5:
             assert tuple(cells[:3]) in declared, line

@@ -8,6 +8,24 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.14.0] - 2026-10-07
+
+`ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` CHANGED (two new checks), report schema `1.1`
+(additive keys only). The Core Score and every existing check verdict are unchanged.
+
+### Added
+- `CORE-SECURITY-017` (`MCP-AUTH-011`) — OAuth protected-resource metadata consistency: FAIL when the
+  declared `resource` names another origin; WARN when `resource` or a valid `authorization_servers`
+  list is missing, or when an authorization server or `jwks_uri` is not https.
+- `CORE-SECURITY-018` (`MCP-AUTH-012`) — OAuth authorization-server metadata consistency: FAIL when
+  `issuer` is missing or not exactly the URL the metadata is served under (RFC 8414); WARN when an
+  endpoint is missing or not https, when PKCE `S256` or the RFC 9207 `iss` parameter is not
+  advertised, or when the protected resource does not list this issuer.
+- Both are experimental, never scored, passive (no new request), security domain `auth`, fix owner
+  `identity`, mapped to OWASP Agentic ASI03 (partial). Two golden fixtures, `oauth-good` and `oauth-bad`.
+- The `oauth_metadata` gatherer records the fields these checks read; `None` = not published.
+  `CORE-INTERFACE-006/007` verdicts are unchanged.
+
 ## [0.13.0] - 2026-10-07
 
 `ruleset_version` UNCHANGED (`2026.10`), `ruleset_digest` UNCHANGED, report schema `1.1`

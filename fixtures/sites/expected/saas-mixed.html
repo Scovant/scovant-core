@@ -59,8 +59,8 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> saas (requested auto, confidence 80%)</p>
-<p><strong>Core version:</strong> 0.13.0</p>
-<p>29 PASS, 10 WARN, 2 FAIL, 25 N/A, 0 ERROR (66 checks)</p>
+<p><strong>Core version:</strong> 0.14.0</p>
+<p>29 PASS, 12 WARN, 2 FAIL, 25 N/A, 0 ERROR (68 checks)</p>
 </section>
 <section id="score">
 <h2>Scovant Core Static Signal Score</h2>
@@ -141,6 +141,8 @@ a { color: #0969da; }
 <li><code>CORE-SECURITY-012</code> (PASS) — No indicators found.</li>
 <li><code>CORE-SECURITY-013</code> (PASS) — No indicators found.</li>
 <li><code>CORE-SECURITY-014</code> (PASS) — No indicators found.</li>
+<li><code>CORE-SECURITY-017</code> (WARN) — `authorization_servers` is missing, empty or not a list of URLs.</li>
+<li><code>CORE-SECURITY-018</code> (WARN) — `authorization_endpoint` is not declared. `token_endpoint` is not declared. PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).</li>
 </ul>
 <p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-INTERFACE-009</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code>, <code>CORE-OPERABILITY-011</code>, <code>CORE-SECURITY-009</code>, <code>CORE-SECURITY-010</code>, <code>CORE-SECURITY-015</code>, <code>CORE-SECURITY-016</code></p>
 </section>
@@ -618,12 +620,13 @@ a { color: #0969da; }
 <tr><th>Signal</th><th>Value</th></tr>
 <tr><td>Critical</td><td>0</td></tr>
 <tr><td>High</td><td>0</td></tr>
-<tr><td>Medium</td><td>2</td></tr>
+<tr><td>Medium</td><td>4</td></tr>
 <tr><td>Low</td><td>2</td></tr>
 <tr><td>Web baseline</td><td>PASS 1  WARN 2  FAIL 1</td></tr>
 <tr><td>Disclosure</td><td>PASS 0  WARN 0  FAIL 1</td></tr>
 <tr><td>Data exposure</td><td>PASS 2  WARN 0  FAIL 0</td></tr>
 <tr><td>Prompt surface</td><td>PASS 4  WARN 0  FAIL 0</td></tr>
+<tr><td>auth</td><td>PASS 0  WARN 2  FAIL 0</td></tr>
 </table>
 <ul>
 <li>Observed authorization: NOT TESTED</li>
@@ -658,6 +661,22 @@ a { color: #0969da; }
 <p>Expires missing or unparsable.</p>
 <p><strong>Remediation:</strong> Set Expires to a future date (RFC 3339) and keep it fresh.</p>
 <p><strong>Limitations:</strong> Passive signal only. Scovant Core did not authenticate, submit forms or invoke tools; observed authorization behaviour is not tested.</p>
+</details>
+<details><summary><code>CORE-SECURITY-017</code> (MCP-AUTH-011) — OAuth protected-resource metadata consistency <span class="badge badge-na">PASSIVE_OBSERVED</span></summary>
+<p><strong>Status:</strong> WARN &middot; <strong>Severity:</strong> medium &middot; <strong>Confidence:</strong> high</p>
+<p><strong>Fix owner:</strong> identity &middot; <strong>Domain:</strong> auth</p>
+<p>`authorization_servers` is missing, empty or not a list of URLs.</p>
+<p><strong>Remediation:</strong> Declare `authorization_servers` as a non-empty list of issuer URLs.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI03 Identity &amp; Privilege Abuse (partial)</p>
+<p><strong>Limitations:</strong> Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.</p>
+</details>
+<details><summary><code>CORE-SECURITY-018</code> (MCP-AUTH-012) — OAuth authorization-server metadata consistency <span class="badge badge-na">PASSIVE_OBSERVED</span></summary>
+<p><strong>Status:</strong> WARN &middot; <strong>Severity:</strong> medium &middot; <strong>Confidence:</strong> high</p>
+<p><strong>Fix owner:</strong> identity &middot; <strong>Domain:</strong> auth</p>
+<p>`authorization_endpoint` is not declared. `token_endpoint` is not declared. PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).</p>
+<p><strong>Remediation:</strong> Declare `authorization_endpoint` with an HTTPS URL. Declare `token_endpoint` with an HTTPS URL. Require PKCE and list &quot;S256&quot; in `code_challenge_methods_supported`. Return `iss` in authorization responses and set `authorization_response_iss_parameter_supported: true`.</p>
+<p><strong>Mapped to OWASP Agentic Top 10</strong> (not a compliance claim): ASI03 Identity &amp; Privilege Abuse (partial)</p>
+<p><strong>Limitations:</strong> Passive signal only. Scovant Core reads the published metadata documents at the origin of the site itself; it never authenticates, registers a client or runs an OAuth flow, so it cannot see what the server enforces beyond what it advertises.</p>
 </details>
 <p>This section evaluates tested AI-agent security controls and machine-facing security signals. It is not an overall website or application security rating.</p>
 </section>
@@ -724,13 +743,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>1.1</dd>
-<dt>core_version</dt><dd>0.13.0</dd>
+<dt>core_version</dt><dd>0.14.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>ab2a8e0e0faa</dd>
+<dt>ruleset_digest</dt><dd>7f440d6205c3</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.13.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.14.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

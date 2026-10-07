@@ -28,7 +28,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.13.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.13.0/constraints/constraints-0.13.0.txt
+    pip install "scovant-core==0.14.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.14.0/constraints/constraints-0.14.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -63,7 +63,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.13.0
+Core version: 0.14.0
 
 Static Signal Score       100 / 100   A
 Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
@@ -87,11 +87,11 @@ Agent Interfaces          100   (2/2)
 Trust & Commerce          100   (7/7)
 Operability & Efficiency  100   (7/7)
 
-66 checks
+68 checks
 51 PASS
 3 WARN
 1 FAIL
-11 N/A
+13 N/A
 0 ERROR
 
 Top findings
@@ -140,7 +140,7 @@ PASS  [security] CORE-SECURITY-015
 PASS  [security] CORE-SECURITY-016
       No indicators found.
 
-N/A: CORE-INTERFACE-004, CORE-INTERFACE-009, CORE-OPERABILITY-007, CORE-SECURITY-010
+N/A: CORE-INTERFACE-004, CORE-INTERFACE-009, CORE-OPERABILITY-007, CORE-SECURITY-010, CORE-SECURITY-017, CORE-SECURITY-018
 
 AGENTIC SECURITY & TRUST  PASSIVE SIGNALS ONLY
 ──────────────────────────────────────────────
@@ -148,6 +148,7 @@ Critical                  0
 High                      0
 Medium                    1
 Low                       2
+auth                      PASS 0  WARN 0  FAIL 0
 Data exposure             PASS 3  WARN 0  FAIL 0
 Disclosure                PASS 1  WARN 0  FAIL 0
 Prompt surface            PASS 6  WARN 0  FAIL 0
@@ -173,8 +174,8 @@ https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss
 
 ## What Core checks
 
-66 checks total: 50 readiness checks across 5 categories (7 experimental)
-plus 16 unscored security checks. The 50 readiness checks (7 of them
+68 checks total: 50 readiness checks across 5 categories (7 experimental)
+plus 18 unscored security checks. The 50 readiness checks (7 of them
 experimental — they run and report but never affect the score; see below):
 
 - **Access & Discovery** (11) — HTTPS reachability, robots.txt, AI crawler
@@ -285,7 +286,7 @@ for the same comparison as a live, always-current page.
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.13.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.14.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -419,7 +420,7 @@ shell command. Claude Desktop (`claude_desktop_config.json`) and Cursor
 
 | Tool | Description |
 | --- | --- |
-| `scan_site` | Run all 66 checks against one public URL, return the JSON report |
+| `scan_site` | Run all 68 checks against one public URL, return the JSON report |
 | `get_core_score` | Run the scan, return only the Static Signal Score summary |
 | `list_checks` | List every check with category, weight, profiles, experimental flag |
 | `explain_check` | Explain one check: why it matters, limitations, Cloud extension, references |
