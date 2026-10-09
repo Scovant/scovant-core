@@ -23,6 +23,14 @@ COMMERCE_GATED_CODES: frozenset[str] = frozenset({
     "MISSING_AVAILABILITY", "VARIANT_INFO_MISSING", "PRICE_MISMATCH",
     "MISSING_RETURNS_POLICY", "SHIPPING_INFO_UNAVAILABLE",
 })
+# A profile the scanner could NOT establish (the public anonymous scan before
+# its homepage was classified, or after the classifier failed). Distinct from
+# an unlisted/unheard-of type, which may transact: on `unknown` the
+# commerce-gated rules are not applicable, and the scan says so
+# (`required_capability_not_established`). Policy id recorded on every scan's
+# profile provenance; bump it when this applicability rule changes.
+UNKNOWN_SITE_TYPE = "unknown"
+PROFILE_POLICY_ID = "applicability-2026.10.1"
 # Words in a product page's visible text that suggest it offers variants.
 VARIANT_KEYWORDS: frozenset[str] = frozenset({"size", "color", "colour", "variant", "style", "material"})
 
@@ -30,9 +38,12 @@ _PRICE_RE = re.compile(r"\$(\d+\.?\d*)")
 
 
 def commerce_gated(code: str, site_category: str | None) -> bool:
-    """True when `code` only applies to a transacting site and this one
-    never transacts (unknown and unlisted site types may transact)."""
-    return code in COMMERCE_GATED_CODES and site_category in NON_TRANSACTING_SITE_TYPES
+    """True when `code` only applies to a transacting site and this one either
+    never transacts or has no established profile (`unknown`). Unlisted site
+    types may transact and are NOT gated."""
+    return code in COMMERCE_GATED_CODES and (
+        site_category in NON_TRANSACTING_SITE_TYPES or site_category == UNKNOWN_SITE_TYPE
+    )
 
 
 def find_products(schema_org: list[dict]) -> list[dict]:

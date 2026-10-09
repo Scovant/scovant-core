@@ -8,6 +8,8 @@ from scovant_core.rules.product_terms import (
 from scovant_core.rules.products import (
     COMMERCE_GATED_CODES,
     NON_TRANSACTING_SITE_TYPES,
+    PROFILE_POLICY_ID,
+    UNKNOWN_SITE_TYPE,
     commerce_gated,
     extract_visible_price,
     find_products,
@@ -74,6 +76,30 @@ def test_commerce_gate():
     assert commerce_gated("MISSING_PRODUCT_SCHEMA", "saas")
     for site_type in ("commerce", "restaurant", "booking", "other", None, "unheard-of"):
         assert not commerce_gated("PRICE_MISMATCH", site_type), site_type
+    # applicability-2026.10.1: an UNESTABLISHED profile measures nothing for the
+    # commerce-gated rules — "unknown" is not "may transact" (an unlisted type is)
+    for code in COMMERCE_GATED_CODES:
+        assert commerce_gated(code, UNKNOWN_SITE_TYPE), code
+    assert not commerce_gated("HEADING_HIERARCHY_POOR", UNKNOWN_SITE_TYPE)
+    assert UNKNOWN_SITE_TYPE not in NON_TRANSACTING_SITE_TYPES   # a separate outcome, not "never transacts"
+
+
+def test_profile_policy_id_is_pinned():
+    assert PROFILE_POLICY_ID == "applicability-2026.10.1"
+
+
+def test_unknown_profile_measures_gated_rules_as_not_applicable():
+    from scovant_core.r2 import OutcomeState
+    from scovant_core.rules import RULES, MeasureCtx
+
+    page = {"schema_org": [{"@type": "Product", "name": "Mug",
+                            "offers": {"@type": "Offer", "price": "12.00", "priceCurrency": "USD"}}],
+            "visible_text": "Price $12.00 Size M", "policy_links": {}, "product_data": {}}
+    ctx = MeasureCtx(site_category=UNKNOWN_SITE_TYPE, defaulted=frozenset())
+    gated = [r for r in RULES if r.code in COMMERCE_GATED_CODES]
+    assert len(gated) == len(COMMERCE_GATED_CODES)
+    for rule in gated:
+        assert rule.measure(page, {}, ctx) == OutcomeState.NA, rule.code
     assert not commerce_gated("HEADING_HIERARCHY_POOR", "blog")
     assert "blog" in NON_TRANSACTING_SITE_TYPES and "commerce" not in NON_TRANSACTING_SITE_TYPES
 

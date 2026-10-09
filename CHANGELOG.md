@@ -8,6 +8,16 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.16.0] - 2026-10-09
+
+`ruleset_version` UNCHANGED (`2026.10`).
+
+### Added
+- `rules.products.UNKNOWN_SITE_TYPE` (`"unknown"`) and `PROFILE_POLICY_ID` (`"applicability-2026.10.1"`):
+  a site whose profile could not be established measures the eight commerce-gated rules as N/A
+  (`commerce_gated()` third outcome). No rule version changes — no existing verdict is affected,
+  since no scan has carried `unknown` before.
+
 ## [0.15.1] - 2026-10-07
 
 `ruleset_version` UNCHANGED (`2026.10`). The Core Score is unchanged; two experimental security checks name a
