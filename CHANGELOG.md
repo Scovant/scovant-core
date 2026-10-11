@@ -8,6 +8,24 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.17.0] - 2026-10-11
+
+`ruleset_version` UNCHANGED (`2026.10`).
+
+### Added
+- `readiness.technical` in the scan report: Technical Readiness by the open R2 formula (model `R2.1@67df90af85b0`), with `not_measured` and a `technical_outcomes` list. Additive; `schema_version` stays `1.1`.
+- `scovant_core.r2.technical` (Technical manifest and outcome rules), `scovant_core.r2.evaluate`, `scovant_core.r2.adapter`.
+- `scovant scan --site-type`.
+- `metrics.technical_readiness_error` (null unless the Technical pass failed; the scan then completes without `readiness`).
+- A robots.txt answering 5xx or 429, or truncated at the fetch cap, makes the robots rules not measured for Technical Readiness (a 404/410 stays a real allow-all).
+- `ScanOptions.site_type` is validated: an unknown value raises `ValueError` before any network I/O.
+
+### Changed
+- Any scan whose selected checks do not already fetch a document Technical Readiness needs now fetches it, so `metrics.requests` and `bytes_fetched` are higher than before (a default scan of the commerce fixture went from 33 to 44 requests).
+
+### Unchanged
+- The Static Signal Score, its categories, exit codes, the Action, the MCP tools (`scan_site` with `format=json` now also carries `readiness`, additive) and `--contribute`.
+
 ## [0.16.0] - 2026-10-09
 
 `ruleset_version` UNCHANGED (`2026.10`).

@@ -133,6 +133,46 @@ class SecuritySummary(BaseModel):
     redaction_applied: bool = False
 
 
+class TechnicalCategory(BaseModel):
+    rating: float | None
+    applicable: bool
+
+
+class NotMeasured(BaseModel):
+    rule: str
+    reason: str
+
+
+class TechnicalReadiness(BaseModel):
+    """Technical Readiness: the open R2 rating over the evidence Core gathered.
+    Passive evidence only, so it is ESTIMATED (or NOT_MEASURED without a
+    number) — never verified."""
+    label: str = "Technical Readiness"
+    rating: int | None
+    grade: str | None
+    badge: str | None
+    status: str
+    coverage: float
+    model_id: str
+    evidence_state: str
+    scope: str = "CORE_PASSIVE"
+    site_type: str
+    site_type_origin: str
+    categories: dict[str, TechnicalCategory]
+    not_measured: list[NotMeasured]
+
+
+class Readiness(BaseModel):
+    technical: TechnicalReadiness
+
+
+class TechnicalOutcome(BaseModel):
+    rule: str
+    state: str
+    reason: str = ""
+    scope: str
+
+
 class Report(BaseModel):
     schema_version: str = REPORT_SCHEMA_VERSION
     core_version: str
@@ -148,3 +188,5 @@ class Report(BaseModel):
     not_tested: list[str] = Field(default_factory=list)
     provenance: dict = Field(default_factory=dict)
     security: SecuritySummary = Field(default_factory=SecuritySummary)
+    readiness: Readiness | None = None
+    technical_outcomes: list[TechnicalOutcome] = Field(default_factory=list)

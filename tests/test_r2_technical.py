@@ -1,0 +1,100 @@
+"""Technical Readiness manifest and outcome functions (moved from Scovant
+Cloud byte for byte: the same evidence gives the same outcomes and model id)."""
+from __future__ import annotations
+
+from scovant_core.r2 import PUBLIC_POLICY, Outcome, OutcomeState, RuleScope, ScoreEffect, model_id
+from scovant_core.r2.technical import (
+    ABSENCE_CODES,
+    BUILDER_VERSION,
+    DERIVATION_VERSION,
+    GATE_ROBOTS,
+    LOW_BAND_WARN_CODES,
+    MARKER_CODES,
+    derived_gate,
+    domain_outcome,
+    outcome_from_row,
+    page_outcome,
+    technical_manifest,
+    technical_outcomes,
+)
+from scovant_core.rules import RULES
+
+S = OutcomeState
+
+
+def test_manifest_digest_and_model_id_are_the_published_ones():
+    m = technical_manifest()
+    assert m.digest() == "3d4902ab3793"
+    assert model_id(m, PUBLIC_POLICY) == "R2.1@67df90af85b0"
+
+
+def test_manifest_is_every_public_rule_plus_the_robots_gate():
+    m = technical_manifest()
+    ids = {s.rule_id for s in m.specs}
+    assert ids == {r.code for r in RULES} | {GATE_ROBOTS}
+    gate = m.get(GATE_ROBOTS)
+    assert gate.score_effect == ScoreEffect.GATE and gate.root_cause_group == "agent_access_blocked"
+    for code in MARKER_CODES:
+        assert m.get(code).score_effect == ScoreEffect.DIAGNOSTIC
+    for r in RULES:
+        assert m.get(r.code).scope == RuleScope(r.scope)
+        assert m.get(r.code).signal == f"core:{r.code}"
+
+
+def test_versions_are_unchanged():
+    assert (BUILDER_VERSION, DERIVATION_VERSION) == ("4", "2")
+    assert {"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"} == MARKER_CODES
+    assert {"CITABILITY_WEAK", "PAGE_TOKEN_BLOAT"} == LOW_BAND_WARN_CODES
+    assert "SITEMAP_MISSING_OR_INVALID" not in ABSENCE_CODES     # baseline hygiene, a defect
+    assert "LLMS_TXT_MISSING_OR_INVALID" in ABSENCE_CODES
+
+
+def test_domain_outcome_order_of_questions():
+    assert domain_outcome("X", None, {}, fired=True, have_pages=True).state == S.UNKNOWN
+    assert domain_outcome("X", lambda d: None, {}, fired=False, have_pages=False).state == S.NOT_MEASURED
+    assert domain_outcome("X", lambda d: S.NA, {}, fired=True, have_pages=True).state == S.NA
+    assert domain_outcome("X", lambda d: None, {}, fired=True, have_pages=True).state == S.FAIL
+    assert domain_outcome("X", lambda d: None, {}, fired=False, have_pages=True).state == S.PASS
+
+
+def test_page_outcome_counts_measured_pages_only():
+    pages = [{"a": 1}, {"a": 2}, {"a": 3}]
+    verdicts = {1: None, 2: S.NA, 3: None}
+    o = page_outcome("X", lambda p, d: verdicts[p["a"]], pages, {}, [True, True, False], site_category="other")
+    assert (o.state, o.pages_measured, o.pages_failed) == (S.FAIL, 2, 1)
+
+
+def test_page_outcome_all_na_and_unknown_profile_reason():
+    pages = [{}, {}]
+    o = page_outcome("MISSING_PRODUCT_SCHEMA", lambda p, d: S.NA, pages, {}, [False, False], site_category="unknown")
+    assert (o.state, o.reason) == (S.NA, "required_capability_not_established")
+    o = page_outcome("SEMANTIC_HTML_ABSENT", lambda p, d: S.NA, pages, {}, [False, False], site_category="unknown")
+    assert (o.state, o.reason) == (S.NA, "predicate")
+    o = page_outcome("X", lambda p, d: S.NOT_MEASURED, [], {}, [], site_category="other")
+    assert (o.state, o.reason) == (S.NOT_MEASURED, "no_pages_evaluated")
+
+
+def test_outcome_from_row_absence_and_low_band():
+    o = outcome_from_row({"rule_id": "LLMS_TXT_MISSING_OR_INVALID", "state": "FAIL"})
+    assert (o.state, o.reason) == (S.NA, "capability_absent")
+    o = outcome_from_row({"rule_id": "CITABILITY_WEAK", "state": "FAIL", "severity_seen": "low"})
+    assert o.state == S.WARN
+    o = outcome_from_row({"rule_id": "CITABILITY_WEAK", "state": "FAIL", "severity_seen": "medium"})
+    assert o.state == S.FAIL
+    o = outcome_from_row({"rule_id": "SITEMAP_MISSING_OR_INVALID", "state": "FAIL", "pages_measured": None})
+    assert o.state == S.FAIL
+
+
+def test_derived_gate_never_double_counts_missing_evidence():
+    assert derived_gate("G", None).state == S.UNKNOWN
+    assert derived_gate("G", Outcome(rule_id="AI_CRAWLER_BLOCKED", state=S.NOT_MEASURED)).state == S.NA
+    assert derived_gate("G", Outcome(rule_id="AI_CRAWLER_BLOCKED", state=S.FAIL)).state == S.FAIL
+
+
+def test_technical_outcomes_keeps_manifest_rules_and_adds_the_gate():
+    m = technical_manifest()
+    by_id = {"AI_CRAWLER_BLOCKED": Outcome(rule_id="AI_CRAWLER_BLOCKED", state=S.PASS),
+             "NOT-A-RULE": Outcome(rule_id="NOT-A-RULE", state=S.FAIL)}
+    out = {o.rule_id: o for o in technical_outcomes(by_id, m)}
+    assert set(out) == {"AI_CRAWLER_BLOCKED", GATE_ROBOTS}
+    assert out[GATE_ROBOTS].state == S.PASS and out[GATE_ROBOTS].reason == "from:AI_CRAWLER_BLOCKED"

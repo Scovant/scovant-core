@@ -27,6 +27,7 @@ from scovant_core.contribute import build_payload, send
 from scovant_core.engine import UnknownSelector, scan, validate_selectors
 from scovant_core.models import Category, CheckStatus, Report
 from scovant_core.profiles import PROFILES
+from scovant_core.r2.adapter import SITE_TYPES
 from scovant_core.report.html import render_html
 from scovant_core.report.json import render_json
 from scovant_core.report.markdown import render_markdown
@@ -125,6 +126,10 @@ def _build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument(
         "--profile", choices=_PROFILES, default="auto",
         help="site profile to score against (default: auto-detect)",
+    )
+    scan_p.add_argument(
+        "--site-type", choices=sorted(SITE_TYPES), default=None, dest="site_type",
+        help="site type for Technical Readiness (default: derived from the detected profile)",
     )
     scan_p.add_argument(
         "--format", choices=_FORMATS, default="text", help="output format (default: text)",
@@ -296,6 +301,7 @@ def _run_scan(args: argparse.Namespace) -> int:
         exclude=tuple(args.exclude),
         token_chars_ratio=args.token_chars_ratio,
         allow_private_networks=args.allow_private_networks,
+        site_type=args.site_type,
     )
 
     # Validated up front, before any network I/O — `scan()` itself validates

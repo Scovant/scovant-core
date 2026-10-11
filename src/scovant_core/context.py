@@ -16,6 +16,8 @@ class ScanOptions:
     exclude: tuple[str, ...] = ()
     token_chars_ratio: int = 4
     allow_private_networks: bool = False
+    # R2 site type for Technical Readiness; None = derive from the profile.
+    site_type: str | None = None
 
 
 @dataclass

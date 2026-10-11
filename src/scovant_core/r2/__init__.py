@@ -1,8 +1,7 @@
 """Readiness R2 — the open, bounded readiness model shared by Scovant Core
 (Technical Readiness) and any host that supplies its own policy.
 
-Not yet part of the scan report: `scovant scan` output, the report schema and
-`ruleset_version` are unchanged by this package. See docs/r2.md.
+Reported by `scovant scan` as `readiness.technical` since 0.17.0 (see docs/r2.md).
 """
 from __future__ import annotations
 

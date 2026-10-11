@@ -186,6 +186,36 @@
       "title": "Confidence",
       "type": "string"
     },
+    "NotMeasured": {
+      "properties": {
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "reason"
+      ],
+      "title": "NotMeasured",
+      "type": "object"
+    },
+    "Readiness": {
+      "properties": {
+        "technical": {
+          "$ref": "#/$defs/TechnicalReadiness"
+        }
+      },
+      "required": [
+        "technical"
+      ],
+      "title": "Readiness",
+      "type": "object"
+    },
     "Score": {
       "properties": {
         "coverage": {
@@ -334,6 +364,160 @@
       ],
       "title": "Target",
       "type": "object"
+    },
+    "TechnicalCategory": {
+      "properties": {
+        "applicable": {
+          "title": "Applicable",
+          "type": "boolean"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Rating"
+        }
+      },
+      "required": [
+        "rating",
+        "applicable"
+      ],
+      "title": "TechnicalCategory",
+      "type": "object"
+    },
+    "TechnicalOutcome": {
+      "properties": {
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "rule": {
+          "title": "Rule",
+          "type": "string"
+        },
+        "scope": {
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "state",
+        "scope"
+      ],
+      "title": "TechnicalOutcome",
+      "type": "object"
+    },
+    "TechnicalReadiness": {
+      "description": "Technical Readiness: the open R2 rating over the evidence Core gathered.\nPassive evidence only, so it is ESTIMATED (or NOT_MEASURED without a\nnumber) — never verified.",
+      "properties": {
+        "badge": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Badge"
+        },
+        "categories": {
+          "additionalProperties": {
+            "$ref": "#/$defs/TechnicalCategory"
+          },
+          "title": "Categories",
+          "type": "object"
+        },
+        "coverage": {
+          "title": "Coverage",
+          "type": "number"
+        },
+        "evidence_state": {
+          "title": "Evidence State",
+          "type": "string"
+        },
+        "grade": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Grade"
+        },
+        "label": {
+          "default": "Technical Readiness",
+          "title": "Label",
+          "type": "string"
+        },
+        "model_id": {
+          "title": "Model Id",
+          "type": "string"
+        },
+        "not_measured": {
+          "items": {
+            "$ref": "#/$defs/NotMeasured"
+          },
+          "title": "Not Measured",
+          "type": "array"
+        },
+        "rating": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Rating"
+        },
+        "scope": {
+          "default": "CORE_PASSIVE",
+          "title": "Scope",
+          "type": "string"
+        },
+        "site_type": {
+          "title": "Site Type",
+          "type": "string"
+        },
+        "site_type_origin": {
+          "title": "Site Type Origin",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rating",
+        "grade",
+        "badge",
+        "status",
+        "coverage",
+        "model_id",
+        "evidence_state",
+        "site_type",
+        "site_type_origin",
+        "categories",
+        "not_measured"
+      ],
+      "title": "TechnicalReadiness",
+      "type": "object"
     }
   },
   "$id": "https://raw.githubusercontent.com/Scovant/scovant-core/main/docs/report.schema.json",
@@ -379,6 +563,17 @@
       "title": "Provenance",
       "type": "object"
     },
+    "readiness": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Readiness"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "ruleset_version": {
       "title": "Ruleset Version",
       "type": "string"
@@ -403,6 +598,13 @@
     },
     "target": {
       "$ref": "#/$defs/Target"
+    },
+    "technical_outcomes": {
+      "items": {
+        "$ref": "#/$defs/TechnicalOutcome"
+      },
+      "title": "Technical Outcomes",
+      "type": "array"
     }
   },
   "required": [

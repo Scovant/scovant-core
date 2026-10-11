@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.16.0",
+  "core_version": "0.17.0",
   "findings": [
     {
       "category": "access",
@@ -2183,7 +2183,8 @@
         },
         "version": "1.0"
       }
-    }
+    },
+    "technical_readiness_error": null
   },
   "not_tested": [
     "Observed WAF access",
@@ -2196,7 +2197,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.16.0",
+    "core_version": "0.17.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2213,7 +2214,70 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.16.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.17.0 (+https://github.com/Scovant/scovant-core)"
+  },
+  "readiness": {
+    "technical": {
+      "badge": null,
+      "categories": {
+        "actionability": {
+          "applicable": true,
+          "rating": 69.5
+        },
+        "citability": {
+          "applicable": false,
+          "rating": null
+        },
+        "consistency": {
+          "applicable": true,
+          "rating": null
+        },
+        "discoverability": {
+          "applicable": true,
+          "rating": 52.9
+        },
+        "structured": {
+          "applicable": true,
+          "rating": null
+        },
+        "trust": {
+          "applicable": true,
+          "rating": 62.5
+        },
+        "ucp": {
+          "applicable": true,
+          "rating": null
+        }
+      },
+      "coverage": 0.905,
+      "evidence_state": "ESTIMATED",
+      "grade": "C",
+      "label": "Technical Readiness",
+      "model_id": "R2.1@67df90af85b0",
+      "not_measured": [
+        {
+          "reason": "not_gathered_by_core",
+          "rule": "LINK_HEADERS_ABSENT"
+        },
+        {
+          "reason": "not_gathered_by_core",
+          "rule": "MARKDOWN_FOR_AGENTS_ABSENT"
+        },
+        {
+          "reason": "tokenizer_unavailable",
+          "rule": "PAGE_TOKEN_BLOAT"
+        },
+        {
+          "reason": "not_gathered_by_core",
+          "rule": "SEMANTIC_HTML_ABSENT"
+        }
+      ],
+      "rating": 60,
+      "scope": "CORE_PASSIVE",
+      "site_type": "saas",
+      "site_type_origin": "detected",
+      "status": "OK"
+    }
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
@@ -2288,5 +2352,349 @@
     "profile_confidence": 0.8,
     "requested_profile": "auto",
     "resolved_profile": "saas"
-  }
+  },
+  "technical_outcomes": [
+    {
+      "reason": "predicate",
+      "rule": "AGENT-META-001",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "AGENT-META-004",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "AGENT-META-008",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "",
+      "rule": "AGENT_INTERFACE_DISCOVERY_ABSENT",
+      "scope": "domain",
+      "state": "PASS"
+    },
+    {
+      "reason": "predicate",
+      "rule": "AGENT_PAYMENTS_ABSENT",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "AI-BOT-POLICY-001",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "",
+      "rule": "AI_CRAWLER_BLOCKED",
+      "scope": "domain",
+      "state": "FAIL"
+    },
+    {
+      "reason": "",
+      "rule": "BLOCKED_CRAWLABILITY",
+      "scope": "page",
+      "state": "PASS"
+    },
+    {
+      "reason": "predicate",
+      "rule": "CITABILITY_WEAK",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "CONTENT-NEG-002",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "CONTENT-NEG-004",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "predicate",
+      "rule": "CONTENT-SIGNAL-001",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "capability_absent",
+      "rule": "CONTENT_SIGNALS_ABSENT",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "CRAWL-GRAPH-001",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "CRAWL-GRAPH-002",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "CRAWL-GRAPH-005",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "predicate",
+      "rule": "DUPLICATE_CONFLICTING_ENTITIES",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "HEADING_HIERARCHY_POOR",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "INCONSISTENT_STRUCTURED_DATA",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "",
+      "rule": "JS_ONLY_CRITICAL_CONTENT",
+      "scope": "page",
+      "state": "FAIL"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "LINK_HEADERS_ABSENT",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "LLMS-SUPPLY-002",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "LLMS-SUPPLY-006",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "LLMS-SUPPLY-008",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "capability_absent",
+      "rule": "LLMS_TXT_MISSING_OR_INVALID",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "MACHINE-REP-004",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "MACHINE-REP-005",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "MARKDOWN_FOR_AGENTS_ABSENT",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MCP-AUTH-001",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MCP-OBS-001",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MCP_DISCOVERY_INVALID",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "capability_absent",
+      "rule": "MCP_ENDPOINT_ABSENT",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MISSING_AVAILABILITY",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MISSING_OFFER_DATA",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "",
+      "rule": "MISSING_OG_META_FOR_CITATION",
+      "scope": "page",
+      "state": "FAIL"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MISSING_PRODUCT_SCHEMA",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "MISSING_RETURNS_POLICY",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "tokenizer_unavailable",
+      "rule": "PAGE_TOKEN_BLOAT",
+      "scope": "page",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "predicate",
+      "rule": "PRICE_MISMATCH",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "PRICE_MISSING_INVALID",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "from:AI_CRAWLER_BLOCKED",
+      "rule": "R2-GATE-ROBOTS-BLOCKS-AGENTS",
+      "scope": "domain",
+      "state": "FAIL"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "SEMANTIC_HTML_ABSENT",
+      "scope": "page",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "predicate",
+      "rule": "SERVER-CARD-004",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "SERVER-CARD-005",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "SHIPPING_INFO_UNAVAILABLE",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "",
+      "rule": "SITEMAP_MISSING_OR_INVALID",
+      "scope": "domain",
+      "state": "PASS"
+    },
+    {
+      "reason": "predicate",
+      "rule": "TOOL-RISK-001",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "UCP_CHECKOUT_MISSING",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "capability_absent",
+      "rule": "UCP_PROFILE_ABSENT",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "UCP_PROFILE_INVALID",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "UCP_SIGNING_KEYS_INVALID",
+      "scope": "domain",
+      "state": "N/A"
+    },
+    {
+      "reason": "predicate",
+      "rule": "VARIANT_INFO_MISSING",
+      "scope": "page",
+      "state": "N/A"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "WEBMCP-001",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "WEBMCP-002",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "WEBMCP-003",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "WEBMCP-004",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_gathered_by_core",
+      "rule": "WEBMCP-005",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    }
+  ]
 }

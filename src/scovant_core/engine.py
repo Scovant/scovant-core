@@ -109,6 +109,11 @@ def scan(
     """
     options = options or ScanOptions()
     validate_selectors(options)
+    if options.site_type is not None:
+        from scovant_core.r2.adapter import SITE_TYPES  # noqa: PLC0415
+
+        if options.site_type not in SITE_TYPES:
+            raise ValueError(f"unknown site_type: {options.site_type!r}")
     clock = clock or _now
     started = clock()
     ctx = ScanContext(url, options)
@@ -134,6 +139,21 @@ def scan(
         store.try_get("http")
         apply_profile(ctx, store)
         results = sorted((c.run(store, ctx) for c in _selected(options)), key=lambda r: r.id)
+        # Snapshot what the SELECTED checks gathered: the Technical Readiness
+        # pass below fetches more, and the metrics that describe the selection
+        # (gather_errors, ai_crawler_policy) must not change because of it.
+        selection_errors = dict(store.errors)
+        robots_evidence = store.gathered("robots_txt")
+        # Technical Readiness (R2). Gathers what it needs itself, so a narrowed
+        # --include/--exclude selection reports the same rating as a full scan.
+        from scovant_core.r2.readiness import technical_report  # noqa: PLC0415
+        try:
+            readiness, technical_outcomes = technical_report(store, ctx)
+            technical_error = None
+        except Exception as exc:  # noqa: BLE001 - degrade, never abort the scan
+            readiness, technical_outcomes = None, []
+            technical_error = {"kind": type(exc).__name__,
+                               "message": redact_message(str(exc)[:300], url)}
     finally:
         client.close()
     # SECURITY-category findings never feed readiness/protocol-adoption
@@ -163,12 +183,12 @@ def scan(
     included_ids = sorted(c.id for c in include_filtered)
     selected_ids = sorted(c.id for c in _selected(options))
     excluded_ids = sorted(set(included_ids) - set(selected_ids))
-    gather_error_names = sorted(store.errors)
+    gather_error_names = sorted(selection_errors)
     gather_error_details = [
         {
             "name": name,
-            "kind": store.errors[name].kind,
-            "message": redact_message(store.errors[name].message, url),
+            "kind": selection_errors[name].kind,
+            "message": redact_message(selection_errors[name].message, url),
         }
         for name in gather_error_names
     ]
@@ -184,7 +204,6 @@ def scan(
     # this metric describes was genuinely never made — reporting every
     # dimension as "undeclared" in that case would claim a fetch that never
     # happened (see docs/methodology.md's "None never 0" discipline).
-    robots_evidence = store.gathered("robots_txt")
     ai_crawler_policy = (
         classify_policy(robots_evidence["text"] if robots_evidence.get("text") else None, f"{ctx.origin}/")
         if robots_evidence is not None
@@ -231,6 +250,7 @@ def scan(
             # on a CANONICAL/OK report came from security probes alone.
             "security_error_count": security_error_count,
             "ai_crawler_policy": ai_crawler_policy,
+            "technical_readiness_error": technical_error,
             "protocol_adoption": protocol_adoption(readiness_results),
             "standards": {"agentready_v1": agentready_coverage(readiness_results)},
         },
@@ -258,6 +278,8 @@ def scan(
             "environment_digest": environment_digest,
         },
         security=build_security_summary(results),
+        readiness=readiness,
+        technical_outcomes=technical_outcomes,
     )
     # Structural backstop, not a substitute for the at-source redactions
     # above/in the individual checks: a check that copies a URL into its
