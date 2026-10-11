@@ -102,7 +102,9 @@ def test_discovery_reads_openapi_and_oauth_from_store():
     # this task's scope. So its count is 2 (openapi gatherer + mpp probe),
     # not 1 — the dedup this task adds still saves the THIRD read that
     # `agent_discovery_surface` used to make on its own.
-    assert counting.counts.get("/openapi.json") == 2
+    # PR-04b: the Technical pass's own `agent_payments_surface` gatherer runs the
+    # same probe a second time (the check-side `agent_payments` is separate), so 3.
+    assert counting.counts.get("/openapi.json") == 3
     assert counting.counts.get("/.well-known/oauth-authorization-server") == 1
     assert counting.counts.get("/.well-known/oauth-protected-resource") == 1
     # Measured before this change on the same fixture/profile: 32 requests.
@@ -121,8 +123,15 @@ def test_discovery_reads_openapi_and_oauth_from_store():
     # pulled in by CORE-OPERABILITY-004/CORE-ACCESS-007) already fetch both
     # documents on every profile regardless of -011.
     assert counting.counts.get("/.well-known/ucp") == 1
-    previous_requests = 33
+    # PR-04b: 33 -> 44; the Technical pass now gathers markdown negotiation
+    # (+ .md mirror), homepage Link headers, agent payments and the
+    # machine-rep probe (11 extra requests; --no-technical adds none).
+    previous_requests = 44
     assert report.metrics["requests"] <= previous_requests
+    # base value of the same scan with the Technical pass off (none of the new probes)
+    off = scan("https://example.com/", ScanOptions(profile="api", experimental=True, technical=False),
+               transport=FixtureTransport(FIXTURES / "sites" / "api-good"))
+    assert off.metrics["requests"] == 33
 
 
 def test_operability_011_never_forces_its_own_fetch():
@@ -429,3 +438,44 @@ def test_core_gatherer_passes_secure_fetch_and_refuses_cross_host_redirect():
     ref = out["references"][0]
     assert ref["resolution"]["checked"] is False
     assert ref["status"] == "UNCHECKED"
+
+
+# ---------------------------------------------------------------------------
+# 429/5xx on agent DISCOVERY paths keep their pre-04b semantics
+# ---------------------------------------------------------------------------
+
+class _PathAnswers(httpx.BaseTransport):
+    def __init__(self, inner, path, status):
+        self.inner, self.path, self.status = inner, path, status
+
+    def handle_request(self, request):
+        if request.url.path == self.path:
+            return httpx.Response(self.status, text="down", request=request)
+        return self.inner.handle_request(request)
+
+
+def _api_scan(path=None, status=503, technical=True, site="api-good"):
+    inner = FixtureTransport(FIXTURES / "sites" / site)
+    transport = _PathAnswers(inner, path, status) if path else inner
+    return scan("https://example.com/", ScanOptions(profile="api", technical=technical, experimental=True), transport=transport)
+
+
+def test_discovery_5xx_does_not_degrade_the_five_domain_score():
+    # commerce-good publishes no discovery surface, so without the fix the one
+    # unanswered candidate would turn CORE-INTERFACE-009 into ERROR.
+    base = _api_scan(site="commerce-good")
+    hit = _api_scan("/.well-known/ai-plugin.json", 503, site="commerce-good")
+    key = lambda r: (r.score.value, r.score.grade, r.score.status, r.score.scope)  # noqa: E731
+    assert key(hit) == key(base)
+    f = {x.id: x for x in hit.findings}
+    assert f["CORE-INTERFACE-009"].status.value != "ERROR"
+
+
+def test_discovery_5xx_stays_transport_only_in_the_shared_probe():
+    from scovant_core.gatherers._http import _probe_json_ex
+
+    class C:
+        def get(self, url, **kw):
+            return httpx.Response(503, text="x", request=httpx.Request("GET", url))
+    assert _probe_json_ex(C(), "https://example.com/x") == (None, False, None)
+    assert check_agent_discovery(C(), "https://example.com").get("fetch_status") == "ok"

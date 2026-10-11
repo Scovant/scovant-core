@@ -8,6 +8,21 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.17.1] - 2026-10-11
+
+`ruleset_version` UNCHANGED (`2026.10`). Technical model ids unchanged.
+
+### Added
+- Four Technical-only gatherers: markdown-for-agents negotiation, homepage `Link` headers, agent payments (x402/L402/ACP/MPP probes) and the machine-representation probe.
+- Evidence pages carry `content_blocks` and `landmark_tags` (SEMANTIC_HTML_ABSENT and CITABILITY_* become measurable); pages without HTML leave them unset.
+- `scovant_core.analysis.crawl_graph.build_crawl_graph` (moved from Cloud); in Core the graph is rooted at the scan's final URL. CRAWL-GRAPH-001/002/005 (experimental) are measured.
+
+### Changed
+- A Technical scan makes more requests (commerce fixture: 44 -> 55); `technical=False` is unchanged (33) and makes none of the new requests.
+- `check_link_headers` (homepage answer) and `check_agent_payments` (any probed answer, when nothing was detected) report `fetch_status: "error"` on 429/5xx answers, so those probes are not measured instead of read as absent. Agent discovery is unchanged.
+- `SecureClient` request headers are limited to `Accept` and `Prefer`.
+- On the eight golden sites every counted Technical rule is measured or N/A except `MCP_DISCOVERY_INVALID` where an MCP endpoint is declared (Core never performs the handshake).
+
 ## [0.17.0] - 2026-10-11
 
 `ruleset_version` UNCHANGED (`2026.10`).

@@ -2,6 +2,7 @@
 from scovant_core.gatherers import (  # noqa: F401
     agent_discovery_surface,
     contact,
+    domain_probes,
     forms,
     http,
     llms,

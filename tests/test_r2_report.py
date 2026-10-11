@@ -131,8 +131,8 @@ def test_not_measured_reasons_are_human_readable():
     r = _report("commerce-good")
     nm, outs = _reasons(r)
     assert nm["MCP_DISCOVERY_INVALID"] == "handshake_not_performed"
-    assert nm["MARKDOWN_FOR_AGENTS_ABSENT"] == "not_gathered_by_core"
-    assert nm["SEMANTIC_HTML_ABSENT"] == "not_gathered_by_core"
+    assert "MARKDOWN_FOR_AGENTS_ABSENT" not in nm  # gathered since PR-04b
+    assert "SEMANTIC_HTML_ABSENT" not in nm  # gathered since the content-block step
     assert outs["MCP_DISCOVERY_INVALID"] == "handshake_not_performed"
     for o in r.technical_outcomes:
         if o.state in ("NOT_MEASURED", "UNKNOWN"):

@@ -230,3 +230,23 @@ def test_probe_adapter_raises_an_httpx_request_error_on_a_fetch_failure():
     c = make_client(handler)
     with pytest.raises(httpx.RequestError):
         c.probe_adapter().get("https://example.com/x")
+
+
+@pytest.mark.parametrize("name", ["user-agent", "host", "cookie", "authorization", "User-Agent"])
+def test_request_headers_are_limited_to_accept_and_prefer(name):
+    client = make_client(lambda r: httpx.Response(200, text="ok"))
+    with pytest.raises(ValueError):
+        client.fetch("https://example.com/", headers={name: "x"})
+    with pytest.raises(ValueError):
+        client.probe_adapter("text").get("https://example.com/", headers={name: "x"})
+
+
+def test_accept_and_prefer_request_headers_are_sent():
+    seen = {}
+
+    def handler(r):
+        seen.update(r.headers)
+        return httpx.Response(200, text="ok")
+
+    make_client(handler).fetch("https://example.com/", headers={"Accept": "text/markdown", "Prefer": "x"})
+    assert seen["accept"] == "text/markdown" and seen["prefer"] == "x"

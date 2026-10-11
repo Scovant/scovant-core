@@ -301,3 +301,283 @@ def test_no_pages_reason_is_probe_failed_pages(monkeypatch, gatherer):
     assert "probe_failed:pages" in reasons
     assert "no_pages_evaluated" not in reasons
     assert "no_pages_evaluated" not in {o.reason for o in outcomes}
+
+
+# --- evidence step 1: markdown / link headers / payments / machine-rep -----------
+_NEW_PROBES = {
+    "markdown_agents": ["MARKDOWN_FOR_AGENTS_ABSENT", "CONTENT-NEG-002", "CONTENT-NEG-004"],
+    "link_headers": ["LINK_HEADERS_ABSENT"],
+    "agent_payments": ["AGENT_PAYMENTS_ABSENT"],
+    "machine_rep": ["MACHINE-REP-004", "MACHINE-REP-005"],
+}
+
+
+def test_commerce_good_has_the_four_probe_blocks():
+    store, _ctx, client = _store("commerce-good")
+    try:
+        ev = evidence_from_store(store, site_type="commerce")
+    finally:
+        client.close()
+    d = ev.domain
+    assert set(_NEW_PROBES) <= set(d)
+    assert "negotiation" in d["markdown_agents"] and "mirror" in d["markdown_agents"]
+    assert {"present", "rels", "agent_relevant"} <= set(d["link_headers"])
+    assert {"any_non_ucp", "protocols"} <= set(d["agent_payments"])
+    assert d["machine_rep"]["attempted"] is True
+    assert not set(_NEW_PROBES) & ev.defaulted
+
+
+def test_new_probes_are_no_longer_not_gathered_by_core():
+    from scovant_core.r2.readiness import technical_report
+    store, ctx, client = _store("commerce-good")
+    try:
+        readiness, outcomes = technical_report(store, ctx)
+    finally:
+        client.close()
+    reasons = {o.rule: o.reason for o in outcomes}
+    for rules in _NEW_PROBES.values():
+        for r in rules:
+            assert reasons.get(r) != "not_gathered_by_core", r
+
+
+class _RaiseOn:
+    """FixtureTransport, except the listed paths raise a transport error."""
+
+    def __init__(self, *paths, only_headers=None):
+        import httpx
+        self._inner = FixtureTransport(FIXTURES / "sites" / "commerce-good")
+        self._paths, self._headers, self._err = set(paths), only_headers, httpx.ConnectError
+
+    def handle_request(self, request):
+        hit = request.url.path in self._paths and (
+            self._headers is None or self._headers in request.headers)
+        if hit:
+            raise self._err("down", request=request)
+        return self._inner.handle_request(request)
+
+
+def _homepage_negotiation_transport(header, status=None):
+    import httpx
+    inner = FixtureTransport(FIXTURES / "sites" / "commerce-good")
+
+    class T(httpx.BaseTransport):
+        def handle_request(self, request):
+            if request.url.path in ("", "/") and header in request.headers:
+                if status is None:
+                    raise httpx.ConnectError("down", request=request)
+                return httpx.Response(status, text="down")
+            return inner.handle_request(request)
+
+    return T()
+
+
+@pytest.mark.parametrize("header,status,probe", [
+    ("prefer", None, "machine_rep"), ("prefer", 503, "machine_rep"), ("prefer", 429, "machine_rep"),
+])
+def test_machine_rep_unusable_is_not_measured(header, status, probe):
+    from scovant_core.r2 import OutcomeState
+    ev, run = _run_with(_homepage_negotiation_transport(header, status))
+    assert probe in ev.defaulted
+    by_id = {o.rule_id: o for o in run.outcomes}
+    for r in _NEW_PROBES[probe]:
+        assert by_id[r].state == OutcomeState.NOT_MEASURED, r
+
+
+@pytest.mark.parametrize("status", [None, 503, 429])
+def test_markdown_unusable_is_not_measured(status):
+    from scovant_core.r2 import OutcomeState
+    ev, run = _run_with(_homepage_negotiation_transport("accept", status))
+    # the negotiation GET (Accept: text/markdown) is the only one answered badly
+    assert "markdown_agents" in ev.defaulted
+    by_id = {o.rule_id: o for o in run.outcomes}
+    assert by_id["MARKDOWN_FOR_AGENTS_ABSENT"].state == OutcomeState.NOT_MEASURED
+
+
+def test_payments_and_link_headers_fetch_error_is_defaulted(monkeypatch):
+    from scovant_core import evidence
+    from scovant_core.r2 import OutcomeState
+    monkeypatch.setitem(evidence.GATHERERS, "link_headers_surface", lambda *a, **k: {
+        "present": False, "rels": [], "agent_relevant": False, "fetch_status": "error", "error": "x"})
+    monkeypatch.setitem(evidence.GATHERERS, "agent_payments_surface", _boom)
+    ev, run = _run_with(FixtureTransport(FIXTURES / "sites" / "commerce-good"))
+    assert {"link_headers", "agent_payments"} <= ev.defaulted
+    by_id = {o.rule_id: o for o in run.outcomes}
+    assert by_id["LINK_HEADERS_ABSENT"].state == OutcomeState.NOT_MEASURED
+    assert by_id["AGENT_PAYMENTS_ABSENT"].state == OutcomeState.NOT_MEASURED
+
+
+def test_404_on_the_probe_paths_stays_measured():
+    ev, _run = _run_with(_path_status_transport("/index.md", 404))
+    assert not set(_NEW_PROBES) & ev.defaulted
+    assert set(_NEW_PROBES) <= set(ev.domain)
+
+
+def test_report_reason_names_the_failed_probe(monkeypatch):
+    from scovant_core import evidence
+    from scovant_core.r2.readiness import technical_report
+    monkeypatch.setitem(evidence.GATHERERS, "machine_rep_surface", _boom)
+    store, ctx, client = _store("commerce-good")
+    try:
+        _readiness, outcomes = technical_report(store, ctx)
+    finally:
+        client.close()
+    rows = {o.rule: o for o in outcomes}
+    for r in _NEW_PROBES["machine_rep"]:
+        assert rows[r].state == "NOT_MEASURED" and rows[r].reason == "probe_failed:machine_rep", r
+
+
+@pytest.mark.parametrize("path,status,probe", [
+    ("/", 503, "link_headers"), ("/", 429, "link_headers"),
+    ("/.well-known/acp.json", 503, "agent_payments"), ("/.well-known/acp.json", 429, "agent_payments"),
+])
+def test_unusable_answer_on_status_blind_producers_is_not_measured(path, status, probe):
+    from scovant_core.r2 import OutcomeState
+    ev, run = _run_with(_path_status_transport(path, status))
+    assert probe in ev.defaulted
+    by_id = {o.rule_id: o for o in run.outcomes}
+    for r in _NEW_PROBES[probe]:
+        assert by_id[r].state == OutcomeState.NOT_MEASURED, r
+
+
+def test_404_on_link_headers_and_payments_paths_stays_measured():
+    for path in ("/", "/.well-known/acp.json"):
+        ev, _run = _run_with(_path_status_transport(path, 404))
+        assert not {"link_headers", "agent_payments"} & ev.defaulted, path
+
+
+OFF_REQUESTS = 33
+
+
+def _request_count(technical):
+    from scovant_core.engine import scan
+    transport = FixtureTransport(FIXTURES / "sites" / "commerce-good")
+    seen = []
+    orig = transport.handle_request
+
+    def counting(request):
+        seen.append(request.url.path)
+        return orig(request)
+    transport.handle_request = counting
+    scan(URL, ScanOptions(technical=technical), transport=transport)
+    return len(seen)
+
+
+def test_technical_false_never_triggers_the_new_gatherers():
+    off = _request_count(False)
+    on = _request_count(True)
+    assert off == OFF_REQUESTS
+    assert on == 55
+
+
+# --- evidence step 2: content blocks and landmarks --------------------------------
+def test_pages_carry_blocks_and_landmarks_from_the_page_html():
+    from scovant_core.parsers.html import extract_content_blocks, extract_landmark_tags
+    store, _ctx, client = _store("commerce-good")
+    try:
+        ev = evidence_from_store(store, site_type="commerce")
+        raw = store.try_get("pages")["pages"]
+    finally:
+        client.close()
+    assert ev.pages
+    htmls = [p["html"] for p in raw if p.get("parsed")]
+    for page, html in zip(ev.pages, htmls, strict=True):
+        assert page["content_blocks"] == extract_content_blocks(html)
+        assert page["landmark_tags"] == extract_landmark_tags(html)
+
+
+def _page_transport(html):
+    import httpx
+
+    inner = FixtureTransport(FIXTURES / "sites" / "commerce-good")
+
+    class T(httpx.BaseTransport):
+        def handle_request(self, request):
+            if request.url.path == "/":
+                return httpx.Response(200, text=html, headers={"content-type": "text/html"})
+            return inner.handle_request(request)
+
+    return T()
+
+
+_PARA = ("Our returns policy lets customers send back any unused item within thirty days "
+         "of delivery for a full refund of 100 percent, and we pay the postage in 2024. ") * 4
+_CONTENT = (f"<html lang='en'><head><title>Guide</title></head><body><main><article>"
+            f"<h1>Returns guide</h1><h2>How long do I have?</h2><p>{_PARA}</p>"
+            f"<h2>Who pays?</h2><p>{_PARA}</p></article></main></body></html>")
+
+
+def _blog_outcomes(html):
+    from scovant_core.r2.evaluate import technical_readiness
+    store, _ctx, client = _store("commerce-good", transport=_page_transport(html))
+    try:
+        ev = evidence_from_store(store, site_type="blog")
+    finally:
+        client.close()
+    run = technical_readiness(ev.pages, ev.domain, site_type="blog", defaulted=ev.defaulted)
+    return ev, {o.rule_id: o for o in run.outcomes}
+
+
+def test_citability_weak_measured_for_blog_with_real_blocks():
+    ev, outs = _blog_outcomes(_CONTENT)
+    assert any(p["content_blocks"] for p in ev.pages)
+    assert ev.domain["content_pages_scored"] >= 1
+    assert outs["CITABILITY_WEAK"].state.value not in ("NOT_MEASURED", "UNKNOWN")
+
+
+def test_citability_weak_not_measured_when_html_yields_no_blocks():
+    ev, outs = _blog_outcomes("<html><body><div>hi</div></body></html>")
+    home = ev.pages[0]
+    assert home["content_blocks"] == []
+    assert ev.domain["content_pages_scored"] == 0
+    assert outs["CITABILITY_WEAK"].state.value == "NOT_MEASURED"
+
+
+def test_semantic_html_measured_on_commerce_good():
+    from scovant_core.r2.readiness import technical_report
+    store, ctx, client = _store("commerce-good")
+    try:
+        _r, outcomes = technical_report(store, ctx)
+    finally:
+        client.close()
+    o = {x.rule: x for x in outcomes}["SEMANTIC_HTML_ABSENT"]
+    assert o.reason != "not_gathered_by_core"
+    assert o.state not in ("NOT_MEASURED", "UNKNOWN")
+
+
+def test_page_without_html_leaves_blocks_and_landmarks_unset(monkeypatch):
+    store, _ctx, client = _store("commerce-good")
+    try:
+        gathered = store.try_get("pages")
+        for p in gathered["pages"]:
+            p["html"] = ""
+        ev = evidence_from_store(store, site_type="commerce")
+    finally:
+        client.close()
+    assert ev.pages
+    for page in ev.pages:
+        assert "landmark_tags" not in page and "content_blocks" not in page
+
+
+def test_crawl_graph_evidence_matches_pages_carrying_internal_links():
+    store, ctx, client = _store("commerce-good")
+    try:
+        ev = evidence_from_store(store, site_type="commerce", root=URL)
+    finally:
+        client.close()
+    graph = ev.domain["crawl_graph"]
+    carrying = [p for p in ev.pages if "internal_links" in p]
+    assert carrying and graph["sampled"] == len(carrying)
+    assert graph["root"] == URL and graph["root_fallback"] is False
+
+
+def test_crawl_graph_drops_pages_without_internal_links_and_root_falls_back():
+    class _S:
+        def try_get(self, name):
+            if name == "pages":
+                return {"pages": [
+                    {"status": 200, "parsed": {"internal_links": {"urls": ["https://example.com/b"]}}, "url": "https://example.com/a"},
+                    {"status": 200, "parsed": {"title": "x"}, "url": "https://example.com/b"},
+                ]}
+            return None
+    ev = evidence_from_store(_S(), site_type="other", root="https://example.com/")
+    assert ev.domain["crawl_graph"]["sampled"] == 1

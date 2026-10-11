@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.17.0",
+  "core_version": "0.17.1",
   "findings": [
     {
       "category": "access",
@@ -2167,7 +2167,7 @@
         "verdict": "allowed"
       }
     },
-    "bytes_fetched": 11405,
+    "bytes_fetched": 18034,
     "entry_error": null,
     "error_count": 0,
     "gather_error_details": [],
@@ -2182,7 +2182,7 @@
       "ucp": "present",
       "webmcp": "absent"
     },
-    "requests": 44,
+    "requests": 55,
     "security_error_count": 0,
     "standards": {
       "agentready_v1": {
@@ -2246,7 +2246,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.17.0",
+    "core_version": "0.17.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2263,7 +2263,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.17.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.17.1 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2298,31 +2298,15 @@
           "rating": 100.0
         }
       },
-      "coverage": 0.942,
+      "coverage": 0.968,
       "evidence_state": "ESTIMATED",
       "grade": "B",
       "label": "Technical Readiness",
       "model_id": "R2.1@67df90af85b0",
       "not_measured": [
         {
-          "reason": "not_gathered_by_core",
-          "rule": "AGENT_PAYMENTS_ABSENT"
-        },
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "LINK_HEADERS_ABSENT"
-        },
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "MARKDOWN_FOR_AGENTS_ABSENT"
-        },
-        {
           "reason": "handshake_not_performed",
           "rule": "MCP_DISCOVERY_INVALID"
-        },
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "SEMANTIC_HTML_ABSENT"
         }
       ],
       "rating": 82,
@@ -2432,10 +2416,10 @@
       "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "capability_absent",
       "rule": "AGENT_PAYMENTS_ABSENT",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "not_gathered_by_core",
@@ -2462,16 +2446,16 @@
       "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CONTENT-NEG-002",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "CONTENT-NEG-004",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "",
@@ -2486,22 +2470,22 @@
       "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-001",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-002",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-005",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "FAIL"
     },
     {
       "reason": "predicate",
@@ -2528,10 +2512,10 @@
       "state": "FAIL"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "capability_absent",
       "rule": "LINK_HEADERS_ABSENT",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "not_gathered_by_core",
@@ -2558,22 +2542,22 @@
       "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "MACHINE-REP-004",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "MACHINE-REP-005",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "capability_absent",
       "rule": "MARKDOWN_FOR_AGENTS_ABSENT",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "handshake_not_performed",
@@ -2654,10 +2638,10 @@
       "state": "FAIL"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "SEMANTIC_HTML_ABSENT",
       "scope": "page",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
       "reason": "handshake_not_performed",

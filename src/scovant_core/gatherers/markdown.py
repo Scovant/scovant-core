@@ -1,14 +1,11 @@
 """Markdown-for-agents negotiation probe (Accept negotiation + .md mirror)."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from scovant_core.compat import SoftTimeLimitExceeded
 
-from ._http import _PROBE_TIMEOUT, _probe_text_exists
-
-if TYPE_CHECKING:
-    import httpx
+from ._http import _PROBE_TIMEOUT, _probe_text_exists, _ProbeClient
 
 
 def _body_looks_markdown(body_prefix: str) -> bool:
@@ -57,7 +54,7 @@ def _looks_markdown(content_type: str | None, body_prefix: str) -> bool:
     return _body_looks_markdown(body_prefix)
 
 
-def check_markdown_negotiation(client: httpx.Client, domain: str) -> dict[str, Any]:
+def check_markdown_negotiation(client: _ProbeClient, domain: str) -> dict[str, Any]:
     """Homepage-only Markdown-for-agents check: Accept negotiation + .md mirror.
 
     The ``negotiation``/``mirror``/``markdown_tokens`` trio is the original,

@@ -11,7 +11,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from scovant_core.analysis.crawl_graph import build_crawl_graph
 from scovant_core.analysis.token_cost import page_token_cost
+from scovant_core.parsers.html import extract_content_blocks, extract_landmark_tags
 from scovant_core.profiles import LOW_CONFIDENCE
 from scovant_core.rules.citability import CITABILITY_TYPES
 from scovant_core.rules.products import UNKNOWN_SITE_TYPE
@@ -22,6 +24,14 @@ SITE_TYPES: frozenset[str] = frozenset(UCP_APPLICABLE_SITE_TYPES | CITABILITY_TY
 _PROFILE_SITE_TYPE = {"commerce": "commerce", "saas": "saas", "api": "saas", "content": "other"}
 _EMPTY_SITEMAP = {"exists": False, "valid": False, "url": None, "kind": None}
 _EMPTY_DISCOVERY = {"any_found": False, "surfaces": {}}
+_EMPTY_PAYMENTS = {"any_non_ucp": False, "protocols": {}}
+_EMPTY_MARKDOWN = {
+    "negotiation": False, "mirror": False, "markdown_tokens": None, "status": None,
+    "content_type": None, "vary": None, "looks_markdown": False, "body_looks_markdown": False}
+_EMPTY_LINK_HEADERS = {"present": False, "rels": [], "agent_relevant": False}
+_EMPTY_MACHINE_REP: dict = {
+    "attempted": False, "status": None, "content_type": None,
+    "preference_applied": None, "vary": None, "alternates": []}
 _SITEMAP_KEYS = ("exists", "valid", "url", "kind", "fetch_status", "error")
 _UCP_GATHERER_KEYS = ("status", "served_as_html", "truncated", "text", "retry_after")
 _MCP_GATHERER_KEYS = ("text", "servers")
@@ -66,11 +76,19 @@ def _probe_unusable(doc: dict | None) -> bool:
     return status is None or _unusable_answer(status)
 
 
+def _fetch_errored(doc: dict) -> bool:
+    return doc.get("fetch_status") == "error"
+
+
+def _machine_rep_unusable(doc: dict) -> bool:
+    return not doc.get("attempted") or _probe_unusable(doc)
+
+
 def _without(record: dict, keys: tuple[str, ...]) -> dict:
     return {k: v for k, v in record.items() if k not in keys}
 
 
-def evidence_from_store(store, *, site_type: str) -> ScanEvidence:
+def evidence_from_store(store, *, site_type: str, root: str | None = None) -> ScanEvidence:
     from scovant_core.parsers.content_signals import parse_content_signals  # noqa: PLC0415
     from scovant_core.parsers.llms_txt import parse_llms_txt  # noqa: PLC0415
     from scovant_core.parsers.mcp import check_mcp_discovery  # noqa: PLC0415
@@ -122,12 +140,35 @@ def evidence_from_store(store, *, site_type: str) -> ScanEvidence:
     else:
         domain["agent_discovery"] = _without(discovery, _DISCOVERY_GATHERER_KEYS)
 
+    # (cloud key, gatherer, inert block, "never answered / unusable answer" test)
+    for key, gatherer, inert, unusable in (
+        ("markdown_agents", "markdown_agents", _EMPTY_MARKDOWN, _probe_unusable),
+        ("link_headers", "link_headers_surface", _EMPTY_LINK_HEADERS, _fetch_errored),
+        ("agent_payments", "agent_payments_surface", _EMPTY_PAYMENTS, _fetch_errored),
+        ("machine_rep", "machine_rep_surface", _EMPTY_MACHINE_REP, _machine_rep_unusable),
+    ):
+        doc = store.try_get(gatherer)
+        if doc is None or unusable(doc):
+            defaulted.add(key)
+            domain[key] = dict(inert)
+        else:
+            domain[key] = doc
+
     gathered = store.try_get("pages") or {}
     pages = []
+    graph_pages: dict[str, list[str]] = {}
     for p in gathered.get("pages", []):
         if not p.get("parsed"):
             continue
+        if p.get("url") and "internal_links" in p["parsed"]:
+            # pages WITHOUT the key were never extracted: dropped, not "zero links"
+            graph_pages[p["url"]] = p["parsed"]["internal_links"].get("urls", [])
         page = {**p["parsed"], "_http_status": p.get("status")}
+        html = p.get("html") or ""
+        if html:  # no HTML = not gathered: never an all-zero landmark map
+            # the same extractors Cloud's crawler runs over the page HTML
+            page["content_blocks"] = extract_content_blocks(html)
+            page["landmark_tags"] = extract_landmark_tags(html)
         bp = p.get("bot_protection")
         if isinstance(bp, dict) and bp.get("blocked"):
             page["bot_protection"] = bp  # Cloud writes the key only when blocked
@@ -141,6 +182,8 @@ def evidence_from_store(store, *, site_type: str) -> ScanEvidence:
     if not pages:
         defaulted.add("pages")
 
+    if root:
+        domain["crawl_graph"] = build_crawl_graph(graph_pages, root)
     domain["site_type"] = site_type
     domain["pages_scored"] = len(pages)
     if site_type in CITABILITY_TYPES:

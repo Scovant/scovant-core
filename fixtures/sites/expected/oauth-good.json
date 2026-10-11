@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.17.0",
+  "core_version": "0.17.1",
   "findings": [
     {
       "category": "access",
@@ -2073,7 +2073,7 @@
         "verdict": "allowed"
       }
     },
-    "bytes_fetched": 2232,
+    "bytes_fetched": 6051,
     "entry_error": null,
     "error_count": 0,
     "gather_error_details": [],
@@ -2088,7 +2088,7 @@
       "ucp": "not_checked",
       "webmcp": "absent"
     },
-    "requests": 38,
+    "requests": 49,
     "security_error_count": 0,
     "standards": {
       "agentready_v1": {
@@ -2152,7 +2152,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.17.0",
+    "core_version": "0.17.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2169,7 +2169,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.17.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.17.1 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2204,25 +2204,12 @@
           "rating": null
         }
       },
-      "coverage": 0.94,
+      "coverage": 1.0,
       "evidence_state": "ESTIMATED",
       "grade": "A",
       "label": "Technical Readiness",
       "model_id": "R2.1@67df90af85b0",
-      "not_measured": [
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "LINK_HEADERS_ABSENT"
-        },
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "MARKDOWN_FOR_AGENTS_ABSENT"
-        },
-        {
-          "reason": "not_gathered_by_core",
-          "rule": "SEMANTIC_HTML_ABSENT"
-        }
-      ],
+      "not_measured": [],
       "rating": 98,
       "scope": "CORE_PASSIVE",
       "site_type": "unknown",
@@ -2360,16 +2347,16 @@
       "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CONTENT-NEG-002",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "CONTENT-NEG-004",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "predicate",
@@ -2384,22 +2371,22 @@
       "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-001",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-002",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "",
       "rule": "CRAWL-GRAPH-005",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
       "reason": "predicate",
@@ -2426,10 +2413,10 @@
       "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "capability_absent",
       "rule": "LINK_HEADERS_ABSENT",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "not_gathered_by_core",
@@ -2456,22 +2443,22 @@
       "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "MACHINE-REP-004",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "MACHINE-REP-005",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "capability_absent",
       "rule": "MARKDOWN_FOR_AGENTS_ABSENT",
       "scope": "domain",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "predicate",
@@ -2552,10 +2539,10 @@
       "state": "PASS"
     },
     {
-      "reason": "not_gathered_by_core",
+      "reason": "predicate",
       "rule": "SEMANTIC_HTML_ABSENT",
       "scope": "page",
-      "state": "NOT_MEASURED"
+      "state": "N/A"
     },
     {
       "reason": "predicate",

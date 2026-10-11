@@ -2,14 +2,11 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from scovant_core.compat import SoftTimeLimitExceeded
 
-from ._http import _PROBE_BODY_CAP, _PROBE_TIMEOUT, _capped_body
-
-if TYPE_CHECKING:
-    import httpx
+from ._http import _PROBE_BODY_CAP, _PROBE_TIMEOUT, _capped_body, _ProbeClient
 
 # ── <link rel="alternate"> parsing ───────────────────────────────────────
 # Regex, not a full HTML parse: this package has no HTML-parsing dependency
@@ -34,7 +31,7 @@ def _parse_alternate_types(html: str | None) -> list[str]:
     return types
 
 
-def check_machine_rep(client: httpx.Client, domain: str,
+def check_machine_rep(client: _ProbeClient, domain: str,
                        homepage_html: str | None) -> dict[str, Any]:
     """Homepage-only consolidated-representation probe.
 

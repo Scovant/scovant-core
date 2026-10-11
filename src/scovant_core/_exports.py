@@ -10,7 +10,7 @@ import importlib
 MOVED_EXPORTS: tuple[str, ...] = (
     "AI_USER_AGENTS", "AiBot", "DISCOVERY_PROBES", "LOOKUP_BUDGET", "MAX_INTERNAL_LINKS",
     "MAX_REFERENCES", "PAYMENT_PROBES", "UnsafeURLError", "assert_safe_public_url",
-    "check_agent_discovery", "check_agent_payments", "check_instruction_integrity",
+    "build_crawl_graph", "check_agent_discovery", "check_agent_payments", "check_instruction_integrity",
     "check_link_headers", "check_machine_rep", "check_markdown_negotiation",
     "check_mcp_discovery", "check_sitemap", "check_ucp_profile", "classify_reference",
     "classify_tool_risk", "classify_ua", "detect_bot_protection", "detect_page_language",
@@ -36,6 +36,7 @@ _MODULES = (
     "scovant_core.gatherers.mcp_metadata", "scovant_core.gatherers.oauth",
     "scovant_core.analysis.integrity_probe", "scovant_core.analysis.instruction_integrity",
     "scovant_core.analysis.mcp_meta", "scovant_core.analysis.tool_risk",
+    "scovant_core.analysis.crawl_graph",
 )
 
 

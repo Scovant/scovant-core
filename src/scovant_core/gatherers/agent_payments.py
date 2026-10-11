@@ -2,18 +2,28 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from scovant_core.compat import SoftTimeLimitExceeded
 
-from ._http import _PROBE_TIMEOUT, _capped_body, _probe_json_ex, _transport_error
+from ._http import _PROBE_TIMEOUT, _capped_body, _probe_json_ex, _ProbeClient, _transport_error
 from .probe_tables import PAYMENT_PROBES
 
-if TYPE_CHECKING:
-    import httpx
+
+class _StatusWatch:
+    """Delegating client that records unusable (429/5xx) answers in `errors`."""
+
+    def __init__(self, inner: _ProbeClient, errors: list[str]):
+        self._inner, self._errors = inner, errors
+
+    def get(self, url: str, **kwargs: Any):
+        resp = self._inner.get(url, **kwargs)
+        if resp.status_code == 429 or resp.status_code >= 500:
+            self._errors.append(f"HTTP {resp.status_code}: {url}"[:200])
+        return resp
 
 
-def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
+def check_agent_payments(client: _ProbeClient, domain: str) -> dict[str, Any]:
     """Probe agent payment protocols beyond UCP.
 
     Generic over the probe kinds in PAYMENT_PROBES ("well_known_json",
@@ -40,17 +50,22 @@ def check_agent_payments(client: httpx.Client, domain: str) -> dict[str, Any]:
     request answered; `error` names the first such failure.
     """
     protocols: dict[str, Any] = {}
-    truncated_flags: list[bool] = []
     errors: list[str] = []
+    # Payments-only rule: a 429/5xx answer to ANY probed path is a question the
+    # site did not answer. The shared JSON helper stays transport-only (agent
+    # discovery relies on that), so the answers are watched here.
+    client = _StatusWatch(client, errors)
+    truncated_flags: list[bool] = []
 
     def _get(url: str):
         try:
-            return client.get(url, timeout=_PROBE_TIMEOUT)
+            resp = client.get(url, timeout=_PROBE_TIMEOUT)
         except SoftTimeLimitExceeded:
             raise
         except Exception as exc:
             errors.append(_transport_error(exc))
             return None
+        return resp
 
     for key, probe in PAYMENT_PROBES.items():
         detected: bool | None = False

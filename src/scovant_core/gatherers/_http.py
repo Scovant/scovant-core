@@ -41,6 +41,8 @@ class _ProbeResponse(Protocol):
     def text(self) -> str: ...
     @property
     def headers(self) -> Mapping[str, str]: ...
+    @property
+    def links(self) -> Mapping[Any, Any]: ...
 
 
 class _ProbeClient(Protocol):
@@ -50,7 +52,7 @@ class _ProbeClient(Protocol):
     -following, size-capped, deadline-aware) instead of a bare `httpx.Client`
     — this typing makes that legitimate duck-typing explicit."""
 
-    def get(self, url: str, *, timeout: float | None = ...) -> _ProbeResponse: ...
+    def get(self, url: str, *, timeout: float | None = ..., headers: dict[str, str] | None = ...) -> _ProbeResponse: ...
 
 
 def _capped_body(text: str, cap: int = _PROBE_BODY_CAP) -> tuple[str, bool]:

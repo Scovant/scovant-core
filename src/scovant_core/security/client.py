@@ -34,6 +34,7 @@ log = logging.getLogger(__name__)
 
 _REDACTED_HEADERS = {"authorization", "cookie", "set-cookie", "proxy-authorization"}
 _ALLOWED_SCHEMES = ("http", "https")
+_ALLOWED_REQUEST_HEADERS = frozenset({"accept", "prefer"})
 _REDIRECT_STATUSES = {301, 302, 303, 307, 308}
 
 
@@ -129,7 +130,9 @@ class SecureClient:
             raise FetchError("timeout", "scan time budget exhausted", url)
 
     # -- fetch ---------------------------------------------------------------
-    def fetch(self, url: str, kind: str = "html") -> FetchResult:
+    def fetch(self, url: str, kind: str = "html", headers: dict[str, str] | None = None) -> FetchResult:
+        if headers and {k.lower() for k in headers} - _ALLOWED_REQUEST_HEADERS:
+            raise ValueError(f"request headers limited to {sorted(_ALLOWED_REQUEST_HEADERS)}")
         limit = self.policy.limit_for(kind)
         t0 = time.monotonic()
         current = url
@@ -148,7 +151,7 @@ class SecureClient:
                     self._precheck(current)
                     self._check_deadline(current)
                     hop_t0 = time.monotonic()
-                    with self.httpx.stream("GET", current) as resp:
+                    with self.httpx.stream("GET", current, headers=headers) as resp:
                         if resp.status_code in _REDIRECT_STATUSES and "location" in resp.headers:
                             # never read an intermediate response's body — only headers,
                             # so an oversized redirect page can't be downloaded for nothing.
@@ -178,15 +181,15 @@ class SecureClient:
                         # dict comprehension: a repeated header name collapses to the LAST
                         # value seen (httpx preserves response order) — documented
                         # last-wins behavior, not a bug.
-                        headers = {
+                        resp_headers = {
                             k.lower(): v for k, v in resp.headers.items() if k.lower() not in _REDACTED_HEADERS
                         }
                         raw_headers = list(resp.headers.multi_items())
                         result = FetchResult(
-                            url=url, final_url=str(resp.url), status=resp.status_code, headers=headers,
+                            url=url, final_url=str(resp.url), status=resp.status_code, headers=resp_headers,
                             text=body.decode(resp.encoding or "utf-8", errors="replace"), bytes_len=total,
                             redirect_chain=chain, elapsed_ms=int((time.monotonic() - t0) * 1000),
-                            truncated=truncated, content_type=headers.get("content-type", ""),
+                            truncated=truncated, content_type=resp_headers.get("content-type", ""),
                             raw_headers=raw_headers,
                         )
                         self._log(current, resp.status_code, total, hop_t0)
@@ -243,13 +246,19 @@ class _ProbeResponse:
     the body is already size-capped and the URL is the FINAL one after any
     redirects the guarded client followed."""
 
-    __slots__ = ("headers", "status_code", "text", "url")
+    __slots__ = ("_raw_headers", "headers", "status_code", "text", "url")
 
     def __init__(self, res: FetchResult):
+        self._raw_headers = res.raw_headers
         self.status_code = res.status
         self.text = res.text
         self.headers = res.headers  # already lower-cased by fetch()
         self.url = res.final_url
+
+    @property
+    def links(self) -> dict:
+        """RFC 8288 `Link` headers parsed by httpx (as `httpx.Response.links`)."""
+        return httpx.Response(self.status_code, headers=self._raw_headers).links
 
 
 class _FetchAdapter:
@@ -270,8 +279,10 @@ class _FetchAdapter:
     def __init__(self, client: SecureClient, kind: str = "text"):
         self._client, self._kind = client, kind
 
-    def get(self, url: str, timeout: float | None = None) -> _ProbeResponse:  # noqa: ARG002 — see docstring
+    def get(  # noqa: ARG002 — `timeout`, see docstring
+        self, url: str, timeout: float | None = None, headers: dict[str, str] | None = None,
+    ) -> _ProbeResponse:
         try:
-            return _ProbeResponse(self._client.fetch(url, kind=self._kind))
+            return _ProbeResponse(self._client.fetch(url, kind=self._kind, headers=headers))
         except FetchError as exc:
             raise httpx.RequestError(f"{exc.kind}: {exc.message}", request=httpx.Request("GET", url)) from exc

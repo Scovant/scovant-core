@@ -32,12 +32,15 @@ _PROBE_RULES: dict[str, frozenset[str]] = {
                       "UCP_SIGNING_KEYS_INVALID", "AGENT_PAYMENTS_ABSENT"}),
     "mcp": frozenset({"MCP_ENDPOINT_ABSENT"}) | _MCP_HANDSHAKE_RULES,
     "agent_discovery": frozenset({"AGENT_INTERFACE_DISCOVERY_ABSENT"}),
+    "markdown_agents": frozenset({"MARKDOWN_FOR_AGENTS_ABSENT", "CONTENT-NEG-002", "CONTENT-NEG-004"}),
+    "link_headers": frozenset({"LINK_HEADERS_ABSENT"}),
+    "agent_payments": frozenset({"AGENT_PAYMENTS_ABSENT"}),
+    "machine_rep": frozenset({"MACHINE-REP-004", "MACHINE-REP-005"}),
 }
 # Rules reading an evidence block Core does not gather in this release.
-_NOT_GATHERED_PREFIXES = ("CRAWL-GRAPH-", "MACHINE-REP-", "WEBMCP-", "LLMS-SUPPLY-", "CONTENT-NEG-")
+_NOT_GATHERED_PREFIXES = ("WEBMCP-", "LLMS-SUPPLY-")
 _NOT_GATHERED_CODES = frozenset({
-    "MARKDOWN_FOR_AGENTS_ABSENT", "LINK_HEADERS_ABSENT", "AGENT_PAYMENTS_ABSENT",
-    "AI-BOT-POLICY-001", "SEMANTIC_HTML_ABSENT", "CITABILITY_WEAK", "CITABILITY_POOR"})
+    "AI-BOT-POLICY-001"})
 
 
 def _reason(outcome, defaulted) -> str:
@@ -61,7 +64,7 @@ def _reason(outcome, defaulted) -> str:
 
 def technical_report(store, ctx) -> tuple[Readiness, list[TechnicalOutcome]]:
     site_type, origin = site_type_for(ctx.resolved_profile, ctx.profile_confidence, ctx.options.site_type)
-    ev = evidence_from_store(store, site_type=site_type)
+    ev = evidence_from_store(store, site_type=site_type, root=ctx.final_url or ctx.input_url)
     run = technical_readiness(ev.pages, ev.domain, site_type=site_type, defaulted=ev.defaulted)
     manifest = technical_manifest()
     res = run.result
