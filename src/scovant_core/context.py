@@ -18,6 +18,8 @@ class ScanOptions:
     allow_private_networks: bool = False
     # R2 site type for Technical Readiness; None = derive from the profile.
     site_type: str | None = None
+    # False skips the Technical Readiness pass (hosts that only need the checks).
+    technical: bool = True
 
 
 @dataclass

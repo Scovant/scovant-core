@@ -402,10 +402,24 @@
           "type": "string"
         },
         "scope": {
+          "enum": [
+            "domain",
+            "page"
+          ],
           "title": "Scope",
           "type": "string"
         },
         "state": {
+          "enum": [
+            "PASS",
+            "WARN",
+            "FAIL",
+            "N/A",
+            "NOT_MEASURED",
+            "ERROR",
+            "BLOCKED_BY_POLICY",
+            "UNKNOWN"
+          ],
           "title": "State",
           "type": "string"
         }

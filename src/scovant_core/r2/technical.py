@@ -35,9 +35,20 @@ DEAD_IN_PRODUCTION: frozenset[str] = frozenset()
 # Bump when the derivation below changes meaning (it is part of a host's inputs digest).
 DERIVATION_VERSION = "2"
 # Version of the outcome rules in `domain_outcome`/`page_outcome`.
-BUILDER_VERSION = "4"
+# 5: a page whose scored content was a bot-protection wall (`content_blocked`)
+#    is not measured for Technical Readiness
+BUILDER_VERSION = "5"
 # Public rules whose finding is an informational marker, not a defect.
 MARKER_CODES: frozenset[str] = frozenset({"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"})
+
+# The one page rule that reads the bot-protection wall itself; it is never
+# skipped. Under `skip_content_blocked` every other page rule skips a page whose
+# scored content was a wall (it saw a challenge, not the site).
+BOT_PROTECTION_RULE = "BOT_PROTECTION_BLOCKING_AGENTS"
+# Page key a host sets when the fetch that produced the page's scored content
+# was itself blocked. A refusal of another fetch (e.g. an agent identity)
+# while the content fetch got the site is NOT this signal.
+CONTENT_BLOCKED_KEY = "content_blocked"
 
 GATE_ROBOTS = "R2-GATE-ROBOTS-BLOCKS-AGENTS"
 GATE_ROBOTS_SPEC = RuleSpec(
@@ -65,7 +76,7 @@ def technical_manifest() -> Manifest:
 
     return Manifest(
         [rule_spec(r, owner="core", scope=RuleScope(r.scope), marker=r.code in MARKER_CODES)
-         for r in RULES if r.code not in DEAD_IN_PRODUCTION]
+         for r in RULES if r.code not in DEAD_IN_PRODUCTION and r.maturity != "deprecated"]
         + [GATE_ROBOTS_SPEC])
 
 
@@ -83,10 +94,19 @@ def domain_outcome(code: str, measure: Callable[[dict | None], Verdict] | None,
     return Outcome(rule_id=code, state=OutcomeState.FAIL if fired else OutcomeState.PASS)
 
 
+def content_blocked(page: dict) -> bool:
+    return page.get(CONTENT_BLOCKED_KEY) is True
+
+
 def page_outcome(code: str, measure: Callable[[dict, dict | None], Verdict] | None,
                  pages: Sequence[dict], domain: dict | None, fired_per_page: Sequence[bool],
-                 *, site_category: str | None) -> Outcome:
-    """A page rule's outcome over the sampled pages: FAIL iff a MEASURED page failed."""
+                 *, site_category: str | None, skip_content_blocked: bool = False) -> Outcome:
+    """A page rule's outcome over the sampled pages: FAIL iff a MEASURED page failed.
+
+    With `skip_content_blocked` (Technical Readiness), a page whose scored
+    content was a wall (`content_blocked`) is not measured for any rule but the
+    one that reads the wall: its evidence is a challenge page, not the site.
+    Without it (Agent Readiness) every page is scored as before."""
     from scovant_core.rules.products import (  # noqa: PLC0415
         COMMERCE_GATED_CODES,
         UNKNOWN_SITE_TYPE,
@@ -94,9 +114,13 @@ def page_outcome(code: str, measure: Callable[[dict, dict | None], Verdict] | No
 
     if measure is None:
         return Outcome(rule_id=code, state=OutcomeState.UNKNOWN, reason="no_declaration")
-    measured = failed = na = 0
-    for page, fired in zip(pages, fired_per_page, strict=False):
-        verdict = measure(page or {}, domain)
+    measured = failed = na = blocked = 0
+    for page, fired in zip(pages, fired_per_page, strict=True):
+        page = page or {}
+        if skip_content_blocked and code != BOT_PROTECTION_RULE and content_blocked(page):
+            blocked += 1
+            continue
+        verdict = measure(page, domain)
         if verdict is None:
             measured += 1
             failed += bool(fired)
@@ -105,11 +129,13 @@ def page_outcome(code: str, measure: Callable[[dict, dict | None], Verdict] | No
     if measured:
         state = OutcomeState.FAIL if failed else OutcomeState.PASS
         return Outcome(rule_id=code, state=state, pages_measured=measured, pages_failed=failed)
-    if pages and na == len(pages):
+    if na and na == len(pages) - blocked:  # N/A on every page that was not walled
         # an unestablished profile is a stated reason, not a generic predicate
         if site_category == UNKNOWN_SITE_TYPE and code in COMMERCE_GATED_CODES:
             return Outcome(rule_id=code, state=OutcomeState.NA, reason="required_capability_not_established")
         return Outcome(rule_id=code, state=OutcomeState.NA, reason="predicate")
+    if blocked:
+        return Outcome(rule_id=code, state=OutcomeState.NOT_MEASURED, reason="bot_protection_blocked")
     return Outcome(rule_id=code, state=OutcomeState.NOT_MEASURED,
                    reason="predicate" if pages else "no_pages_evaluated")
 

@@ -20,6 +20,7 @@ declaration, commerce metadata, HTTP semantics, and its own usage in CI.
 uvx --from scovant-core scovant scan https://example.com   # no install, needs uv
 pipx run --spec scovant-core scovant scan https://example.com
 pip install scovant-core                                    # Python >= 3.12
+pip install "scovant-core[tokens]"                          # + bundled tokenizer for PAGE_TOKEN_BLOAT
 npx @scovant/core scan https://example.com                  # Node launcher, needs uv/pipx/python3
 ```
 

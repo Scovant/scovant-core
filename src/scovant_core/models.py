@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -168,9 +169,9 @@ class Readiness(BaseModel):
 
 class TechnicalOutcome(BaseModel):
     rule: str
-    state: str
+    state: Literal["PASS", "WARN", "FAIL", "N/A", "NOT_MEASURED", "ERROR", "BLOCKED_BY_POLICY", "UNKNOWN"]
     reason: str = ""
-    scope: str
+    scope: Literal["domain", "page"]
 
 
 class Report(BaseModel):

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from scovant_core.analysis.token_cost import page_token_cost
 from scovant_core.profiles import LOW_CONFIDENCE
 from scovant_core.rules.citability import CITABILITY_TYPES
 from scovant_core.rules.products import UNKNOWN_SITE_TYPE
@@ -44,12 +45,25 @@ class ScanEvidence:
     defaulted: frozenset[str]
 
 
+def _unusable_answer(status: int) -> bool:
+    """429/5xx: the site did not answer the question, so the probe is not
+    measured (the same rule as Cloud's crawler)."""
+    return status == 429 or status >= 500
+
+
 def _robots_unusable(robots: dict) -> bool:
-    """robots.txt that did not produce a usable document: no answer, a 5xx or
-    429 (RFC 9309: the site's policy is unknown, not allow-all), or a body cut
-    at the fetch cap. A 404/410 is a real "no robots.txt" and stays measured."""
+    """robots.txt that did not produce a usable document: no answer, an
+    unusable answer (RFC 9309: the site's policy is unknown, not allow-all),
+    or a body cut at the fetch cap. A 404/410 is a real "no robots.txt"."""
     status = robots.get("status")
-    return status is None or status >= 500 or status == 429 or bool(robots.get("truncated"))
+    return status is None or _unusable_answer(status) or bool(robots.get("truncated"))
+
+
+def _probe_unusable(doc: dict | None) -> bool:
+    if doc is None:
+        return True
+    status = doc.get("status")
+    return status is None or _unusable_answer(status)
 
 
 def _without(record: dict, keys: tuple[str, ...]) -> dict:
@@ -81,21 +95,21 @@ def evidence_from_store(store, *, site_type: str) -> ScanEvidence:
         domain["sitemap"] = {k: sitemap[k] for k in _SITEMAP_KEYS if k in sitemap}
 
     llms = store.try_get("llms")
-    if llms is None or llms.get("status") is None:
+    if _probe_unusable(llms):
         defaulted.add("llms_txt")
         domain["llms_txt"] = parse_llms_txt("", 0)
     else:
         domain["llms_txt"] = llms["parsed"]
 
     ucp = store.try_get("ucp")
-    if ucp is None or ucp.get("status") is None:
+    if _probe_unusable(ucp):
         defaulted.add("ucp")
         domain["ucp"] = check_ucp_profile(None, 0)
     else:
         domain["ucp"] = _without(ucp, _UCP_GATHERER_KEYS)
 
     mcp = store.try_get("mcp_discovery")
-    if mcp is None or mcp.get("status") is None:
+    if _probe_unusable(mcp):
         defaulted.add("mcp")
         domain["mcp"] = check_mcp_discovery(None, 0)
     else:
@@ -109,8 +123,23 @@ def evidence_from_store(store, *, site_type: str) -> ScanEvidence:
         domain["agent_discovery"] = _without(discovery, _DISCOVERY_GATHERER_KEYS)
 
     gathered = store.try_get("pages") or {}
-    pages = [{**p["parsed"], "_http_status": p.get("status")}
-             for p in gathered.get("pages", []) if p.get("parsed")]
+    pages = []
+    for p in gathered.get("pages", []):
+        if not p.get("parsed"):
+            continue
+        page = {**p["parsed"], "_http_status": p.get("status")}
+        bp = p.get("bot_protection")
+        if isinstance(bp, dict) and bp.get("blocked"):
+            page["bot_protection"] = bp  # Cloud writes the key only when blocked
+            # the pages gatherer's fetch IS the content fetch: its wall is a content wall
+            page["content_blocked"] = True
+        cost = page_token_cost((p["parsed"].get("visible_text") or ""), p["parsed"].get("headings") or [],
+                               p.get("html") or "")
+        if cost is not None:  # None = no `[tokens]` extra: the rule is not measured
+            page["token_cost"] = cost
+        pages.append(page)
+    if not pages:
+        defaulted.add("pages")
 
     domain["site_type"] = site_type
     domain["pages_scored"] = len(pages)

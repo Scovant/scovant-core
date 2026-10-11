@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 import httpx
+import pytest
 
 from scovant_core.context import ScanOptions
 from scovant_core.engine import scan
@@ -83,17 +84,53 @@ def test_technical_failure_does_not_abort_the_scan(monkeypatch):
     assert r.metrics["technical_readiness_error"]["kind"] == "RuntimeError"
 
 
+def test_technical_gather_errors_empty_when_nothing_failed():
+    assert _report("commerce-good").metrics["technical_gather_errors"] == []
+
+
+def test_technical_gather_errors_lists_only_the_technical_pass(monkeypatch):
+    from scovant_core.evidence import GatherError
+    from scovant_core.r2 import readiness
+
+    real = readiness.technical_report
+
+    def failing_gatherer(store, ctx):
+        out = real(store, ctx)
+        store.errors["sitemap_probe"] = GatherError("sitemap_probe", "ConnectError", "dns down for secret.test")
+        return out
+    monkeypatch.setattr(readiness, "technical_report", failing_gatherer)
+    r = _report("commerce-good")
+    assert [e["name"] for e in r.metrics["technical_gather_errors"]] == ["sitemap_probe"]
+    assert r.metrics["technical_gather_errors"][0]["kind"] == "ConnectError"
+    assert "sitemap_probe" not in r.metrics["gather_errors"]  # the selection's own list is unchanged
+
+
 def _reasons(report):
     t = report.readiness.technical
     return ({n.rule: n.reason for n in t.not_measured},
             {o.rule: o.reason for o in report.technical_outcomes})
 
 
+def test_page_token_bloat_is_measured_with_the_tokenizer():
+    pytest.importorskip("tiktoken")
+    _, outs = _reasons(_report("commerce-good"))
+    nm, _ = _reasons(_report("commerce-good"))
+    assert "PAGE_TOKEN_BLOAT" not in nm and outs["PAGE_TOKEN_BLOAT"] != "tokenizer_unavailable"
+
+
+def test_page_token_bloat_not_measured_without_the_tokenizer(monkeypatch):
+    from scovant_core.r2 import adapter, readiness
+    monkeypatch.setattr(adapter, "page_token_cost", lambda *a: None)
+    monkeypatch.setattr(readiness, "tokenizer_available", lambda: False)
+    nm, outs = _reasons(_report("commerce-good"))
+    assert nm["PAGE_TOKEN_BLOAT"] == "tokenizer_unavailable"
+    assert outs["PAGE_TOKEN_BLOAT"] == "tokenizer_unavailable"
+
+
 def test_not_measured_reasons_are_human_readable():
     r = _report("commerce-good")
     nm, outs = _reasons(r)
     assert nm["MCP_DISCOVERY_INVALID"] == "handshake_not_performed"
-    assert nm["PAGE_TOKEN_BLOAT"] == "tokenizer_unavailable"
     assert nm["MARKDOWN_FOR_AGENTS_ABSENT"] == "not_gathered_by_core"
     assert nm["SEMANTIC_HTML_ABSENT"] == "not_gathered_by_core"
     assert outs["MCP_DISCOVERY_INVALID"] == "handshake_not_performed"

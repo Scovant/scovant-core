@@ -2138,6 +2138,7 @@
         "version": "1.0"
       }
     },
+    "technical_gather_errors": [],
     "technical_readiness_error": null
   },
   "not_tested": [
@@ -2192,7 +2193,7 @@
         },
         "structured": {
           "applicable": true,
-          "rating": null
+          "rating": 100.0
         },
         "trust": {
           "applicable": true,
@@ -2203,7 +2204,7 @@
           "rating": null
         }
       },
-      "coverage": 0.904,
+      "coverage": 0.94,
       "evidence_state": "ESTIMATED",
       "grade": "A",
       "label": "Technical Readiness",
@@ -2218,15 +2219,11 @@
           "rule": "MARKDOWN_FOR_AGENTS_ABSENT"
         },
         {
-          "reason": "tokenizer_unavailable",
-          "rule": "PAGE_TOKEN_BLOAT"
-        },
-        {
           "reason": "not_gathered_by_core",
           "rule": "SEMANTIC_HTML_ABSENT"
         }
       ],
-      "rating": 97,
+      "rating": 98,
       "scope": "CORE_PASSIVE",
       "site_type": "unknown",
       "site_type_origin": "unknown",
@@ -2531,10 +2528,10 @@
       "state": "N/A"
     },
     {
-      "reason": "tokenizer_unavailable",
+      "reason": "",
       "rule": "PAGE_TOKEN_BLOAT",
       "scope": "page",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
       "reason": "required_capability_not_established",

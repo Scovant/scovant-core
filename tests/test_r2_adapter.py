@@ -195,3 +195,109 @@ def test_robots_404_is_a_real_allow_all(status):
     assert "robots" not in ev.defaulted
     by_id = {o.rule_id: o for o in run.outcomes}
     assert by_id["AI_CRAWLER_BLOCKED"].state == OutcomeState.PASS
+
+
+def _path_status_transport(path, status, body=""):
+    import httpx
+
+    inner = FixtureTransport(FIXTURES / "sites" / "commerce-good")
+
+    class T(httpx.BaseTransport):
+        def handle_request(self, request):
+            if request.url.path == path:
+                return httpx.Response(status, text=body)
+            return inner.handle_request(request)
+
+    return T()
+
+
+def _run_with(transport):
+    from scovant_core.r2.evaluate import technical_readiness
+    store, _ctx, client = _store("commerce-good", transport=transport)
+    try:
+        ev = evidence_from_store(store, site_type="commerce")
+    finally:
+        client.close()
+    run = technical_readiness(ev.pages, ev.domain, site_type="commerce", defaulted=ev.defaulted)
+    return ev, run
+
+
+@pytest.mark.parametrize("path,status,probe,rules", [
+    ("/llms.txt", 503, "llms_txt", ["LLMS_TXT_MISSING_OR_INVALID"]),
+    ("/.well-known/ucp", 503, "ucp", ["UCP_PROFILE_ABSENT"]),
+    ("/.well-known/mcp.json", 503, "mcp", ["MCP_ENDPOINT_ABSENT"]),
+    ("/.well-known/mcp.json", 429, "mcp", ["MCP_ENDPOINT_ABSENT"]),
+])
+def test_unusable_answer_leaves_probe_not_measured(path, status, probe, rules):
+    from scovant_core.r2 import OutcomeState
+    ev, run = _run_with(_path_status_transport(path, status))
+    assert probe in ev.defaulted
+    by_id = {o.rule_id: o for o in run.outcomes}
+    for r in rules:
+        assert by_id[r].state == OutcomeState.NOT_MEASURED, r
+
+
+def test_llms_404_stays_measured():
+    ev, _run = _run_with(_path_status_transport("/llms.txt", 404))
+    assert "llms_txt" not in ev.defaulted
+
+
+def test_truncated_robots_is_defaulted():
+    ev, _run = _run_with(_path_status_transport("/robots.txt", 200, "User-agent: *\nAllow: /\n" + "# pad\n" * 400000))
+    assert {"robots", "content_signals"} <= ev.defaulted
+
+
+def test_failed_pages_gatherer_defaults_pages(monkeypatch):
+    ev, _run = _failing_run(monkeypatch, "pages")
+    assert "pages" in ev.defaulted
+
+
+def test_page_bot_protection_flag_only_when_blocked(monkeypatch):
+    from scovant_core import evidence
+    real = evidence.GATHERERS["pages"]
+
+    def marked(*a, **k):
+        out = real(*a, **k)
+        for i, p in enumerate(out["pages"]):
+            p["bot_protection"] = {"blocked": i == 0}
+        return out
+
+    monkeypatch.setitem(evidence.GATHERERS, "pages", marked)
+    store, _ctx, client = _store("commerce-good")
+    try:
+        ev = evidence_from_store(store, site_type="commerce")
+    finally:
+        client.close()
+    assert ev.pages and ev.pages[0].get("_http_status") is not None
+    flagged = [p for p in ev.pages if "bot_protection" in p]
+    assert len(flagged) == 1 and flagged[0]["bot_protection"]["blocked"] is True
+    assert flagged[0] is ev.pages[0]  # every other page is clean and carries no key
+    # O2a: the pages gatherer's bot_protection IS the content fetch, so a
+    # blocked one is a content wall — the shared builder's Technical skip key.
+    assert flagged[0]["content_blocked"] is True
+    assert not any("content_blocked" in p for p in ev.pages[1:])
+
+
+def _technical_not_measured(monkeypatch, pages_gatherer):
+    from scovant_core import evidence
+    from scovant_core.r2.readiness import technical_report
+    monkeypatch.setitem(evidence.GATHERERS, "pages", pages_gatherer)
+    store, ctx, client = _store("commerce-good")
+    try:
+        readiness, outcomes = technical_report(store, ctx)
+    finally:
+        client.close()
+    return readiness.technical.not_measured, outcomes
+
+
+def _boom(*_a, **_k):
+    raise RuntimeError("pages down")
+
+
+@pytest.mark.parametrize("gatherer", [_boom, lambda *_a, **_k: {"pages": []}])
+def test_no_pages_reason_is_probe_failed_pages(monkeypatch, gatherer):
+    not_measured, outcomes = _technical_not_measured(monkeypatch, gatherer)
+    reasons = {n.reason for n in not_measured}
+    assert "probe_failed:pages" in reasons
+    assert "no_pages_evaluated" not in reasons
+    assert "no_pages_evaluated" not in {o.reason for o in outcomes}

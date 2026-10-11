@@ -2308,6 +2308,7 @@
         "version": "1.0"
       }
     },
+    "technical_gather_errors": [],
     "technical_readiness_error": null
   },
   "not_tested": [
@@ -2373,7 +2374,7 @@
           "rating": 100.0
         }
       },
-      "coverage": 0.929,
+      "coverage": 0.942,
       "evidence_state": "ESTIMATED",
       "grade": "B",
       "label": "Technical Readiness",
@@ -2394,10 +2395,6 @@
         {
           "reason": "handshake_not_performed",
           "rule": "MCP_DISCOVERY_INVALID"
-        },
-        {
-          "reason": "tokenizer_unavailable",
-          "rule": "PAGE_TOKEN_BLOAT"
         },
         {
           "reason": "not_gathered_by_core",
@@ -2709,10 +2706,10 @@
       "state": "FAIL"
     },
     {
-      "reason": "tokenizer_unavailable",
+      "reason": "",
       "rule": "PAGE_TOKEN_BLOAT",
       "scope": "page",
-      "state": "NOT_MEASURED"
+      "state": "PASS"
     },
     {
       "reason": "",

@@ -43,7 +43,23 @@ def test_defaulted_robots_is_not_measured_and_the_gate_is_na():
     assert by_id[GATE_ROBOTS].state == S.NA
 
 
-def test_evaluate_does_not_see_http_status_but_measure_does():
+def test_evaluate_does_not_see_http_status_but_measure_does(monkeypatch):
+    rule = next(r for r in RULES if r.code == "BLOCKED_CRAWLABILITY")
+    seen_by_evaluate: list[dict] = []
+    seen_by_measure: list[dict] = []
+    real_evaluate, real_measure = rule.evaluate, rule.measure
+
+    def spy_evaluate(page, domain):
+        seen_by_evaluate.append(dict(page))
+        return real_evaluate(page, domain)
+
+    def spy_measure(page, domain, ctx):
+        seen_by_measure.append(dict(page))
+        return real_measure(page, domain, ctx)
+    monkeypatch.setattr(rule, "evaluate", spy_evaluate)
+    monkeypatch.setattr(rule, "measure", spy_measure)
     page = {"metadata": {"robots_meta": None}, "visible_text": "x", "_http_status": 404}
     rows = {r["rule_id"]: r for r in rule_rows([page], {}, site_category="other", defaulted=None)}
+    assert seen_by_evaluate and all("_http_status" not in p for p in seen_by_evaluate)
+    assert seen_by_measure and all(p.get("_http_status") == 404 for p in seen_by_measure)
     assert rows["BLOCKED_CRAWLABILITY"]["state"] == "NOT_MEASURED"

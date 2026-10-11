@@ -167,3 +167,19 @@ def test_golden_html_is_stable_across_two_runs(site, monkeypatch):
     a = _run_html(site, monkeypatch)
     b = _run_html(site, monkeypatch)
     assert a == b
+
+
+def test_technical_false_skips_the_technical_pass_and_its_requests(monkeypatch):
+    from scovant_core.context import ScanOptions
+
+    monkeypatch.setattr(core_access_006, "today", lambda: FROZEN_TODAY)
+    monkeypatch.setattr(security_txt, "today", lambda: FROZEN_TODAY)
+    site = FIXTURES / "sites" / "commerce-good"
+    on = scan(URL, ScanOptions(), transport=FixtureTransport(site), clock=CLOCK, scan_id="local-t")
+    off = scan(URL, ScanOptions(technical=False), transport=FixtureTransport(site), clock=CLOCK,
+               scan_id="local-t")
+    assert on.readiness is not None
+    assert off.readiness is None and off.technical_outcomes == []
+    assert off.metrics["technical_readiness_error"] is None
+    assert off.metrics["technical_gather_errors"] == []
+    assert off.metrics["requests"] < on.metrics["requests"]

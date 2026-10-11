@@ -1,6 +1,7 @@
 """The report's `readiness.technical` block and `technical_outcomes` list."""
 from __future__ import annotations
 
+from scovant_core.analysis.token_cost import tokenizer_available
 from scovant_core.models import (
     NotMeasured,
     Readiness,
@@ -24,7 +25,7 @@ _MCP_HANDSHAKE_RULES = frozenset({
 # Probe name (as in `ScanEvidence.defaulted`) -> the rules whose `measure` reads it.
 _PROBE_RULES: dict[str, frozenset[str]] = {
     "robots": frozenset({"AI_CRAWLER_BLOCKED", "AI-BOT-POLICY-001"}),
-    "content_signals": frozenset({"CONTENT_SIGNALS_ABSENT"}),
+    "content_signals": frozenset({"CONTENT_SIGNALS_ABSENT", "CONTENT-SIGNAL-001"}),
     "sitemap": frozenset({"SITEMAP_MISSING_OR_INVALID"}),
     "llms_txt": frozenset({"LLMS_TXT_MISSING_OR_INVALID"}),
     "ucp": frozenset({"UCP_PROFILE_ABSENT", "UCP_PROFILE_INVALID", "UCP_CHECKOUT_MISSING",
@@ -41,6 +42,8 @@ _NOT_GATHERED_CODES = frozenset({
 
 def _reason(outcome, defaulted) -> str:
     """The human-readable reason for a not-measured outcome."""
+    if outcome.reason == "no_pages_evaluated" and "pages" in defaulted:
+        return "probe_failed:pages"  # the gather failed — the real cause
     if outcome.reason not in ("predicate", ""):
         return outcome.reason
     rule = outcome.rule_id
@@ -49,7 +52,7 @@ def _reason(outcome, defaulted) -> str:
         return f"probe_failed:{probes[0]}"
     if rule in _MCP_HANDSHAKE_RULES:
         return "handshake_not_performed"
-    if rule == "PAGE_TOKEN_BLOAT":
+    if rule == "PAGE_TOKEN_BLOAT" and not tokenizer_available():
         return "tokenizer_unavailable"
     if rule in _NOT_GATHERED_CODES or rule.startswith(_NOT_GATHERED_PREFIXES):
         return "not_gathered_by_core"

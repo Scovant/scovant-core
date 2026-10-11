@@ -15,6 +15,8 @@ from scovant_core.r2.outcome import Outcome, OutcomeState
 from scovant_core.r2.policy import PUBLIC_POLICY
 from scovant_core.r2.score import R2Result, score_r2
 from scovant_core.r2.technical import (
+    BOT_PROTECTION_RULE,
+    content_blocked,
     domain_outcome,
     outcome_from_row,
     page_outcome,
@@ -49,6 +51,10 @@ def rule_rows(pages: Sequence[dict], domain: dict | None, *, site_category: str 
         for page in pages:
             findings = rule.evaluate(_without_status(page), domain)
             fired_per_page.append(bool(findings))
+            # Severity band over the pages Technical measures: a walled page
+            # is skipped (except for the bot-protection rule, as in page_outcome).
+            if rule.scope == "page" and rule.code != BOT_PROTECTION_RULE and content_blocked(page):
+                continue
             for f in findings:
                 sev = f.severity or rule.severity
                 if seen is None or _SEVERITY_RANK[sev] > _SEVERITY_RANK[seen]:
@@ -63,8 +69,8 @@ def rule_rows(pages: Sequence[dict], domain: dict | None, *, site_category: str 
             def measure_page(ex: dict, dd: dict | None, r: CoreRule = rule) -> OutcomeState | None:
                 return r.measure(ex, dd, ctx)
 
-            outcome = page_outcome(rule.code, measure_page, pages, domain,
-                                   fired_per_page, site_category=site_category)
+            outcome = page_outcome(rule.code, measure_page, pages, domain, fired_per_page,
+                                   site_category=site_category, skip_content_blocked=True)
         rows.append({**outcome.model_dump(mode="json"), "severity_seen": seen})
     return rows
 

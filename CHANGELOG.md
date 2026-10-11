@@ -16,11 +16,18 @@ out explicitly because scores are only comparable within one ruleset version.
 - `readiness.technical` in the scan report: Technical Readiness by the open R2 formula (model `R2.1@67df90af85b0`), with `not_measured` and a `technical_outcomes` list. Additive; `schema_version` stays `1.1`.
 - `scovant_core.r2.technical` (Technical manifest and outcome rules), `scovant_core.r2.evaluate`, `scovant_core.r2.adapter`.
 - `scovant scan --site-type`.
+- `ScanOptions.technical` (default `True`) lets a host skip Technical Readiness; the CLI, the Action and the MCP tools keep it on.
 - `metrics.technical_readiness_error` (null unless the Technical pass failed; the scan then completes without `readiness`).
 - A robots.txt answering 5xx or 429, or truncated at the fetch cap, makes the robots rules not measured for Technical Readiness (a 404/410 stays a real allow-all).
 - `ScanOptions.site_type` is validated: an unknown value raises `ValueError` before any network I/O.
+- Optional `scovant-core[tokens]` extra with a bundled `o200k_base` vocabulary (never downloaded at runtime; see THIRD_PARTY_NOTICES). `PAGE_TOKEN_BLOAT` is measured with it and not measured (`tokenizer_unavailable`) without it; `[dev]` includes tiktoken.
+- `metrics.technical_gather_errors`; a failed page gather reads `probe_failed:pages`.
+- Pages whose scored content was a bot-protection wall carry `content_blocked`; Technical Readiness treats them as not measured (`bot_protection_blocked` when all pages are walled). The skip applies to Technical Readiness only.
+- `TechnicalOutcome.state` and `scope` are enums in the report schema.
 
 ### Changed
+- A robots.txt, llms.txt, mcp.json or ucp answer with status 429 or 5xx is not measured (never read as allow-all or absent); 404 stays measured.
+- `page_outcome(..., skip_content_blocked=...)` and a `content_blocked` page key: a page whose scored content was a bot-protection wall is not measured. `BUILDER_VERSION` is 5 for hosts using the outcome builder.
 - Any scan whose selected checks do not already fetch a document Technical Readiness needs now fetches it, so `metrics.requests` and `bytes_fetched` are higher than before (a default scan of the commerce fixture went from 33 to 44 requests).
 
 ### Unchanged

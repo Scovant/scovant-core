@@ -30,7 +30,7 @@ def test_constraints_cover_runtime_deps_and_satisfy_ranges():
     pins = _pins()
     meta = tomllib.loads((ROOT / "pyproject.toml").read_text())
     reqs = [Requirement(r) for r in meta["project"]["dependencies"]]
-    reqs += [Requirement(r) for r in meta["project"]["optional-dependencies"]["mcp"]]
+    reqs += [Requirement(r) for extra in ("mcp", "tokens") for r in meta["project"]["optional-dependencies"][extra]]
     for req in reqs:
         name = req.name.lower().replace("_", "-")
         assert name in pins, f"{name} has no pin"

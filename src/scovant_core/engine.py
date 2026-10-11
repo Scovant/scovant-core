@@ -146,14 +146,21 @@ def scan(
         robots_evidence = store.gathered("robots_txt")
         # Technical Readiness (R2). Gathers what it needs itself, so a narrowed
         # --include/--exclude selection reports the same rating as a full scan.
-        from scovant_core.r2.readiness import technical_report  # noqa: PLC0415
-        try:
-            readiness, technical_outcomes = technical_report(store, ctx)
-            technical_error = None
-        except Exception as exc:  # noqa: BLE001 - degrade, never abort the scan
-            readiness, technical_outcomes = None, []
-            technical_error = {"kind": type(exc).__name__,
-                               "message": redact_message(str(exc)[:300], url)}
+        readiness, technical_error = None, None
+        technical_outcomes: list = []
+        technical_gather_errors: list[dict] = []
+        if options.technical:
+            from scovant_core.r2.readiness import technical_report  # noqa: PLC0415
+            try:
+                readiness, technical_outcomes = technical_report(store, ctx)
+            except Exception as exc:  # noqa: BLE001 - degrade, never abort the scan
+                readiness, technical_outcomes = None, []
+                technical_error = {"kind": type(exc).__name__,
+                                   "message": redact_message(str(exc)[:300], url)}
+            technical_gather_errors = [
+                {"name": name, "kind": err.kind, "message": redact_message(err.message, url)}
+                for name, err in sorted(store.errors.items()) if name not in selection_errors
+            ]
     finally:
         client.close()
     # SECURITY-category findings never feed readiness/protocol-adoption
@@ -251,6 +258,9 @@ def scan(
             "security_error_count": security_error_count,
             "ai_crawler_policy": ai_crawler_policy,
             "technical_readiness_error": technical_error,
+            # Gatherers that failed during the Technical pass only (the selection's
+            # own failures are in `gather_error_details`).
+            "technical_gather_errors": technical_gather_errors,
             "protocol_adoption": protocol_adoption(readiness_results),
             "standards": {"agentready_v1": agentready_coverage(readiness_results)},
         },
