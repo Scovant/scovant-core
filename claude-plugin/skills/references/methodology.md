@@ -307,9 +307,9 @@ scoring it is not.
 
 ## Security signals are reported, not scored
 
-The 16 `CORE-SECURITY-*` checks (category "Agentic Security & Trust") sit
-outside the Static Signal Score entirely — by construction, not by
-convention. They never carry a `Category` weight (`CATEGORY_WEIGHTS` has no
+The `CORE-SECURITY-*` checks (category "Agentic Security & Trust") sit
+outside Technical Readiness and the deprecated five-domain score entirely —
+by construction, not by convention. They never carry a `Category` weight (`CATEGORY_WEIGHTS` has no
 `security` key), they never count toward the evidence-coverage denominator,
 and excluding them (`--exclude security`) changes nothing about the
 score, a category score, or any readiness finding's own verdict — this is
@@ -392,8 +392,9 @@ Every report carries `Score.scope` (a property of the **selection**) and
 | `CUSTOM` | `--include`/`--exclude`/`--experimental` narrowed or widened the run (and coverage ≥ 60%) | `NOT_CANONICAL` | No |
 
 A `CUSTOM` scan reports a **Subset Diagnostic Score** rather than the
-Scovant Core Static Signal Score, and the CLI prints "Canonical Core Score:
-NOT CALCULATED" instead of a value — a subset score is useful for local
+Scovant Core Static Signal Score, and the CLI's "Canonical Core Score: NOT
+CALCULATED" line for it now appears only with `--legacy-score` (the
+deprecated five-domain block) — a subset score is useful for local
 debugging of a specific check, but it is not comparable across sites or
 over time the way a canonical score is. With `--legacy-score`,
 `--require-canonical` makes a CI job fail fast when a scan is accidentally

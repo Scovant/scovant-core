@@ -32,7 +32,7 @@ call after that is fast, since `uvx` caches the environment.
 |---|---|---|
 | `scan` | `/scovant:scan <url>` | Runs a Core scan (local, no account) and reports score, grade, and findings with evidence. |
 | `explain` | `/scovant:explain <CHECK-ID>` | Explains one check — why it matters, its limitations, what Scovant Cloud adds, references. |
-| `ci` | `/scovant:ci` | Writes a GitHub Actions workflow that gates a deploy on the Core score. |
+| `ci` | `/scovant:ci` | Writes a GitHub Actions workflow that gates a deploy on the Technical Readiness rating. |
 | `cloud` | `/scovant:cloud` | Drives Scovant Cloud (sites, scans, regressions, fix plans) through your own API key. |
 
 ## Scovant Cloud (optional)
