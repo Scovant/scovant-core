@@ -8,6 +8,44 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.19.0] - 2026-10-12
+
+`ruleset_version` UNCHANGED (`2026.10`); `ruleset_digest` changes once,
+`7f440d6205c3` → `e7426fb13abe` (it no longer folds in the five-domain
+scoring constants; the checks and their versions are unchanged). Technical
+model ids unchanged. Report `schema_version` is `2.0`.
+
+**BREAKING: the five-domain Static Signal Score is removed.** Technical
+Readiness (`readiness.technical`) is Core's only rating. Removed: the
+report's `score` and `categories`, `scovant_core.scoring`, the CLI flag
+`--legacy-score`, the Action input `legacy-score` and output
+`legacy_score`, the MCP `legacy_score`, the contribute payload's `score`
+and `score_status`, and the per-check `weight` (report findings,
+`docs/checks.md`). Checks are diagnostics: each keeps its verdict, severity,
+confidence and evidence, and none carries a weight.
+
+### Removed
+- Report `score` and `categories` (schema 2.0) and the per-finding `weight`.
+- `scovant scan --legacy-score` (now an argparse error, exit 2) and the gate hint that pointed to it.
+- Action input `legacy-score` and output `legacy_score`; MCP `legacy_score` in the `summary` format and in `get_core_score`.
+- `--contribute` payload fields `score` and `score_status`.
+- The `PARTIAL` scan scope (it was a property of the five-domain coverage).
+
+### Changed
+- `provenance.scan_scope` comes from the check selection alone: `CUSTOM` with `--include`/`--exclude`/`--experimental`, else `CANONICAL`. An errored full scan now reads `CANONICAL`; how far its evidence can be trusted is Technical Readiness's own `status` (`OK`/`DEGRADED`/`INSUFFICIENT_EVIDENCE`).
+- Reports label a `CUSTOM` scan "Scope: CUSTOM (subset of checks)".
+- `--contribute` sends only a `CANONICAL` scan whose Technical Readiness status is `OK`; otherwise the CLI prints `contributed: skipped (…)` with the reason.
+- `--experimental` now means "run the experimental checks too" (scope `CUSTOM`); it no longer folds them into any score.
+- "Top issue" (Action summary, reports) and the top findings rank by severity (critical first), then FAIL before WARN, then check id — no weight.
+- MCP `scan_site` (`findings` format) carries `technical` and `scan_scope` at the top level (0.18.0 nested them under `score`).
+
+### Migration
+- **CLI:** drop `--legacy-score`. `--min-score` and `--require-canonical` already gate on Technical Readiness (since 0.18.0). A script that read `score.value`/`score.grade`/`score.status` from the JSON report reads `readiness.technical.rating`/`grade`/`status`; one that read `score.scope` reads `provenance.scan_scope`. Do not treat `CANONICAL` as "the evidence was complete" — check `readiness.technical.status` (or pass `--require-canonical`).
+- **GitHub Action:** remove the `legacy-score` input (an unknown input now only produces a warning, and `min-core-score` compares the Technical Readiness rating) and any read of the `legacy_score` output. `score`, `grade`, `coverage`, `score_status` and `model_id` are Technical Readiness, as in 0.18.0; `scan_scope` is `CANONICAL` or `CUSTOM`. Use `score_status` or `require-canonical: 'true'` to require complete evidence.
+- **MCP clients:** read `technical`/`scan_scope` at the top level of `scan_site`'s `findings` format; `legacy_score` is gone from `summary` and `get_core_score`.
+- **Tools comparing digests:** `ruleset_digest` changed once with `ruleset_version` unchanged; the checks themselves did not change.
+- **`--contribute`:** a scan whose Technical Readiness status is `DEGRADED` or `INSUFFICIENT_EVIDENCE` is no longer sent (the CLI prints why); re-run with full evidence to contribute.
+
 ## [0.18.0] - 2026-10-12
 
 `ruleset_version` UNCHANGED (`2026.10`). Technical model ids unchanged.

@@ -4,7 +4,8 @@ Core runs two different things over the same gathered evidence:
 
 - **checks** (`checks.registry.CHECKS`) — diagnostics, each with its own
   verdict, evidence and limitations, carrying no weight in the
-  Technical Readiness rating (the deprecated five-domain score still reads them);
+  Technical Readiness rating (the five-domain score that was computed from
+  them was removed in 0.19.0);
 - **readiness rules** — the rules the Technical Readiness rating is computed
   from (`scovant_core.rules.RULES`), plus the agent-only rules that need
   Scovant Cloud's agent execution and that Core therefore never evaluates.
@@ -251,8 +252,8 @@ def render_markdown() -> str:
          f"{c['cloud_only_rules']} need Scovant Cloud's agent execution)."),
         "",
         ("Checks are diagnostics: each reports its own verdict and evidence and carries no weight "
-         "in the Technical Readiness rating (the deprecated five-domain score, due to be removed in 0.19.0, "
-         "is still computed from checks). "
+         "in the Technical Readiness rating (the five-domain score that was computed from checks "
+         "was removed in 0.19.0). "
          "The Technical Readiness rating is computed from the Core-evaluated rules, over the same "
          "gathered evidence. The agent-only rules need an agent fetch that only "
          "Scovant Cloud performs, so Core lists them but never evaluates them. This table says, "

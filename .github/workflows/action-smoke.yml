@@ -21,14 +21,13 @@ jobs:
             sleep 0.5
           done
           [[ "$ready" == "1" ]] || { echo "fixture server did not start" && exit 1; }
-      # Technical Readiness (0.18.0 — the `score`/`grade` outputs) is 86/B
+      # Technical Readiness (the `score`/`grade` outputs) is 86/B
       # here today: CORE-ACCESS-001 requires the final URL to be served over
       # HTTPS (this is a plain-http loopback target), commerce-good's
       # canonical/references are hardcoded to https://example.com, and the
       # MCP handshake is never performed by Core. The gate is set to 80 so it
       # still exercises a real (passing) threshold check rather than always
-      # being a no-op. The deprecated five-domain score is `legacy_score`
-      # (91 today).
+      # being a no-op.
       - name: Scan the fixture server
         id: scan
         uses: ./
@@ -45,7 +44,7 @@ jobs:
           [[ "${{ steps.scan.outputs.grade }}" == "B" ]]
           [[ "${{ steps.scan.outputs.score_status }}" == "OK" ]]
           [[ "${{ steps.scan.outputs.model_id }}" == R2.1@* ]]
-          (( "${{ steps.scan.outputs.legacy_score }}" >= 85 ))
+          [[ "${{ steps.scan.outputs.scan_scope }}" == "CANONICAL" ]]
           # The action's own "out" step already wrote the step summary — but
           # into ITS OWN step's summary file. GitHub gives every step a
           # fresh, separate GITHUB_STEP_SUMMARY, so reading that variable

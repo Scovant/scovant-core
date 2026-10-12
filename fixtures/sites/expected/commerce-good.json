@@ -1,43 +1,6 @@
 {
-  "categories": {
-    "access": {
-      "applicable_weight": 25.0,
-      "evaluated_weight": 25.0,
-      "score": 100.0,
-      "title": "Access & Discovery",
-      "weight": 25
-    },
-    "interfaces": {
-      "applicable_weight": 5.0,
-      "evaluated_weight": 5.0,
-      "score": 100.0,
-      "title": "Agent Interfaces",
-      "weight": 20
-    },
-    "machine": {
-      "applicable_weight": 23.0,
-      "evaluated_weight": 23.0,
-      "score": 100.0,
-      "title": "Machine Understanding",
-      "weight": 25
-    },
-    "operability": {
-      "applicable_weight": 16.0,
-      "evaluated_weight": 16.0,
-      "score": 100.0,
-      "title": "Operability & Efficiency",
-      "weight": 15
-    },
-    "trust": {
-      "applicable_weight": 15.0,
-      "evaluated_weight": 15.0,
-      "score": 100.0,
-      "title": "Trust & Commerce",
-      "weight": 15
-    }
-  },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.18.0",
+  "core_version": "0.19.0",
   "findings": [
     {
       "category": "access",
@@ -65,7 +28,6 @@
       "summary": "HTTPS entry URL answered 200.",
       "title": "HTTPS reachability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "An agent that cannot complete a request against the entry URL cannot use anything else the site declares."
     },
     {
@@ -96,7 +58,6 @@
       "summary": "robots.txt answered 200 with a well-formed policy.",
       "title": "robots.txt availability and syntax",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "robots.txt is the first document a crawler checks; a broken or unreachable one forces every crawler to guess."
     },
     {
@@ -137,7 +98,6 @@
       "summary": "robots.txt declares all major search and answer-engine crawlers as allowed.",
       "title": "AI search crawler policy",
       "verification_mode": "DECLARED",
-      "weight": 4,
       "why_it_matters": "Search and answer engines only surface pages their crawlers are declared allowed to fetch."
     },
     {
@@ -169,7 +129,6 @@
       "summary": "Training/content-use crawler(s) GPTBot, Google-Extended are restricted while search/retrieval crawlers remain allowed.",
       "title": "Training vs. search crawler separation",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A site that wants to opt out of AI training without also losing answer-engine visibility needs the two crawler classes declared separately."
     },
     {
@@ -202,7 +161,6 @@
       "summary": "A valid urlset sitemap was found at https://example.com/sitemap.xml.",
       "title": "Sitemap availability",
       "verification_mode": "DECLARED",
-      "weight": 3,
       "why_it_matters": "A sitemap is the most reliable way for a crawler to discover a site's full page inventory without following every link."
     },
     {
@@ -231,7 +189,6 @@
       "summary": "Sitemap lastmod values look plausible.",
       "title": "Sitemap freshness",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A stale or suspiciously uniform lastmod signal gives a crawler no reliable way to prioritise re-crawling changed pages."
     },
     {
@@ -257,7 +214,6 @@
       "summary": "The canonical URL matches the entry URL.",
       "title": "Canonical URL integrity",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A broken or off-host canonical tells agents the entry page's authoritative content lives somewhere else."
     },
     {
@@ -283,7 +239,6 @@
       "summary": "The entry page does not declare noindex.",
       "title": "Indexability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A page that declares noindex tells every compliant crawler, agents included, to leave it out of any index."
     },
     {
@@ -313,7 +268,6 @@
       "summary": "llms.txt is well-formed and its 2 checked references resolve.",
       "title": "llms.txt presence and integrity",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A well-formed llms.txt gives agents a curated map of the pages worth reading; a broken one sends them to dead links."
     },
     {
@@ -344,7 +298,6 @@
       "summary": "Content-Signal is declared and internally consistent.",
       "title": "Content-Signal declaration",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "Content-Signal lets a site state search/AI-input/AI-training intent per dimension instead of leaving agents to guess from Disallow rules alone."
     },
     {
@@ -373,7 +326,6 @@
       "summary": "llms.txt links useful same-origin pages and carries no misplaced policy or template text.",
       "title": "llms.txt utility",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility."
     },
     {
@@ -406,7 +358,6 @@
       "summary": "An MCP discovery file is published and well-formed.",
       "title": "MCP discovery presence",
       "verification_mode": "DECLARED",
-      "weight": 3,
       "why_it_matters": "A published MCP discovery file (or server card) is how an agent finds this site's own tool interface instead of falling back to browser-shaped scraping."
     },
     {
@@ -431,7 +382,6 @@
       "summary": "Every declared MCP server has a name, url, transport, and a real description.",
       "title": "MCP server declaration quality",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent choosing among declared MCP servers needs a name, a URL, a transport, and a real description for each one — a bare, undescribed entry forces the agent to guess how to connect and why it should bother."
     },
     {
@@ -457,7 +407,6 @@
       "summary": "No static WebMCP marker was found on the sampled pages.",
       "title": "WebMCP static presence",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A static WebMCP marker (an inline registration script, or a `<link rel=\"modelcontext\">`/`<meta name=\"webmcp\">` declaration) signals the page intends to expose in-browser tools to an agent."
     },
     {
@@ -484,7 +433,6 @@
       "summary": "No WebMCP tool registration was found on the sampled pages.",
       "title": "WebMCP tool declaration quality",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered."
     },
     {
@@ -507,7 +455,6 @@
       "summary": "Not applicable to the commerce profile.",
       "title": "OpenAPI discovery",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A discoverable OpenAPI document lets an agent understand and call this API's surface directly instead of reverse-engineering it from prose docs."
     },
     {
@@ -530,7 +477,6 @@
       "summary": "Not applicable to the commerce profile.",
       "title": "OAuth authorization-server metadata",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent that must authenticate to call this API needs RFC 8414 authorization-server metadata to discover the endpoints itself, rather than a human copying them out of docs."
     },
     {
@@ -553,7 +499,6 @@
       "summary": "Not applicable to the commerce profile.",
       "title": "OAuth protected-resource metadata",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent that receives a 401 from a protected API needs RFC 9728 protected-resource metadata to discover which authorization server to talk to, instead of dead-ending."
     },
     {
@@ -588,7 +533,6 @@
       "summary": "A UCP profile is published and valid.",
       "title": "UCP profile validity",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy."
     },
     {
@@ -611,7 +555,6 @@
       "summary": "Not applicable to the commerce profile.",
       "title": "Agent discovery surface presence",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there."
     },
     {
@@ -654,7 +597,6 @@
       "summary": "Every JSON-LD block on the sampled pages parses as valid JSON.",
       "title": "JSON-LD parseability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A structured-data block an agent's parser cannot read is worse than no block: it promises machine-readable data and then withholds it."
     },
     {
@@ -685,7 +627,6 @@
       "summary": "An Organization entity declares name and url.",
       "title": "Organization entity",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "An agent trying to identify who operates a site (for trust, citation, or contact) needs a machine-readable Organization entity, not just a human-facing 'About' page."
     },
     {
@@ -711,7 +652,6 @@
       "summary": "A WebSite or WebPage entity was found on the sampled pages.",
       "title": "WebSite/WebPage entity",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A WebSite or WebPage entity anchors the rest of a site's structured data to a concrete machine-readable resource."
     },
     {
@@ -740,7 +680,6 @@
       "summary": "A sampled product page exposes a Product entity with an identifier.",
       "title": "Product structured data",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 4,
       "why_it_matters": "An agent completing a purchase needs a machine-readable Product entity with stable identifiers, not just human-facing catalog copy."
     },
     {
@@ -769,7 +708,6 @@
       "summary": "The product's Offer declares price, currency, and availability.",
       "title": "Offer price, currency, and availability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 4,
       "why_it_matters": "An agent cannot decide whether to buy without knowing the price, currency, and stock status up front."
     },
     {
@@ -799,7 +737,6 @@
       "summary": "Product entities declare two or more stable identifiers.",
       "title": "Product identifier count",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "Two or more stable identifiers (sku, gtin, mpn, brand, ...) let an agent match the same product across catalogs and marketplaces with confidence; a single identifier is a weak, ambiguous match."
     },
     {
@@ -829,7 +766,6 @@
       "summary": "A sampled non-entry page declares a BreadcrumbList.",
       "title": "Breadcrumbs",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A BreadcrumbList tells an agent where a page sits in a site's hierarchy without it having to infer structure from navigation markup."
     },
     {
@@ -858,7 +794,6 @@
       "summary": "The entry page declares title, description, and Open Graph tags.",
       "title": "Metadata quality",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "Title, description, and Open Graph tags are the first summary an agent (or a link preview) sees of a page."
     },
     {
@@ -890,7 +825,6 @@
       "summary": "The entry page has a single H1 and no skipped heading levels.",
       "title": "Heading structure",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "A single, well-nested heading outline is how an agent (or a screen reader) infers a page's structure without reading every word."
     },
     {
@@ -916,7 +850,6 @@
       "summary": "The entry page declares a valid `lang` attribute.",
       "title": "Language declaration",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A valid `lang` attribute lets an agent (or a translation/screen-reader tool) know what language a page's content is in without guessing."
     },
     {
@@ -946,7 +879,6 @@
       "summary": "1/1 images have an alt attribute (ratio 100%).",
       "title": "Image alt coverage",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "Alt text (or a deliberate empty/decorative alt) is how an agent that cannot see an image learns what it shows."
     },
     {
@@ -981,7 +913,6 @@
       "summary": "The structured price matches a visible price on the page.",
       "title": "Visible vs. structured price",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy."
     },
     {
@@ -1008,7 +939,6 @@
       "summary": "The entry page's static HTML carries 337 chars of visible text.",
       "title": "Server-rendered core content",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "Most agent HTTP clients never execute JavaScript — if the core content only appears after client-side rendering, an agent reading the raw response sees an empty shell."
     },
     {
@@ -1034,7 +964,6 @@
       "summary": "The entry URL redirects 0 time(s) before settling.",
       "title": "Redirect chain complexity",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "Every redirect hop is a round trip an agent pays for before it reaches real content; a long or looping chain wastes budget CORE-ACCESS-001 already spent getting there."
     },
     {
@@ -1061,7 +990,6 @@
       "summary": "The entry response carries an ETag or Last-Modified validator.",
       "title": "Cache validators",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "Without an ETag or Last-Modified, an agent revisiting a page can never issue a conditional GET — it re-downloads the full page every time."
     },
     {
@@ -1097,7 +1025,6 @@
       "summary": "All 6 checked machine-consumable reference(s) resolve.",
       "title": "Broken machine-consumable endpoints",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A declared machine reference that 404s wastes an agent's time and budget following a dead link the site itself pointed it at."
     },
     {
@@ -1131,7 +1058,6 @@
       "summary": "The entry page's estimated parse cost is ~84 tokens (low).",
       "title": "Agent parse cost",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "Every token of markup and script an agent parses before reaching real content is budget it can't spend understanding the page — a bloated entry page costs every agent that visits it, on every visit."
     },
     {
@@ -1162,7 +1088,6 @@
       "summary": "No forms were found on any sampled page.",
       "title": "Form/control labels",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "An agent filling out a form has to guess an unlabeled input's purpose from placeholder text or surrounding prose alone — a labeled control is the difference between a reliable fill and a guess."
     },
     {
@@ -1185,7 +1110,6 @@
       "summary": "Machine reference integrity was not evaluated (experimental off).",
       "title": "Machine reference integrity",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it."
     },
     {
@@ -1214,7 +1138,6 @@
       "summary": "Unknown paths answer with a real 404.",
       "title": "Unknown paths return 404",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "An agent that receives HTTP 200 for a path that does not exist cannot tell a missing page from a real one; it may read an error template as content or cache a phantom URL."
     },
     {
@@ -1239,7 +1162,6 @@
       "summary": "No 429 response was observed during this scan.",
       "title": "Rate limiting is signalled",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A 429 without Retry-After leaves an agent guessing when to come back; with it, a well-behaved agent backs off exactly as long as the server asks."
     },
     {
@@ -1266,7 +1188,6 @@
       "summary": "No challenge page is served with HTTP 200.",
       "title": "Challenge pages are not served as 200",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "A human-verification page returned with HTTP 200 is read by an agent as the page's content: it will summarise, quote or cache the challenge as if it were the site."
     },
     {
@@ -1319,7 +1240,6 @@
       "summary": "3 of 3 machine surface(s) are not linked from anything an agent reads: llms_txt, mcp, ucp.",
       "title": "Discovery linkage",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. This measures declared, link-based discoverability — whether a real agent finds it is Scovant Cloud's measurement."
     },
     {
@@ -1350,7 +1270,6 @@
       "summary": "Served over https; http:// redirects to https.",
       "title": "HTTPS baseline",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "An agent that can be downgraded to plain HTTP can be read and rewritten in transit; the entry URL's scheme and the http→https redirect are the two externally observable signals."
     },
     {
@@ -1379,7 +1298,6 @@
       "summary": "No Strict-Transport-Security header.",
       "title": "HSTS presence",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "Strict-Transport-Security keeps a returning agent on https even when it is handed an http:// link."
     },
     {
@@ -1410,7 +1328,6 @@
       "summary": "Neither Content-Security-Policy nor X-Frame-Options is sent.",
       "title": "Content-Security-Policy / framing policy",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A framing policy stops a page being embedded and click-jacked; a CSP is the declared allow-list agents can read. Neither alone proves XSS protection, and this check never claims it."
     },
     {
@@ -1436,7 +1353,6 @@
       "summary": "No cookies set on the entry response.",
       "title": "Security-relevant cookie attributes",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "A session-like cookie without Secure/HttpOnly/SameSite can be stolen or replayed by an agent-driven page; only names and attribute flags are inspected, never values."
     },
     {
@@ -1469,8 +1385,7 @@
       "summary": "Missing: referrer-policy, x-content-type-options.",
       "title": "Referrer / MIME hygiene headers",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
-      "why_it_matters": "Two low-cost headers that stop URL leakage and MIME sniffing; informational weight only."
+      "why_it_matters": "Two low-cost headers that stop URL leakage and MIME sniffing; informational only."
     },
     {
       "category": "security",
@@ -1502,7 +1417,6 @@
       "summary": "security.txt is at the canonical location, has Contact and a future Expires.",
       "title": "security.txt validity (RFC 9116)",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "An expired or mis-located security.txt sends a reporter (human or agent) to a dead contact; CORE-TRUST-006 reports presence, this check reports validity."
     },
     {
@@ -1539,7 +1453,6 @@
       "summary": "No credential-like values in the gathered machine-facing surfaces.",
       "title": "Credential-like value exposed in a machine-facing surface",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "llms.txt, discovery files and schemas are read verbatim by agents; a live key there is copied into every agent's context window."
     },
     {
@@ -1568,7 +1481,6 @@
       "summary": "No internal network references found.",
       "title": "Internal network reference exposed",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "Private addresses, metadata endpoints and internal hostnames in public documents map the inside of a deployment; not a vulnerability by itself, hence low severity."
     },
     {
@@ -1604,7 +1516,6 @@
       "summary": "No administrative/destructive interfaces advertised.",
       "title": "Privileged endpoint advertised to agents",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "An agent-facing declaration of an admin or destructive interface invites its use; Core reports the declaration only."
     },
     {
@@ -1630,7 +1541,6 @@
       "summary": "No machine schema gathered.",
       "title": "Sensitive field advertised in a machine schema",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "A schema that names a password field is normal; one that ships a sample or real value for it is a leak. The classification distinguishes the three."
     },
     {
@@ -1665,7 +1575,6 @@
       "summary": "No indicators found.",
       "title": "Hidden machine-facing imperative instructions",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "Text a human never sees but an agent reads verbatim is the classic indirect-injection carrier."
     },
     {
@@ -1700,7 +1609,6 @@
       "summary": "No indicators found.",
       "title": "Sensitive-information request instruction",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "A machine-facing request to disclose credentials or private data is the exfiltration half of an injection."
     },
     {
@@ -1735,7 +1643,6 @@
       "summary": "No indicators found.",
       "title": "External transmission instruction",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "An instruction to send data to a third-party host is a data-exfiltration attempt if an agent obeys it."
     },
     {
@@ -1770,7 +1677,6 @@
       "summary": "No indicators found.",
       "title": "Policy/role override language",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "\"Ignore previous instructions\" and friends have no legitimate place in site content."
     },
     {
@@ -1805,7 +1711,6 @@
       "summary": "No indicators found.",
       "title": "Human ↔ machine instruction divergence",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "Instructions present in the machine mirror but absent from the visible page are addressed to agents only."
     },
     {
@@ -1840,7 +1745,6 @@
       "summary": "No indicators found.",
       "title": "Tool/server description trust risk",
       "verification_mode": "DECLARED",
-      "weight": 1,
       "why_it_matters": "A tool description is injected into the agent's context on every call; unrelated instructions or hidden Unicode there are a supply-chain injection vector."
     },
     {
@@ -1876,7 +1780,6 @@
       "summary": "OAuth protected-resource metadata is not published",
       "title": "OAuth protected-resource metadata consistency",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "An agent obtains a token for the `resource` this document names. When that names a different origin, or points at authorization servers over plain HTTP, tokens are no longer bound to this server and can be minted, replayed or intercepted elsewhere."
     },
     {
@@ -1912,7 +1815,6 @@
       "summary": "OAuth authorization-server metadata is not published",
       "title": "OAuth authorization-server metadata consistency",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 1,
       "why_it_matters": "An agent client trusts this document to tell it who issues tokens and where to send the user. An issuer that does not match where the document is served, endpoints over plain HTTP, or no advertised PKCE/issuer-identification leave room for mix-up and code interception attacks."
     },
     {
@@ -1938,7 +1840,6 @@
       "summary": "A contact or support link was found on the entry page.",
       "title": "Contact/support discoverability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 2,
       "why_it_matters": "An agent acting on a user's behalf needs a way to escalate to a human — a contact, support, or mailto link — when it hits a case it cannot resolve itself."
     },
     {
@@ -1966,7 +1867,6 @@
       "summary": "A shipping policy page was found with substantive content.",
       "title": "Shipping policy discoverability",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent completing a purchase on a user's behalf needs to know shipping cost and timing before it commits to checkout — a missing or unreadable shipping policy forces it to guess or abandon the order."
     },
     {
@@ -1994,7 +1894,6 @@
       "summary": "A returns/refund policy page was found with substantive content.",
       "title": "Returns/refund policy discoverability",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent purchasing on a user's behalf needs to know whether and how a purchase can be returned before it commits — a missing or unreadable returns policy is a real trust gap, not a cosmetic one."
     },
     {
@@ -2022,7 +1921,6 @@
       "summary": "A privacy policy page was found with substantive content.",
       "title": "Privacy policy discoverability",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent (and the human on whose behalf it acts) needs to know what data a site collects and how it is used before submitting any personal or payment information — a site with no privacy page at all is a real defect, not an omission."
     },
     {
@@ -2050,7 +1948,6 @@
       "summary": "A terms/conditions page was found with substantive content.",
       "title": "Terms/conditions discoverability",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "An agent transacting with a site — buying, subscribing, or calling an API — needs the terms it is agreeing to on behalf of a user to be readable, not buried behind a broken or missing link."
     },
     {
@@ -2079,7 +1976,6 @@
       "summary": "A valid security.txt was found with a contact method.",
       "title": "security.txt discoverability",
       "verification_mode": "DECLARED",
-      "weight": 2,
       "why_it_matters": "A security researcher — human or an automated scanner — needs a documented way to report a vulnerability; an agent auditing a site's operational maturity reads security.txt as that signal."
     },
     {
@@ -2105,7 +2001,6 @@
       "summary": "Prices are exposed as structured product data.",
       "title": "Pricing discoverability",
       "verification_mode": "PASSIVE_OBSERVED",
-      "weight": 3,
       "why_it_matters": "An agent comparing options or completing a purchase on a user's behalf needs a readable price — one it can extract as text or structured data, not one rendered only by client-side script."
     }
   ],
@@ -2231,12 +2126,10 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "canonical_min_coverage": 0.85,
-    "core_version": "0.18.0",
+    "core_version": "0.19.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
-    "evidence_min_coverage": 0.6,
     "excluded_checks": [],
     "experimental": false,
     "included_checks": [],
@@ -2245,11 +2138,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "7f440d6205c3",
+    "ruleset_digest": "e7426fb13abe",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.18.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.19.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2304,17 +2197,7 @@
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
-  "schema_version": "1.2",
-  "score": {
-    "coverage": 1.0,
-    "deprecated": true,
-    "grade": "A",
-    "name": "Scovant Core Static Signal Score",
-    "replaced_by": "readiness.technical",
-    "scope": "CANONICAL",
-    "status": "OK",
-    "value": 100
-  },
+  "schema_version": "2.0",
   "security": {
     "by_domain": {
       "auth": {

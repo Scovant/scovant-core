@@ -13,7 +13,6 @@ class OfferCompleteness(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
-    weight = 4
     severity_on_fail = Severity.HIGH
     references = ("https://schema.org/Offer",)
     why_it_matters = "An agent cannot decide whether to buy without knowing the price, currency, and stock status up front."

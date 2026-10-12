@@ -14,7 +14,6 @@ class PrivacyPolicyDiscoverability(CoreCheck):
     title = "Privacy policy discoverability"
     category = Category.TRUST
     verification_mode = "DECLARED"
-    weight = 2
     severity_on_fail = Severity.HIGH
     references = ("https://schema.org/PrivacyPolicy",)
     why_it_matters = (

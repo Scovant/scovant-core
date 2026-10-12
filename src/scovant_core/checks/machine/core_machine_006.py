@@ -14,7 +14,6 @@ class ProductIdentifierCount(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://schema.org/Product",)
     why_it_matters = "Two or more stable identifiers (sku, gtin, mpn, brand, ...) let an agent match the same product across catalogs and marketplaces with confidence; a single identifier is a weak, ambiguous match."

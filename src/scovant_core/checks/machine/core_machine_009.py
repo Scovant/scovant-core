@@ -11,7 +11,6 @@ class HeadingStructure(CoreCheck):
     title = "Heading structure"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://www.w3.org/WAI/tutorials/page-structure/headings/",)
     why_it_matters = "A single, well-nested heading outline is how an agent (or a screen reader) infers a page's structure without reading every word."

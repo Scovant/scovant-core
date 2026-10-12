@@ -14,13 +14,13 @@
 ## Top findings
 
 - **CORE-ACCESS-003** — robots.txt declares every major search and answer-engine crawler as disallowed. User-triggered fetch agents blocked: ChatGPT-User, Claude-User, Perplexity-User, DuckAssistBot.
-- **CORE-MACHINE-005** — The Product entity has no Offer with price, currency, or availability.
-- **CORE-ACCESS-005** — No sitemap was found.
-- **CORE-ACCESS-007** — The canonical URL points off-host.
 - **CORE-ACCESS-008** — The entry page declares noindex.
+- **CORE-MACHINE-005** — The Product entity has no Offer with price, currency, or availability.
 - **CORE-OPERABILITY-004** — 2 of 2 machine-consumable reference(s) do not resolve.
-- **CORE-ACCESS-002** — robots.txt disallows all crawlers from the entire site.
 - **CORE-TRUST-004** — No privacy policy page was found linked from the entry page.
+- **CORE-MACHINE-004** — A Product entity exists but carries no identifiers.
+- **CORE-ACCESS-002** — robots.txt disallows all crawlers from the entire site.
+- **CORE-ACCESS-005** — No sitemap was found.
 - **[security]** **CORE-SECURITY-003** — Neither Content-Security-Policy nor X-Frame-Options is sent.
 - **[security]** **CORE-SECURITY-006** — Expires is in the past.
 - **[security]** **CORE-SECURITY-002** — No Strict-Transport-Security header.
@@ -839,7 +839,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

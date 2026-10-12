@@ -15,7 +15,6 @@ class CacheValidators(CoreCheck):
     title = "Cache validators"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 1
     severity_on_fail = Severity.INFO
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-validator-fields",)
     why_it_matters = "Without an ETag or Last-Modified, an agent revisiting a page can never issue a conditional GET — it re-downloads the full page every time."

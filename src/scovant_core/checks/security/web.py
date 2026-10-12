@@ -174,7 +174,7 @@ class ReferrerMimeHygiene(_Web):
     severity_on_fail = Severity.LOW
     references = ("https://www.w3.org/TR/referrer-policy/",)
     standards = ("Referrer Policy", "X-Content-Type-Options")
-    why_it_matters = "Two low-cost headers that stop URL leakage and MIME sniffing; informational weight only."
+    why_it_matters = "Two low-cost headers that stop URL leakage and MIME sniffing; informational only."
 
     def evaluate(self, store, ctx):
         http = store.get("http")

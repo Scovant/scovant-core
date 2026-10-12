@@ -6,19 +6,19 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Access & Discovery
 
-| ID | Title | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|
-| CORE-ACCESS-001 | HTTPS reachability | 2 | all | critical | no |
-| CORE-ACCESS-002 | robots.txt availability and syntax | 2 | all | medium | no |
-| CORE-ACCESS-003 | AI search crawler policy | 4 | all | high | no |
-| CORE-ACCESS-004 | Training vs. search crawler separation | 2 | all | low | no |
-| CORE-ACCESS-005 | Sitemap availability | 3 | all | medium | no |
-| CORE-ACCESS-006 | Sitemap freshness | 2 | all | low | no |
-| CORE-ACCESS-007 | Canonical URL integrity | 3 | all | medium | no |
-| CORE-ACCESS-008 | Indexability | 3 | all | high | no |
-| CORE-ACCESS-009 | llms.txt presence and integrity | 2 | all | low | no |
-| CORE-ACCESS-010 | Content-Signal declaration | 2 | all | low | no |
-| CORE-ACCESS-011 | llms.txt utility | 1 | all | info | yes |
+| ID | Title | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|
+| CORE-ACCESS-001 | HTTPS reachability | all | critical | no |
+| CORE-ACCESS-002 | robots.txt availability and syntax | all | medium | no |
+| CORE-ACCESS-003 | AI search crawler policy | all | high | no |
+| CORE-ACCESS-004 | Training vs. search crawler separation | all | low | no |
+| CORE-ACCESS-005 | Sitemap availability | all | medium | no |
+| CORE-ACCESS-006 | Sitemap freshness | all | low | no |
+| CORE-ACCESS-007 | Canonical URL integrity | all | medium | no |
+| CORE-ACCESS-008 | Indexability | all | high | no |
+| CORE-ACCESS-009 | llms.txt presence and integrity | all | low | no |
+| CORE-ACCESS-010 | Content-Signal declaration | all | low | no |
+| CORE-ACCESS-011 | llms.txt utility | all | info | yes |
 
 ### CORE-ACCESS-001 — HTTPS reachability
 
@@ -156,7 +156,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility.
 
-**Status:** experimental · scored: no · reason: An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility. · promotion: ≥ 500 canonical scans with an llms.txt present; a false-positive review of the summary-length and placeholder heuristics; a documented link between the utility signal and agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: An llms.txt that links nothing useful, states crawler policy no crawler enforces, or is an untouched template gives agents nothing — adoption is not utility. · promotion: ≥ 500 canonical scans with an llms.txt present; a false-positive review of the summary-length and placeholder heuristics; a documented link between the utility signal and agent retrieval outcomes; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Heuristics over the file text; a WARN is a prompt to review the file, not a defect. A bare `Disallow: /` in the robots.txt general (default) group does not itself count as an AI-crawler declaration for policy_misuse — only an allow/disallow entry declared under one of the registered AI agent tokens counts; a `Content-Signal:` directive can independently satisfy the same check. Experimental: never scored.
 
@@ -168,20 +168,20 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Machine Understanding
 
-| ID | Title | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|
-| CORE-MACHINE-001 | JSON-LD parseability | 3 | all | medium | no |
-| CORE-MACHINE-002 | Organization entity | 2 | all | medium | no |
-| CORE-MACHINE-003 | WebSite/WebPage entity | 1 | all | low | no |
-| CORE-MACHINE-004 | Product structured data | 4 | commerce | high | no |
-| CORE-MACHINE-005 | Offer price, currency, and availability | 4 | commerce | high | no |
-| CORE-MACHINE-006 | Product identifier count | 2 | commerce | medium | no |
-| CORE-MACHINE-007 | Breadcrumbs | 1 | commerce, content, saas | low | no |
-| CORE-MACHINE-008 | Metadata quality | 2 | all | low | no |
-| CORE-MACHINE-009 | Heading structure | 2 | all | low | no |
-| CORE-MACHINE-010 | Language declaration | 1 | all | low | no |
-| CORE-MACHINE-011 | Image alt coverage | 1 | commerce, content | medium | no |
-| CORE-MACHINE-012 | Visible vs. structured price | 3 | commerce | medium | yes |
+| ID | Title | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|
+| CORE-MACHINE-001 | JSON-LD parseability | all | medium | no |
+| CORE-MACHINE-002 | Organization entity | all | medium | no |
+| CORE-MACHINE-003 | WebSite/WebPage entity | all | low | no |
+| CORE-MACHINE-004 | Product structured data | commerce | high | no |
+| CORE-MACHINE-005 | Offer price, currency, and availability | commerce | high | no |
+| CORE-MACHINE-006 | Product identifier count | commerce | medium | no |
+| CORE-MACHINE-007 | Breadcrumbs | commerce, content, saas | low | no |
+| CORE-MACHINE-008 | Metadata quality | all | low | no |
+| CORE-MACHINE-009 | Heading structure | all | low | no |
+| CORE-MACHINE-010 | Language declaration | all | low | no |
+| CORE-MACHINE-011 | Image alt coverage | commerce, content | medium | no |
+| CORE-MACHINE-012 | Visible vs. structured price | commerce | medium | yes |
 
 ### CORE-MACHINE-001 — JSON-LD parseability
 
@@ -326,7 +326,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy.
 
-**Status:** experimental · scored: no · reason: An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy. · promotion: ≥ 300 canonical scans of commerce product pages, sampling more than the first product page found; a false-positive review of the visible-price regex across non-Latin digits and currency formats it does not yet match; a measured visible-versus-structured disagreement rate stable across two consecutive corpus snapshots; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy. · promotion: ≥ 300 canonical scans of commerce product pages, sampling more than the first product page found; a false-positive review of the visible-price regex across non-Latin digits and currency formats it does not yet match; a measured visible-versus-structured disagreement rate stable across two consecutive corpus snapshots; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** This is a fragile heuristic: the visible-price regex only matches a narrow set of currency-marked formats, and it compares only the first product page found.
 
@@ -338,17 +338,17 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Agent Interfaces
 
-| ID | Title | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|
-| CORE-INTERFACE-001 | MCP discovery presence | 3 | all | medium | no |
-| CORE-INTERFACE-002 | MCP server declaration quality | 2 | all | low | no |
-| CORE-INTERFACE-003 | WebMCP static presence | 3 | all | low | no |
-| CORE-INTERFACE-004 | WebMCP tool declaration quality | 2 | all | low | yes |
-| CORE-INTERFACE-005 | OpenAPI discovery | 2 | api, saas | medium | no |
-| CORE-INTERFACE-006 | OAuth authorization-server metadata | 2 | api, saas | medium | no |
-| CORE-INTERFACE-007 | OAuth protected-resource metadata | 2 | api, saas | medium | no |
-| CORE-INTERFACE-008 | UCP profile validity | 2 | commerce | medium | yes |
-| CORE-INTERFACE-009 | Agent discovery surface presence | 2 | api, saas | low | yes |
+| ID | Title | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|
+| CORE-INTERFACE-001 | MCP discovery presence | all | medium | no |
+| CORE-INTERFACE-002 | MCP server declaration quality | all | low | no |
+| CORE-INTERFACE-003 | WebMCP static presence | all | low | no |
+| CORE-INTERFACE-004 | WebMCP tool declaration quality | all | low | yes |
+| CORE-INTERFACE-005 | OpenAPI discovery | api, saas | medium | no |
+| CORE-INTERFACE-006 | OAuth authorization-server metadata | api, saas | medium | no |
+| CORE-INTERFACE-007 | OAuth protected-resource metadata | api, saas | medium | no |
+| CORE-INTERFACE-008 | UCP profile validity | commerce | medium | yes |
+| CORE-INTERFACE-009 | Agent discovery surface presence | api, saas | low | yes |
 
 ### CORE-INTERFACE-001 — MCP discovery presence
 
@@ -394,7 +394,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered.
 
-**Status:** experimental · scored: no · reason: A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered. · promotion: ≥ 300 canonical scans of sites that statically register at least one WebMCP tool; a false-positive review of the static `registerTool(` extraction against tools enumerated at runtime, so a dynamically-built declaration is not counted as a missing one; a WebMCP tool-declaration shape that stayed stable across two consecutive specification revisions; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: A WebMCP tool without a validated input schema, or without a description an agent can use to tell it apart from another, is unusable even though it registered. · promotion: ≥ 300 canonical scans of sites that statically register at least one WebMCP tool; a false-positive review of the static `registerTool(` extraction against tools enumerated at runtime, so a dynamically-built declaration is not counted as a missing one; a WebMCP tool-declaration shape that stayed stable across two consecutive specification revisions; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Static extraction of `registerTool(` calls in already-fetched HTML on the sampled pages; a runtime-only or dynamically-constructed tool definition is not seen.
 
@@ -450,7 +450,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy.
 
-**Status:** experimental · scored: no · reason: An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy. · promotion: ≥ 200 canonical scans of commerce sites publishing a UCP profile; a UCP specification at a stable, versioned schema with a settled well-known path; a false-positive review of the HTML-catch-all-versus-real-absence split, so a catch-all page never reads as a published profile; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy. · promotion: ≥ 200 canonical scans of commerce sites publishing a UCP profile; a UCP specification at a stable, versioned schema with a settled well-known path; a false-positive review of the HTML-catch-all-versus-real-absence split, so a catch-all page never reads as a published profile; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found.
 
@@ -464,7 +464,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there.
 
-**Status:** experimental · scored: no · reason: A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there. · promotion: ≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, together with a decided status vocabulary for partially-unread surfaces; a documented link between a published discovery surface and agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: A published agent discovery surface — an A2A agent card, an AI-plugin manifest, an agents.json, or an Agent Skills index — lets an agent find this service's own capabilities without a human pointing it there. · promotion: ≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, together with a decided status vocabulary for partially-unread surfaces; a documented link between a published discovery surface and agent retrieval outcomes; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Only a fixed set of conventional well-known paths is probed; a custom discovery location is not found. A surface whose document did not parse is indistinguishable here from one that is absent, and this check never reports WARN; when no surface was found and at least one candidate could not be fetched at all, it reports ERROR rather than N/A.
 
@@ -479,15 +479,15 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Trust & Commerce
 
-| ID | Title | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|
-| CORE-TRUST-001 | Contact/support discoverability | 2 | all | low | no |
-| CORE-TRUST-002 | Shipping policy discoverability | 2 | commerce | medium | no |
-| CORE-TRUST-003 | Returns/refund policy discoverability | 2 | commerce | medium | no |
-| CORE-TRUST-004 | Privacy policy discoverability | 2 | all | high | no |
-| CORE-TRUST-005 | Terms/conditions discoverability | 2 | api, commerce, saas | medium | no |
-| CORE-TRUST-006 | security.txt discoverability | 2 | api, commerce, saas | medium | no |
-| CORE-TRUST-007 | Pricing discoverability | 3 | commerce, saas | medium | no |
+| ID | Title | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|
+| CORE-TRUST-001 | Contact/support discoverability | all | low | no |
+| CORE-TRUST-002 | Shipping policy discoverability | commerce | medium | no |
+| CORE-TRUST-003 | Returns/refund policy discoverability | commerce | medium | no |
+| CORE-TRUST-004 | Privacy policy discoverability | all | high | no |
+| CORE-TRUST-005 | Terms/conditions discoverability | api, commerce, saas | medium | no |
+| CORE-TRUST-006 | security.txt discoverability | api, commerce, saas | medium | no |
+| CORE-TRUST-007 | Pricing discoverability | commerce, saas | medium | no |
 
 ### CORE-TRUST-001 — Contact/support discoverability
 
@@ -579,19 +579,19 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Operability & Efficiency
 
-| ID | Title | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|
-| CORE-OPERABILITY-001 | Server-rendered core content | 3 | all | medium | no |
-| CORE-OPERABILITY-002 | Redirect chain complexity | 1 | all | low | no |
-| CORE-OPERABILITY-003 | Cache validators | 1 | all | info | no |
-| CORE-OPERABILITY-004 | Broken machine-consumable endpoints | 3 | all | high | no |
-| CORE-OPERABILITY-005 | Agent parse cost | 3 | all | medium | no |
-| CORE-OPERABILITY-006 | Form/control labels | 2 | commerce, saas | medium | no |
-| CORE-OPERABILITY-007 | Machine reference integrity | 2 | all | high | yes |
-| CORE-OPERABILITY-008 | Unknown paths return 404 | 2 | all | medium | no |
-| CORE-OPERABILITY-009 | Rate limiting is signalled | 1 | all | low | no |
-| CORE-OPERABILITY-010 | Challenge pages are not served as 200 | 3 | all | high | no |
-| CORE-OPERABILITY-011 | Discovery linkage | 2 | all | low | yes |
+| ID | Title | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|
+| CORE-OPERABILITY-001 | Server-rendered core content | all | medium | no |
+| CORE-OPERABILITY-002 | Redirect chain complexity | all | low | no |
+| CORE-OPERABILITY-003 | Cache validators | all | info | no |
+| CORE-OPERABILITY-004 | Broken machine-consumable endpoints | all | high | no |
+| CORE-OPERABILITY-005 | Agent parse cost | all | medium | no |
+| CORE-OPERABILITY-006 | Form/control labels | commerce, saas | medium | no |
+| CORE-OPERABILITY-007 | Machine reference integrity | all | high | yes |
+| CORE-OPERABILITY-008 | Unknown paths return 404 | all | medium | no |
+| CORE-OPERABILITY-009 | Rate limiting is signalled | all | low | no |
+| CORE-OPERABILITY-010 | Challenge pages are not served as 200 | all | high | no |
+| CORE-OPERABILITY-011 | Discovery linkage | all | low | yes |
 
 ### CORE-OPERABILITY-001 — Server-rendered core content
 
@@ -674,7 +674,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it.
 
-**Status:** experimental · scored: no · reason: A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it. · promotion: ≥ 250 canonical scans in which the lookup budget was not exhausted, so BROKEN/UNCLAIMED verdicts are known not to be budget artefacts; a false-positive review against registries that rate-limit or 404 legitimate packages; a documented causal link from an unclaimed reference to a real dependency-confusion outcome; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: A package name or domain named in agent-facing instructions that doesn't exist is a dependency-confusion / typosquat slot waiting to be claimed by someone else — an agent that follows the instruction inherits whatever fills it. · promotion: ≥ 250 canonical scans in which the lookup budget was not exhausted, so BROKEN/UNCLAIMED verdicts are known not to be budget artefacts; a false-positive review against registries that rate-limit or 404 legitimate packages; a documented causal link from an unclaimed reference to a real dependency-confusion outcome; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Only references extracted from llms.txt and declared MCP server descriptions are resolved, under a hard per-scan lookup budget; a resolution that times out or exhausts the budget is recorded as unchecked, never as broken.
 
@@ -731,7 +731,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. This measures declared, link-based discoverability — whether a real agent finds it is Scovant Cloud's measurement.
 
-**Status:** experimental · scored: no · reason: A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. · promotion: ≥ 500 canonical scans with at least one machine surface present; the markdown-mirror surface and `Link`-header attribution wired into the Core evidence pipeline, so an ‘unlinked’ verdict is a property of the site rather than of what Core happens to gather; a false-positive review of exact-URL matching against equivalent surface URLs spelled differently; then a scored weight and a RULESET_VERSION bump.
+**Status:** experimental · scored: no · reason: A machine surface an agent can only find by guessing a well-known path is discoverable in theory; one linked from the entry page or referenced by another already-gathered document is discoverable in practice. · promotion: ≥ 500 canonical scans with at least one machine surface present; the markdown-mirror surface and `Link`-header attribution wired into the Core evidence pipeline, so an ‘unlinked’ verdict is a property of the site rather than of what Core happens to gather; a false-positive review of exact-URL matching against equivalent surface URLs spelled differently; then promotion out of experimental and a RULESET_VERSION bump.
 
 **Limitations:** Only llms.txt, OpenAPI, MCP and UCP are considered (a markdown-mirror surface and Link-header attribution are not yet wired into the Core evidence pipeline, so they cannot be checked). This check never fetches OpenAPI or UCP itself — it reads them only if another applicable check for this profile already gathered that evidence (OpenAPI: `CORE-INTERFACE-005`, profiles api/saas; UCP: `CORE-INTERFACE-008`, profile commerce). On any other profile, an unfetched OpenAPI/UCP surface is treated as not probed on this profile (counted as absent), never actively probed to find out — an unscored experimental check must never add its own network requests. Exactly two link sources are walked: the anchor links on the entry page itself, and the `machine_links` reference inventory — whose entries are sourced from the canonical URL, a policy-page link, the sitemap document URL itself, the declared OpenAPI spec, an MCP endpoint, or an llms.txt reference — matched only when one of those reference URLs equals a surface URL exactly. robots.txt directives and the URLs listed inside the sitemap are NOT scanned as a link source (the sitemap candidate above is the sitemap document URL itself, not a URL it lists). Experimental: never scored.
 
@@ -743,28 +743,26 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 ## Agentic Security & Trust
 
-Weight is informational — security checks are never scored.
-
-| ID | Title | Family | Verification | Weight | Profiles | Severity on fail | Experimental |
-|---|---|---|---|---|---|---|---|
-| CORE-SECURITY-001 | HTTPS baseline | SEC-WEB-001 | PASSIVE_OBSERVED | 1 | all | medium | no |
-| CORE-SECURITY-002 | HSTS presence | SEC-WEB-002 | PASSIVE_OBSERVED | 1 | all | low | no |
-| CORE-SECURITY-003 | Content-Security-Policy / framing policy | SEC-WEB-003 | PASSIVE_OBSERVED | 1 | all | medium | no |
-| CORE-SECURITY-004 | Security-relevant cookie attributes | SEC-WEB-004 | PASSIVE_OBSERVED | 1 | all | medium | no |
-| CORE-SECURITY-005 | Referrer / MIME hygiene headers | SEC-WEB-005 | PASSIVE_OBSERVED | 1 | all | low | no |
-| CORE-SECURITY-006 | security.txt validity (RFC 9116) | SEC-TXT-001 | DECLARED | 1 | all | medium | no |
-| CORE-SECURITY-007 | Credential-like value exposed in a machine-facing surface | MACHINE-DATA-001 | DECLARED | 1 | all | high | no |
-| CORE-SECURITY-008 | Internal network reference exposed | MACHINE-DATA-002 | DECLARED | 1 | all | low | no |
-| CORE-SECURITY-009 | Privileged endpoint advertised to agents | MACHINE-DATA-003 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-010 | Sensitive field advertised in a machine schema | MACHINE-DATA-004 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-011 | Hidden machine-facing imperative instructions | PROMPT-SURFACE-001 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-012 | Sensitive-information request instruction | PROMPT-SURFACE-002 | DECLARED | 1 | all | high | yes |
-| CORE-SECURITY-013 | External transmission instruction | PROMPT-SURFACE-003 | DECLARED | 1 | all | high | yes |
-| CORE-SECURITY-014 | Policy/role override language | PROMPT-SURFACE-004 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-015 | Human ↔ machine instruction divergence | PROMPT-SURFACE-005 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-016 | Tool/server description trust risk | PROMPT-SURFACE-006 | DECLARED | 1 | all | medium | yes |
-| CORE-SECURITY-017 | OAuth protected-resource metadata consistency | MCP-AUTH-011 | PASSIVE_OBSERVED | 1 | all | high | yes |
-| CORE-SECURITY-018 | OAuth authorization-server metadata consistency | MCP-AUTH-012 | PASSIVE_OBSERVED | 1 | all | high | yes |
+| ID | Title | Family | Verification | Profiles | Severity on fail | Experimental |
+|---|---|---|---|---|---|---|
+| CORE-SECURITY-001 | HTTPS baseline | SEC-WEB-001 | PASSIVE_OBSERVED | all | medium | no |
+| CORE-SECURITY-002 | HSTS presence | SEC-WEB-002 | PASSIVE_OBSERVED | all | low | no |
+| CORE-SECURITY-003 | Content-Security-Policy / framing policy | SEC-WEB-003 | PASSIVE_OBSERVED | all | medium | no |
+| CORE-SECURITY-004 | Security-relevant cookie attributes | SEC-WEB-004 | PASSIVE_OBSERVED | all | medium | no |
+| CORE-SECURITY-005 | Referrer / MIME hygiene headers | SEC-WEB-005 | PASSIVE_OBSERVED | all | low | no |
+| CORE-SECURITY-006 | security.txt validity (RFC 9116) | SEC-TXT-001 | DECLARED | all | medium | no |
+| CORE-SECURITY-007 | Credential-like value exposed in a machine-facing surface | MACHINE-DATA-001 | DECLARED | all | high | no |
+| CORE-SECURITY-008 | Internal network reference exposed | MACHINE-DATA-002 | DECLARED | all | low | no |
+| CORE-SECURITY-009 | Privileged endpoint advertised to agents | MACHINE-DATA-003 | DECLARED | all | medium | yes |
+| CORE-SECURITY-010 | Sensitive field advertised in a machine schema | MACHINE-DATA-004 | DECLARED | all | medium | yes |
+| CORE-SECURITY-011 | Hidden machine-facing imperative instructions | PROMPT-SURFACE-001 | DECLARED | all | medium | yes |
+| CORE-SECURITY-012 | Sensitive-information request instruction | PROMPT-SURFACE-002 | DECLARED | all | high | yes |
+| CORE-SECURITY-013 | External transmission instruction | PROMPT-SURFACE-003 | DECLARED | all | high | yes |
+| CORE-SECURITY-014 | Policy/role override language | PROMPT-SURFACE-004 | DECLARED | all | medium | yes |
+| CORE-SECURITY-015 | Human ↔ machine instruction divergence | PROMPT-SURFACE-005 | DECLARED | all | medium | yes |
+| CORE-SECURITY-016 | Tool/server description trust risk | PROMPT-SURFACE-006 | DECLARED | all | medium | yes |
+| CORE-SECURITY-017 | OAuth protected-resource metadata consistency | MCP-AUTH-011 | PASSIVE_OBSERVED | all | high | yes |
+| CORE-SECURITY-018 | OAuth authorization-server metadata consistency | MCP-AUTH-012 | PASSIVE_OBSERVED | all | high | yes |
 
 ### CORE-SECURITY-001 — HTTPS baseline
 
@@ -832,7 +830,7 @@ Weight is informational — security checks are never scored.
 
 ### CORE-SECURITY-005 — Referrer / MIME hygiene headers
 
-**Why it matters:** Two low-cost headers that stop URL leakage and MIME sniffing; informational weight only.
+**Why it matters:** Two low-cost headers that stop URL leakage and MIME sniffing; informational only.
 
 **Family:** SEC-WEB-005 · **Verification:** PASSIVE_OBSERVED · **Domain:** web_baseline · **Fix owner:** edge_cdn
 

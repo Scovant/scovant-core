@@ -15,7 +15,6 @@ class LanguageDeclaration(CoreCheck):
     title = "Language declaration"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://www.w3.org/International/questions/qa-html-language-declarations",)
     why_it_matters = "A valid `lang` attribute lets an agent (or a translation/screen-reader tool) know what language a page's content is in without guessing."

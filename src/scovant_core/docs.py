@@ -4,19 +4,16 @@ from what the package actually runs — the same "one source of truth"
 discipline as `checks.registry.ruleset_digest()`.
 
 `render_checks()` is deterministic (sorted by category, then check id) and
-pure — it reads only already-imported module state, no I/O. `render_weights_table()`
-renders the public scoring constants (`scoring.CATEGORY_WEIGHTS`,
-`scoring.MIN_COVERAGE`, `scoring.GRADES`) for `docs/methodology.md`, which embeds
-its output verbatim; both a test and the Cloud-side sync
-tripwire pin the committed docs to these two functions' current output.
+pure — it reads only already-imported module state, no I/O; both a test and
+the Cloud-side sync tripwire pin the committed doc to its current output.
 
-Run `python -m scovant_core.docs` after any check/scoring change to
+Run `python -m scovant_core.docs` after any check change to
 regenerate `docs/checks.md`. `render_example()` renders the committed
 `docs/example-report.md` from the `commerce-good` golden fixture (never a
 live scan, so the published example can't drift from the engine or leak a
 real third party's score) — regenerate it with
 `python -m scovant_core.docs --example` after any change to the renderer,
-the fixture, or the scoring model. `write_plugin_references()` copies the
+the fixture, or the Technical Readiness model. `write_plugin_references()` copies the
 same generated checks/AgentReady catalog plus the committed methodology and
 report-schema docs into `claude-plugin/skills/references/` so the Claude
 Code plugin ships an offline reference — regenerate with
@@ -33,12 +30,10 @@ from pathlib import Path
 from scovant_core import checks as _checks  # noqa: F401 — importing populates registry.CHECKS
 from scovant_core.checks.registry import CHECKS
 from scovant_core.models import CATEGORY_TITLES, Category
-from scovant_core.scoring import CATEGORY_WEIGHTS, GRADES, MIN_COVERAGE, SCORED_CATEGORIES
 
 __all__ = [
     "HEADER",
     "render_checks",
-    "render_weights_table",
     "render_example",
     "render_agentready",
     "write_plugin_references",
@@ -94,11 +89,6 @@ def render_checks() -> str:
         lines.append(f"## {CATEGORY_TITLES[cat]}")
         lines.append("")
         if cat == Category.SECURITY:
-            # Every check row carries a `Weight` column, and a reader who
-            # has just read five scored sections will read that column the
-            # same way here. It is inert for this category.
-            lines.append("Weight is informational — security checks are never scored.")
-            lines.append("")
             # SECURITY checks carry two extra dimensions readiness checks
             # don't: which family (attack surface) they belong to, and how
             # the evidence was obtained (`verification_mode`) — both are
@@ -106,20 +96,20 @@ def render_checks() -> str:
             # finding, so they get their own columns here rather than
             # being buried in prose. Readiness sections keep the original
             # table shape so their `checks.md` diff stays minimal.
-            lines.append("| ID | Title | Family | Verification | Weight | Profiles | Severity on fail | Experimental |")
-            lines.append("|---|---|---|---|---|---|---|---|")
+            lines.append("| ID | Title | Family | Verification | Profiles | Severity on fail | Experimental |")
+            lines.append("|---|---|---|---|---|---|---|")
             for c in cat_checks:
                 lines.append(
-                    f"| {c.id} | {c.title} | {c.family_id} | {c.verification_mode} | {c.weight} "
+                    f"| {c.id} | {c.title} | {c.family_id} | {c.verification_mode} "
                     f"| {_profiles_cell(c.profiles)} | {c.severity_on_fail.value} "
                     f"| {'yes' if c.experimental else 'no'} |"
                 )
         else:
-            lines.append("| ID | Title | Weight | Profiles | Severity on fail | Experimental |")
-            lines.append("|---|---|---|---|---|---|")
+            lines.append("| ID | Title | Profiles | Severity on fail | Experimental |")
+            lines.append("|---|---|---|---|---|")
             for c in cat_checks:
                 lines.append(
-                    f"| {c.id} | {c.title} | {c.weight} | {_profiles_cell(c.profiles)} "
+                    f"| {c.id} | {c.title} | {_profiles_cell(c.profiles)} "
                     f"| {c.severity_on_fail.value} | {'yes' if c.experimental else 'no'} |"
                 )
         lines.append("")
@@ -160,37 +150,6 @@ def render_checks() -> str:
     while lines and lines[-1] == "":
         lines.pop()
     return "\n".join(lines) + "\n"
-
-
-def _grade_ranges() -> list[tuple[int, int, str]]:
-    ordered = sorted(GRADES, key=lambda pair: pair[0], reverse=True)
-    ranges: list[tuple[int, int, str]] = []
-    upper = 100
-    for floor, grade in ordered:
-        ranges.append((floor, upper, grade))
-        upper = floor - 1
-    return ranges
-
-
-def render_weights_table() -> str:
-    # SCORED_CATEGORIES, not Category — SECURITY carries no weight (see
-    # scoring.SCORED_CATEGORIES) and has no entry in CATEGORY_WEIGHTS.
-    lines: list[str] = ["| Category | Weight |", "|---|---:|"]
-    for cat in SCORED_CATEGORIES:
-        lines.append(f"| {CATEGORY_TITLES[cat]} | {CATEGORY_WEIGHTS[cat.value]} |")
-    lines.append(f"| **Total** | **{sum(CATEGORY_WEIGHTS.values())}** |")
-    lines.append("")
-    lines.append(
-        f"Minimum evidence coverage: {round(MIN_COVERAGE * 100)}%. Below this coverage, "
-        "no score is emitted (`INSUFFICIENT_EVIDENCE`) instead of scoring on whatever few "
-        "checks happened to evaluate."
-    )
-    lines.append("")
-    lines.append("| Score | Grade |")
-    lines.append("|---|---|")
-    for floor, upper, grade in _grade_ranges():
-        lines.append(f"| {floor}–{upper} | {grade} |")
-    return "\n".join(lines)
 
 
 def render_example() -> str:

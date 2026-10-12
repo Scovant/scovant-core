@@ -26,7 +26,6 @@ class SitemapFreshness(CoreCheck):
     title = "Sitemap freshness"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://www.sitemaps.org/protocol.html",)
     why_it_matters = "A stale or suspiciously uniform lastmod signal gives a crawler no reliable way to prioritise re-crawling changed pages."

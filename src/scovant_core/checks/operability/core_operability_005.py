@@ -28,7 +28,6 @@ class AgentParseCost(CoreCheck):
     title = "Agent parse cost"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://platform.openai.com/docs/guides/text-generation",)
     why_it_matters = "Every token of markup and script an agent parses before reaching real content is budget it can't spend understanding the page — a bloated entry page costs every agent that visits it, on every visit."

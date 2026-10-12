@@ -11,7 +11,6 @@ class ContactDiscoverability(CoreCheck):
     title = "Contact/support discoverability"
     category = Category.TRUST
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://schema.org/ContactPoint",)
     why_it_matters = "An agent acting on a user's behalf needs a way to escalate to a human — a contact, support, or mailto link — when it hits a case it cannot resolve itself."

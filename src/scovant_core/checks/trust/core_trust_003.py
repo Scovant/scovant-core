@@ -13,7 +13,6 @@ class ReturnsPolicyDiscoverability(CoreCheck):
     category = Category.TRUST
     verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
-    weight = 2
     references = ("https://schema.org/MerchantReturnPolicy",)
     why_it_matters = (
         "An agent purchasing on a user's behalf needs to know whether and how a purchase can be returned "

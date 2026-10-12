@@ -14,16 +14,15 @@ from scovant_core.report._common import (
     evaluated_experimental,
     grouped_by_status,
     has_experimental,
-    legacy_headline,
     na_experimental,
     not_measured_text,
     profile_note,
+    scope_note,
     scored_experimental,
     security_findings,
     security_rows,
     standards_line,
     status_counts,
-    status_note,
     technical_headline,
     top_findings,
 )
@@ -42,6 +41,9 @@ def _score_block(r: Report) -> list[str]:
         lines.append(f"**Not measured by Core:** {missing}")
     label, counts = diagnostics_parts(r)
     lines.append(f"**{label}:** {counts}")
+    scope = scope_note(r)
+    if scope:
+        lines.append(scope)
     p_note = profile_note(r)
     if p_note:
         lines.append(p_note)
@@ -61,30 +63,6 @@ def _score_block(r: Report) -> list[str]:
     return lines
 
 
-def _legacy_block(r: Report) -> list[str]:
-    """The deprecated five-domain score — only with `--legacy-score`
-    (removed in 0.19.0)."""
-    s = r.score
-    error_count = r.metrics.get("error_count", 0)
-    lines = [f"**{legacy_headline(r)}**"]
-    lines.append(f"**Scope:** {s.scope} · **Status:** {s.status} · **Errors:** {error_count}")
-    note = status_note(r)
-    if note:
-        strong, rest = note
-        lines.append(f"**{strong}**{rest}")
-    if scored_experimental(r):
-        lines.append("**Experimental checks:** scored")
-    return lines
-
-
-def _categories(r: Report) -> list[str]:
-    out = ["| Category | Weight | Score | Evaluated / applicable |", "|---|---:|---:|---:|"]
-    for c in r.categories.values():
-        score = "n/a" if c.score is None else f"{c.score:.0f}"
-        out.append(f"| {c.title} | {c.weight} | {score} | {c.evaluated_weight:g} / {c.applicable_weight:g} |")
-    return out
-
-
 def _finding(f) -> list[str]:
     lines = [f"- **{f.id}** — {f.title} ({f.severity.value}): {f.summary}"]
     if f.remediation:
@@ -97,13 +75,11 @@ def _finding(f) -> list[str]:
     return lines
 
 
-def render_markdown(report: Report, *, utm_medium: str = "cli", legacy_score: bool = False) -> str:
+def render_markdown(report: Report, *, utm_medium: str = "cli") -> str:
     scored = scored_experimental(report)
     counts = status_counts(report.findings)
     out = [f"# Scovant Core — {report.target.final_url or report.target.input_url}", "", f"## {TECHNICAL_LABEL}", ""]
     out += _score_block(report)
-    if legacy_score:
-        out += ["", "## Categories", ""] + _legacy_block(report) + [""] + _categories(report)
     out += [
         "",
         f"{len(report.findings)} checks: "

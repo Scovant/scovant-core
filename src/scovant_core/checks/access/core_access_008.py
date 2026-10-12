@@ -11,7 +11,6 @@ class Indexability(CoreCheck):
     title = "Indexability"
     category = Category.ACCESS
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.HIGH
     references = ("https://developers.google.com/search/docs/crawling-indexing/block-indexing",)
     why_it_matters = "A page that declares noindex tells every compliant crawler, agents included, to leave it out of any index."

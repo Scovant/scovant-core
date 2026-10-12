@@ -14,7 +14,6 @@ class AiSearchCrawlerPolicy(CoreCheck):
     title = "AI search crawler policy"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 4
     severity_on_fail = Severity.HIGH
     check_version = "1.1"
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)
@@ -26,7 +25,7 @@ class AiSearchCrawlerPolicy(CoreCheck):
     def evaluate(self, store, ctx):
         robots = store.get("robots_txt")
         ev = {"resource": f"{ctx.origin}/robots.txt", "http_status": robots["status"]}
-        # This is the weight-4, HIGH-severity policy verdict: "all major
+        # This is the HIGH-severity policy verdict: "all major
         # crawlers are allowed" drawn from a body we only partly read is the
         # single most consequential over-claim in the ruleset, so the same
         # truncation treatment as CORE-ACCESS-002 applies here too.

@@ -1,7 +1,5 @@
-"""PR-04c: every renderer leads with Technical Readiness (R2). The
-deprecated five-domain block (legacy headline, scope/status line, status
-note, category lines with weights) prints only with `legacy_score=True`
-(`--legacy-score` on the CLI). Every report here is a REAL engine report on
+"""Every renderer leads with Technical Readiness (R2), Core's only rating
+since 0.19.0 removed the five-domain block. Every report here is a REAL engine report on
 a fixture site — the DEGRADED / INSUFFICIENT_EVIDENCE cases come from scans
 whose own fetches failed, the missing-block case from a real report with
 `readiness` dropped, as the engine does when Technical raised."""
@@ -124,33 +122,13 @@ def test_score_line_is_the_technical_headline(ok_report, insufficient_report, mi
     assert score_line(missing_report) == "Technical Readiness  not computed"
 
 
-# --- the five-domain block only with --legacy-score ------------------------
+# --- no five-domain block -------------------------------------------------
 
 def test_text_default_has_no_five_domain_block(ok_report):
     text = render_text(ok_report)
     assert _LEGACY_TEXT not in text and "Static Signal Score" not in text
     assert "Access & Discovery" not in text
     assert "Scope: CANONICAL" not in text
-
-
-def test_text_legacy_score_shows_the_five_domain_block(ok_report):
-    text = render_text(ok_report, legacy_score=True)
-    assert "Legacy Static Signal Score 100 / 100 A (removed in 0.19.0)" in text.splitlines()
-    assert "Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0" in text
-    assert any(ln.startswith("Access & Discovery") for ln in text.splitlines())
-    # Technical still leads.
-    assert text.index("Technical Readiness  82 / 100") < text.index(_LEGACY_TEXT)
-
-
-def test_text_legacy_status_note_on_a_degraded_five_domain_score():
-    r = _real_report("commerce-good", keep={"/", "/robots.txt"})
-    assert r.score.status == "DEGRADED"
-    assert "No grade — score DEGRADED" not in render_text(r)
-    assert "No grade — score DEGRADED" in render_text(r, legacy_score=True)
-
-
-def test_score_line_legacy(ok_report):
-    assert score_line(ok_report, legacy_score=True) == "Legacy Static Signal Score 100 / 100 A (removed in 0.19.0)"
 
 
 def test_markdown_leads_with_technical_and_hides_categories(ok_report):
@@ -160,9 +138,6 @@ def test_markdown_leads_with_technical_and_hides_categories(ok_report):
     assert "**Not measured by Core:** MCP_DISCOVERY_INVALID (handshake_not_performed)" in md
     assert "**Diagnostics (50 readiness checks):** 40 pass · 1 warn · 0 fail" in md
     assert "## Categories" not in md and "Static Signal Score" not in md
-    legacy = render_markdown(ok_report, legacy_score=True)
-    assert "## Categories" in legacy and "Legacy Static Signal Score 100 / 100 A (removed in 0.19.0)" in legacy
-    assert legacy.index("## Technical Readiness") < legacy.index("Legacy Static Signal Score")
 
 
 def test_markdown_headline_by_status(degraded_report, insufficient_report, missing_report):
@@ -180,9 +155,7 @@ def test_html_leads_with_technical_and_hides_categories(ok_report):
     assert "<h2>Technical Readiness</h2>" in html
     assert "82 / 100" in html and "R2.1@67df90af85b0" in html
     assert "MCP_DISCOVERY_INVALID (handshake_not_performed)" in html
-    assert 'id="categories"' not in html and "Static Signal Score" not in html.split('id="methodology"')[0]
-    legacy = render_html(ok_report, legacy_score=True)
-    assert 'id="categories"' in legacy and "Legacy Static Signal Score" in legacy
+    assert 'id="categories"' not in html and "Static Signal Score" not in html
 
 
 def _score_section(html: str) -> str:
@@ -204,18 +177,16 @@ def test_html_headline_by_status(ok_report, degraded_report, insufficient_report
     assert "Technical Readiness not computed" in missing and "<strong>Status:</strong>" not in missing
 
 
-def test_html_methodology_describes_r2_not_the_five_domain_weights(ok_report):
-    for legacy in (False, True):
-        html = render_html(ok_report, legacy_score=legacy)
-        method = html.split('id="methodology"', 1)[1].split("</section>", 1)[0]
-        assert "25/25/20/15/15" not in html
-        assert "docs/r2.md" in method and "coverage" in method and "not measured" in method
-        assert "deprecated" in method
+def test_html_methodology_describes_r2_only(ok_report):
+    html = render_html(ok_report)
+    method = html.split('id="methodology"', 1)[1].split("</section>", 1)[0]
+    assert "25/25/20/15/15" not in html
+    assert "docs/r2.md" in method and "coverage" in method and "not measured" in method
+    assert "deprecated" not in method and "--legacy-score" not in method
 
 
 def test_no_private_agent_policy_in_any_rendering(ok_report):
-    for out in (render_text(ok_report), render_markdown(ok_report), render_html(ok_report),
-                render_text(ok_report, legacy_score=True)):
+    for out in (render_text(ok_report), render_markdown(ok_report), render_html(ok_report)):
         # Built from parts so this test file does not itself carry the
         # private names the publish guard bans.
         banned_names = ("AGENT_" + "CAP", "AGENT_" + "POLICY", "agent-" + "private", "overlay" + "@", "Agent Readiness")
@@ -241,19 +212,9 @@ def test_cli_quiet_prints_the_technical_headline(capsys, monkeypatch):
     ]
 
 
-@pytest.mark.parametrize("fmt", ["text", "markdown", "html"])
-def test_cli_legacy_score_flag_reaches_the_renderer(capsys, monkeypatch, fmt):
-    _use_fixture(monkeypatch, "commerce-good")
-    cli.main(["scan", "https://example.com/", "--format", fmt])
-    assert _LEGACY_TEXT not in capsys.readouterr().out
-    _use_fixture(monkeypatch, "commerce-good")
-    cli.main(["scan", "https://example.com/", "--format", fmt, "--legacy-score"])
-    assert _LEGACY_TEXT in capsys.readouterr().out
-
-
-def test_experimental_scored_line_is_part_of_the_legacy_block():
-    """"Experimental checks: scored" describes the deprecated five-domain
-    score only, so it prints only inside the legacy block."""
+def test_experimental_scan_prints_no_scored_line():
+    """"Experimental checks: scored" described the five-domain score only;
+    it is gone with it."""
     from scovant_core.context import ScanOptions
     from scovant_core.engine import scan
     from tests.conftest import FIXTURES, FixtureTransport
@@ -261,8 +222,6 @@ def test_experimental_scored_line_is_part_of_the_legacy_block():
     r = scan("https://example.com/", ScanOptions(experimental=True),
              transport=FixtureTransport(FIXTURES / "sites" / "commerce-good"),
              clock=lambda: "2026-09-04T00:00:00Z", scan_id="x")
-    for render, needle in ((render_text, "Experimental checks: scored"),
-                           (render_markdown, "**Experimental checks:** scored"),
-                           (render_html, "<strong>Experimental checks:</strong> scored")):
-        assert needle not in render(r)
-        assert needle in render(r, legacy_score=True)
+    for render in (render_text, render_markdown, render_html):
+        assert "Experimental checks: scored" not in render(r)
+        assert "Experimental checks:</strong> scored" not in render(r)

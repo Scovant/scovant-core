@@ -12,7 +12,6 @@ class ChallengeServedAs200(CoreCheck):
     title = "Challenge pages are not served as 200"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     check_version = "1.1"
     severity_on_fail = Severity.HIGH
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-403-forbidden",)

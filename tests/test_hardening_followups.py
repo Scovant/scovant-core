@@ -460,12 +460,12 @@ def _api_scan(path=None, status=503, technical=True, site="api-good"):
     return scan("https://example.com/", ScanOptions(profile="api", technical=technical, experimental=True), transport=transport)
 
 
-def test_discovery_5xx_does_not_degrade_the_five_domain_score():
+def test_discovery_5xx_does_not_add_an_error():
     # commerce-good publishes no discovery surface, so without the fix the one
     # unanswered candidate would turn CORE-INTERFACE-009 into ERROR.
     base = _api_scan(site="commerce-good")
     hit = _api_scan("/.well-known/ai-plugin.json", 503, site="commerce-good")
-    key = lambda r: (r.score.value, r.score.grade, r.score.status, r.score.scope)  # noqa: E731
+    key = lambda r: (r.metrics["error_count"], r.provenance["scan_scope"])  # noqa: E731
     assert key(hit) == key(base)
     f = {x.id: x for x in hit.findings}
     assert f["CORE-INTERFACE-009"].status.value != "ERROR"

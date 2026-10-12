@@ -4,7 +4,7 @@ after it, so the report never reads as "one more mention of your URL" at the
 exact point it's trying to sell a follow-up scan."""
 from __future__ import annotations
 
-from scovant_core.models import CATEGORY_TITLES, Category, CheckStatus, Report
+from scovant_core.models import Category, CheckStatus, Report
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
@@ -12,14 +12,13 @@ from scovant_core.report._common import (
     capabilities_lines,
     diagnostics_parts,
     evaluated_experimental,
-    legacy_headline,
     na_experimental,
     not_measured_text,
     profile_note,
+    scope_note,
     security_rows,
     standards_line,
     status_counts,
-    status_note,
     technical_headline,
     top_findings,
 )
@@ -59,14 +58,11 @@ def _profile_line(target) -> str:
     return f"Profile: {target.resolved_profile}"
 
 
-def score_line(report: Report, *, legacy_score: bool = False) -> str:
+def score_line(report: Report) -> str:
     """The single summary line: the Technical Readiness headline
     (`Technical Readiness  NN / 100  G · coverage NN% · model …`, or its
-    no-number / not-computed form), or — with `legacy_score` — the
-    deprecated five-domain line. Public so the CLI's `--quiet` mode can
+    no-number / not-computed form). Public so the CLI's `--quiet` mode can
     print exactly this line without the rest of `render_text`."""
-    if legacy_score:
-        return legacy_headline(report)
     return f"{TECHNICAL_LABEL}  {technical_headline(report)}"
 
 
@@ -77,63 +73,6 @@ def _technical_lines(report: Report) -> list[str]:
     if missing:
         lines.append(f"Not measured by Core: {missing}")
     lines.append(": ".join(diagnostics_parts(report)))
-    return lines
-
-
-def _legacy_lines(report: Report, scored_experimental: bool) -> list[str]:
-    """The deprecated five-domain block — printed only with
-    `--legacy-score` (removed in 0.19.0)."""
-    s = report.score
-    error_count = report.metrics.get("error_count", 0)
-    lines = [
-        legacy_headline(report),
-        f"Scope: {s.scope} · Status: {s.status} · Coverage: {s.coverage:.0%} · Errors: {error_count}",
-    ]
-    note = status_note(report)
-    if note:
-        lines.append("".join(note))
-    if scored_experimental:
-        lines.append("Experimental checks: scored")
-    counts = _category_counts(report.findings, scored_experimental)
-    lines.extend(_category_lines(report.categories, counts))
-    return lines
-
-
-def _category_counts(findings: list, scored_experimental: bool) -> dict[str, tuple[int, int]]:
-    """Per category: (evaluated, applicable) CHECK counts, on the same
-    population the score itself uses — `N/A` is not applicable, `ERROR` is
-    applicable but not evaluated, and an experimental check counts only when
-    this scan actually scored experimental checks."""
-    counts: dict[str, tuple[int, int]] = {}
-    for f in findings:
-        if f.experimental and not scored_experimental:
-            continue
-        if f.status == CheckStatus.NA:
-            continue
-        ev, ap = counts.get(f.category.value, (0, 0))
-        counts[f.category.value] = (
-            ev + (1 if f.status in (CheckStatus.PASS, CheckStatus.WARN, CheckStatus.FAIL) else 0),
-            ap + 1,
-        )
-    return counts
-
-
-def _category_lines(categories: dict, counts: dict[str, tuple[int, int]]) -> list[str]:
-    """`(n/N)` = checks evaluated / checks applicable in that category — the
-    coverage behind the number, so a category scored on one of four checks
-    never reads like a category scored on all four. With only 1-10 checks per
-    category in v0.1, a single check can move a whole category by a lot; see
-    docs/methodology.md."""
-    lines = []
-    for cat in Category:
-        cs = categories.get(cat.value)
-        if cs is None:
-            continue
-        score_str = f"{cs.score:.0f}" if cs.score is not None else "n/a"
-        evaluated, applicable = counts.get(cat.value, (0, 0))
-        lines.append(
-            f"{CATEGORY_TITLES[cat].ljust(_LABEL_WIDTH)}{score_str.ljust(6)}({evaluated}/{applicable})"
-        )
     return lines
 
 
@@ -163,22 +102,20 @@ def _top_findings(findings: list, color: bool, scored_experimental: bool) -> lis
 
 def _experimental_lines(findings: list, color: bool) -> list[str]:
     """Experimental findings that are NOT `N/A`, in id order — shown on
-    their own so a reader never mistakes an unscored experimental WARN/FAIL
-    for something that moved the Static Signal Score. `N/A` experimental
+    their own so a reader never mistakes an experimental WARN/FAIL for an
+    established check. `N/A` experimental
     findings carry nothing to show (nothing was evaluated) and are left out
     of THIS list — a page of five "not applicable" full entries would be
     noise, not signal — but they are not left out of the rendered document:
     `render_text` names them on a separate compact "N/A: ..." line right
     after this block (or after the one-line notice, when every experimental
     finding is `N/A`), since the header's N/A count already includes them.
-    Only called when the scan did NOT score experimental checks
-    (`--experimental` off); when scoring is on, these
-    findings already appear in the normal category counts and Top findings
-    list."""
+    Only called when `--experimental` is off; with it on, these findings
+    already appear in the Top findings list."""
     return _findings_block(evaluated_experimental(findings), color)
 
 
-def render_text(report: Report, *, color: bool = False, legacy_score: bool = False) -> str:
+def render_text(report: Report, *, color: bool = False) -> str:
     scored_experimental = _scored_experimental(report)
     lines = [
         "SCOVANT CORE", RULE, "",
@@ -190,15 +127,15 @@ def render_text(report: Report, *, color: bool = False, legacy_score: bool = Fal
         lines.append("Note: private-network targets allowed (--allow-private-networks)")
     lines.append("")
     lines.extend(_technical_lines(report))
+    scope = scope_note(report)
+    if scope:
+        lines.append(scope)
     note = profile_note(report)
     if note:
         lines.append(note)
     lines.append("")
     lines += ["Capabilities detected (descriptive, not scored)", *("  " + line for line in capabilities_lines(report)), ""]
     lines += [standards_line(report), "  " + STANDARDS_FOOTER, ""]
-    if legacy_score:
-        lines.extend(_legacy_lines(report, scored_experimental))
-        lines.append("")
     lines.append(f"{len(report.findings)} checks")
     lines.extend(_counts(report.findings))
     lines.append("")

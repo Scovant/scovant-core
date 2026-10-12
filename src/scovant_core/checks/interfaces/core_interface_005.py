@@ -12,7 +12,6 @@ class OpenApiDiscovery(CoreCheck):
     category = Category.INTERFACES
     verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.openapis.org/",)
     why_it_matters = "A discoverable OpenAPI document lets an agent understand and call this API's surface directly instead of reverse-engineering it from prose docs."

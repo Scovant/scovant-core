@@ -11,7 +11,6 @@ class SitemapAvailability(CoreCheck):
     title = "Sitemap availability"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     check_version = "1.1"
     references = ("https://www.sitemaps.org/protocol.html",)

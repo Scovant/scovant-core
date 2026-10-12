@@ -12,46 +12,6 @@
       "title": "Category",
       "type": "string"
     },
-    "CategoryScore": {
-      "properties": {
-        "applicable_weight": {
-          "title": "Applicable Weight",
-          "type": "number"
-        },
-        "evaluated_weight": {
-          "title": "Evaluated Weight",
-          "type": "number"
-        },
-        "score": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Score"
-        },
-        "title": {
-          "title": "Title",
-          "type": "string"
-        },
-        "weight": {
-          "title": "Weight",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "title",
-        "score",
-        "weight",
-        "applicable_weight",
-        "evaluated_weight"
-      ],
-      "title": "CategoryScore",
-      "type": "object"
-    },
     "CheckResult": {
       "properties": {
         "category": {
@@ -143,10 +103,6 @@
           "title": "Verification Mode",
           "type": "string"
         },
-        "weight": {
-          "title": "Weight",
-          "type": "integer"
-        },
         "why_it_matters": {
           "default": "",
           "title": "Why It Matters",
@@ -160,7 +116,6 @@
         "status",
         "severity",
         "confidence",
-        "weight",
         "summary"
       ],
       "title": "CheckResult",
@@ -216,70 +171,8 @@
       "title": "Readiness",
       "type": "object"
     },
-    "Score": {
-      "properties": {
-        "coverage": {
-          "title": "Coverage",
-          "type": "number"
-        },
-        "deprecated": {
-          "default": true,
-          "title": "Deprecated",
-          "type": "boolean"
-        },
-        "grade": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Grade"
-        },
-        "name": {
-          "default": "Scovant Core Static Signal Score",
-          "title": "Name",
-          "type": "string"
-        },
-        "replaced_by": {
-          "default": "readiness.technical",
-          "title": "Replaced By",
-          "type": "string"
-        },
-        "scope": {
-          "default": "CANONICAL",
-          "title": "Scope",
-          "type": "string"
-        },
-        "status": {
-          "title": "Status",
-          "type": "string"
-        },
-        "value": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "title": "Value"
-        }
-      },
-      "required": [
-        "value",
-        "grade",
-        "coverage",
-        "status"
-      ],
-      "title": "Score",
-      "type": "object"
-    },
     "SecuritySummary": {
-      "description": "The report's `security` block — counts over SECURITY-category\nfindings only. Never a score; see `scoring.SCORED_CATEGORIES` and\ndocs/security.md.",
+      "description": "The report's `security` block — counts over SECURITY-category\nfindings only. Never a score; see docs/security.md.",
       "properties": {
         "by_domain": {
           "additionalProperties": {
@@ -548,13 +441,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "description": "Output of `scovant scan --format json`. Additive keys may appear without a schema_version bump; a removed or retyped field bumps schema_version.",
   "properties": {
-    "categories": {
-      "additionalProperties": {
-        "$ref": "#/$defs/CategoryScore"
-      },
-      "title": "Categories",
-      "type": "object"
-    },
     "completed_at": {
       "title": "Completed At",
       "type": "string"
@@ -607,11 +493,8 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "1.2",
+      "const": "2.0",
       "type": "string"
-    },
-    "score": {
-      "$ref": "#/$defs/Score"
     },
     "security": {
       "$ref": "#/$defs/SecuritySummary"
@@ -638,8 +521,6 @@
     "started_at",
     "completed_at",
     "target",
-    "score",
-    "categories",
     "findings"
   ],
   "title": "Scovant Core report",

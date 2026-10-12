@@ -13,7 +13,6 @@ class Breadcrumbs(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"content", "commerce", "saas"})
-    weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://schema.org/BreadcrumbList",)
     why_it_matters = "A BreadcrumbList tells an agent where a page sits in a site's hierarchy without it having to infer structure from navigation markup."

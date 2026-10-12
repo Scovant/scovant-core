@@ -10,9 +10,9 @@ compares it, and validates every golden fixture against it — the same
 
 Bump policy (see docs/methodology.md § Report schema): adding a key to the
 report is NOT a breaking change and does not bump `REPORT_SCHEMA_VERSION`.
-A minor bump marks a deprecation (1.2 marks the five-domain `score`
-deprecated); 2.0 removes it. Removing or retyping an existing field is
-breaking and bumps the major version. The schema
+A minor bump marks a deprecation (1.2 marked the report's `score` and
+`categories` deprecated); 2.0 removed them. Removing or retyping an existing
+field is breaking and bumps the major version. The schema
 therefore deliberately does not set `additionalProperties: false` at the top
 level — that constraint isn't added by pydantic, and this module must not
 narrow it.

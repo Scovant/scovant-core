@@ -46,7 +46,6 @@ class AgentDiscoverySurfacePresence(CoreCheck):
     category = Category.INTERFACES
     verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
-    weight = 2
     experimental = True
     severity_on_fail = Severity.LOW
     check_version = "1.1"
@@ -70,8 +69,8 @@ class AgentDiscoverySurfacePresence(CoreCheck):
         "≥ 400 canonical scans on the api and saas profiles; resolution of the tri-state `exists` gap "
         "documented above, so a truncated-and-undetermined surface stops reading as confirmed-absent, "
         "together with a decided status vocabulary for partially-unread surfaces; a documented link "
-        "between a published discovery surface and agent retrieval outcomes; then a scored weight and "
-        "a RULESET_VERSION bump."
+        "between a published discovery surface and agent retrieval outcomes; then promotion out of "
+        "experimental and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud validates each discovered surface's own schema, not just that a document is present."
     standards = ("AR-READ-06", "AR-ACT-04")

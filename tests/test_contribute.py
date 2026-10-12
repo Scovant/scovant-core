@@ -11,20 +11,20 @@ from tests.test_report_markdown import _report
 PAYLOAD_KEYS = {
     "domain", "timestamp", "core_version", "ruleset_version", "ruleset_digest",
     "profile", "profile_confidence", "profile_detector_version",
-    "experimental", "check_statuses", "score",
-    "scan_scope", "score_status", "error_count", "technical",
+    "experimental", "check_statuses",
+    "scan_scope", "error_count", "technical",
 }
 
 
-def test_payload_is_exactly_d3_v0_1_1():
+def test_payload_is_exactly_the_0_19_key_set():
+    """0.19.0: no `score`/`score_status` — Technical Readiness and the
+    selection scope are what Cloud's accept gate reads."""
     report = _report("commerce-good")
     p = build_payload(report)
     assert set(p) == PAYLOAD_KEYS and p["domain"] == "example.com"
-    assert set(p["score"]) == {"value", "grade", "coverage", "status"}
     assert all(v in ("PASS", "WARN", "FAIL", "N/A", "ERROR") for v in p["check_statuses"].values())
     assert "http" not in json.dumps(p["check_statuses"])  # no URLs
     assert p["scan_scope"] == "CANONICAL"
-    assert p["score_status"] == "OK"
     assert p["error_count"] == 0
     assert p["profile_confidence"] == report.target.profile_confidence
     assert p["profile_detector_version"] == "1.0"

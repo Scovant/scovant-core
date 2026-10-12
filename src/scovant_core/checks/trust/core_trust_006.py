@@ -14,7 +14,6 @@ class SecurityTxtDiscoverability(CoreCheck):
     category = Category.TRUST
     verification_mode = "DECLARED"
     profiles = frozenset({"saas", "api", "commerce"})
-    weight = 2
     references = ("https://www.rfc-editor.org/rfc/rfc9116",)
     why_it_matters = (
         "A security researcher — human or an automated scanner — needs a documented way to report a "

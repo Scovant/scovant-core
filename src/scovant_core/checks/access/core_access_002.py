@@ -13,7 +13,6 @@ class RobotsTxtAvailability(CoreCheck):
     title = "robots.txt availability and syntax"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)
     why_it_matters = "robots.txt is the first document a crawler checks; a broken or unreachable one forces every crawler to guess."

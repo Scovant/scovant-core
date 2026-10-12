@@ -14,13 +14,13 @@
 ## Top findings
 
 - **CORE-ACCESS-003** — robots.txt declares PerplexityBot as disallowed.
-- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 90 chars of visible text (< 200).
-- **CORE-ACCESS-004** — Search/retrieval crawlers are restricted together with training crawlers — intent unclear.
-- **CORE-ACCESS-006** — The newest lastmod in the sitemap is over 730 days old.
 - **CORE-INTERFACE-006** — An authorization-server metadata document was found but is incomplete or does not parse.
 - **CORE-INTERFACE-007** — A protected-resource metadata document was found but is incomplete or does not parse.
 - **CORE-MACHINE-002** — An Organization entity is missing url.
+- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 90 chars of visible text (< 200).
 - **CORE-OPERABILITY-006** — 1 control(s) across 1 form(s) lack a label or accessible name.
+- **CORE-ACCESS-004** — Search/retrieval crawlers are restricted together with training crawlers — intent unclear.
+- **CORE-ACCESS-006** — The newest lastmod in the sitemap is over 730 days old.
 - **[security]** **CORE-SECURITY-003** — Neither Content-Security-Policy nor X-Frame-Options is sent.
 - **[security]** **CORE-SECURITY-006** — Expires missing or unparsable.
 - **[security]** **CORE-SECURITY-002** — No Strict-Transport-Security header.
@@ -860,7 +860,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

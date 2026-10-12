@@ -32,9 +32,8 @@ def test_commerce_good_has_a_technical_block():
     assert set(t.categories) == {"discoverability", "structured", "consistency", "actionability",
                                  "trust", "ucp", "citability"}
     assert r.technical_outcomes and all(o.state for o in r.technical_outcomes)
-    # 04a added `readiness` without a bump (additive); 04c bumps to 1.2 for the
-    # additive deprecation markers on the five-domain `score`.
-    assert r.schema_version == "1.2"
+    # 0.19.0: schema 2.0 removed the five-domain `score`/`categories`.
+    assert r.schema_version == "2.0"
 
 
 def test_declared_mcp_endpoint_is_not_measured():
@@ -81,7 +80,7 @@ def test_technical_failure_does_not_abort_the_scan(monkeypatch):
         raise RuntimeError("boom")
     monkeypatch.setattr("scovant_core.r2.readiness.technical_report", boom)
     r = _report("commerce-good")
-    assert r.score == base.score
+    assert r.findings == base.findings
     assert r.readiness is None and r.technical_outcomes == []
     assert r.metrics["technical_readiness_error"]["kind"] == "RuntimeError"
 

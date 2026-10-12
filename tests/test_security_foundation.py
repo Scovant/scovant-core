@@ -20,7 +20,6 @@ from scovant_core.models import (
     SecuritySummary,
     Severity,
 )
-from scovant_core.scoring import CATEGORY_WEIGHTS, SCORED_CATEGORIES, score_results
 from scovant_core.security_summary import SECURITY_NOT_TESTED, build_security_summary
 
 
@@ -32,33 +31,18 @@ def _r(id_, cat, status, severity=Severity.MEDIUM, experimental=False, **kw):
         status=status,
         severity=severity,
         confidence=Confidence.HIGH,
-        weight=1,
         summary="s",
         experimental=experimental,
         **kw,
     )
 
 
-def test_security_category_exists_and_is_not_scored():
+def test_security_category_exists():
     assert Category.SECURITY.value == "security"
-    assert Category.SECURITY not in SCORED_CATEGORIES
-    assert set(CATEGORY_WEIGHTS) == {c.value for c in SCORED_CATEGORIES}
-    assert "security" not in CATEGORY_WEIGHTS
 
 
-def test_schema_version_is_1_2():
-    assert REPORT_SCHEMA_VERSION == "1.2"
-
-
-def test_security_results_never_enter_the_score():
-    base = [_r("CORE-ACCESS-001", Category.ACCESS, CheckStatus.PASS)]
-    with_sec = base + [
-        _r("CORE-SECURITY-001", Category.SECURITY, CheckStatus.FAIL, Severity.CRITICAL)
-    ]
-    s1, c1 = score_results(base)
-    s2, c2 = score_results(with_sec)
-    assert (s1.value, s1.coverage, s1.status) == (s2.value, s2.coverage, s2.status)
-    assert set(c2) == {c.value for c in SCORED_CATEGORIES}
+def test_schema_version_is_2_0():
+    assert REPORT_SCHEMA_VERSION == "2.0"
 
 
 def test_check_result_new_fields_default():

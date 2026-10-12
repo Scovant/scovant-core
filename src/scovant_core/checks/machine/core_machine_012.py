@@ -16,7 +16,6 @@ class VisibleVsStructuredPrice(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     experimental = True
     references = ("https://schema.org/price",)
@@ -26,8 +25,8 @@ class VisibleVsStructuredPrice(CoreCheck):
         "≥ 300 canonical scans of commerce product pages, sampling more than the first product page "
         "found; a false-positive review of the visible-price regex across non-Latin digits and "
         "currency formats it does not yet match; a measured visible-versus-structured disagreement "
-        "rate stable across two consecutive corpus snapshots; then a scored weight and a "
-        "RULESET_VERSION bump."
+        "rate stable across two consecutive corpus snapshots; then promotion out of experimental "
+        "and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud checks visible-vs-structured price agreement across the full sampled catalog and a broader set of currency formats."
 

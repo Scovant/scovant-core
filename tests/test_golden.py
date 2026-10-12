@@ -185,10 +185,13 @@ def test_technical_false_skips_the_technical_pass_and_its_requests(monkeypatch):
     assert off.metrics["requests"] < on.metrics["requests"]
 
 
-def test_commerce_good_golden_marks_the_five_domain_score_deprecated():
-    """0.18.0 (schema 1.2): the committed golden carries the deprecation
-    markers on `score`, pointing at `readiness.technical`."""
-    data = json.loads((EXPECTED_DIR / "commerce-good.json").read_text())
-    assert data["schema_version"] == "1.2"
-    assert data["score"]["deprecated"] is True
-    assert data["score"]["replaced_by"] == "readiness.technical"
+@pytest.mark.parametrize("site", SITES)
+def test_committed_goldens_are_schema_2_without_the_removed_score(site):
+    """0.19.0 (schema 2.0): no `score`/`categories`, no per-check weight;
+    Technical Readiness is the rating."""
+    data = json.loads((EXPECTED_DIR / f"{site}.json").read_text())
+    assert data["schema_version"] == "2.0"
+    assert "score" not in data and "categories" not in data
+    assert all("weight" not in f for f in data["findings"])
+    assert data["readiness"]["technical"]["label"] == "Technical Readiness"
+    assert data["provenance"]["scan_scope"] == "CANONICAL"

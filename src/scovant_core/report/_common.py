@@ -3,7 +3,7 @@ population and ordering rules every renderer (text, JSON, HTML, MCP) must
 agree on, so "top findings" or "experimental" never drifts by renderer."""
 from __future__ import annotations
 
-from scovant_core.models import Category, CheckResult, CheckStatus, Report
+from scovant_core.models import Category, CheckResult, CheckStatus, Report, Severity
 
 _GROUP_ORDER = (
     CheckStatus.FAIL, CheckStatus.WARN, CheckStatus.ERROR, CheckStatus.PASS, CheckStatus.NA,
@@ -24,30 +24,7 @@ _SECURITY_DOMAIN_TITLES = {
 }
 
 
-def status_note(report: Report) -> tuple[str, str] | None:
-    """A one-sentence explanation for a non-OK, non-INSUFFICIENT_EVIDENCE
-    score status, split as `(strong, rest)` so each renderer can bold the
-    first part in its own markup (`**{strong}**{rest}` in Markdown/the
-    Action summary, `<strong>{e(strong)}</strong>{e(rest)}` in HTML) without
-    three copies of the wording drifting apart. `None` when the status needs
-    no extra sentence (OK, or INSUFFICIENT_EVIDENCE — already unambiguous
-    from the score line itself)."""
-    s = report.score
-    if s.status == "NOT_CANONICAL":
-        return ("Canonical Core Score: NOT CALCULATED", " — a subset of checks was selected.")
-    if s.status == "DEGRADED":
-        # READINESS errors only: a SECURITY-check error never degrades the
-        # score (see engine.py's `readiness_error_count`), so quoting the
-        # total here would name security probes as the cause of a
-        # degradation they cannot produce. `security_error_count` is absent
-        # on a pre-0.4.0 report, where every error was a readiness error.
-        n = int(report.metrics.get("error_count", 0)) - int(report.metrics.get("security_error_count", 0) or 0)
-        return ("No grade", f" — score DEGRADED (coverage {s.coverage:.0%}, {n} checks errored).")
-    return None
-
-
 TECHNICAL_LABEL = "Technical Readiness"
-LEGACY_REMOVAL = "(removed in 0.19.0)"
 
 
 def technical_headline(report: Report, *, grade_prefix: str = "  ") -> str:
@@ -66,6 +43,15 @@ def technical_headline(report: Report, *, grade_prefix: str = "  ") -> str:
     grade = "" if t.grade is None else f"{grade_prefix}{t.grade}"
     status = "" if t.status == "OK" else f" · {t.status}"
     return f"{t.rating} / 100{grade}{status} · {coverage} · model {t.model_id}"
+
+
+def scope_note(report: Report) -> str | None:
+    """`Scope: CUSTOM (subset of checks)` when the selection was narrowed or
+    widened (`--include`/`--exclude`/`--experimental`); None for the
+    canonical selection. Technical Readiness itself is unaffected."""
+    if report.provenance.get("scan_scope") == "CUSTOM":
+        return "Scope: CUSTOM (subset of checks)"
+    return None
 
 
 def not_measured_text(report: Report) -> str | None:
@@ -89,20 +75,6 @@ def diagnostics_parts(report: Report) -> tuple[str, str]:
             f"{counts[CheckStatus.FAIL]} fail")
 
 
-def legacy_headline(report: Report) -> str:
-    """The deprecated five-domain score in one line — printed only with
-    `--legacy-score`. A non-OK status is named inline; its explaining
-    sentence is `status_note`."""
-    s = report.score
-    label = "Legacy Subset Diagnostic Score" if s.status == "NOT_CANONICAL" else "Legacy Static Signal Score"
-    if s.value is None:
-        return f"{label} — · {s.status} · coverage {s.coverage:.0%} {LEGACY_REMOVAL}"
-    # The five-domain grade, as 0.17.x printed it, whenever it has one.
-    grade = f" {s.grade}" if s.grade else ""
-    status = "" if s.status == "OK" else f" · {s.status}"
-    return f"{label} {s.value} / 100{grade}{status} {LEGACY_REMOVAL}"
-
-
 def profile_note(report: Report) -> str | None:
     """Audit §14: an auto-detected profile below LOW_CONFIDENCE is stated on
     the report — never silently scored as if declared. None for a declared
@@ -116,9 +88,10 @@ def profile_note(report: Report) -> str | None:
 
 
 def scored_experimental(report: Report) -> bool:
-    """Whether this scan actually scored experimental checks (`--experimental`
-    was on) — read off the report's own provenance, never guessed from the
-    findings themselves."""
+    """Whether this scan ran with `--experimental` — read off the report's own
+    provenance, never guessed from the findings themselves. With it on,
+    experimental findings are shown with the others; without it they get
+    their own "Experimental" block."""
     return bool(report.provenance.get("experimental"))
 
 
@@ -148,27 +121,29 @@ def has_experimental(findings: list[CheckResult]) -> bool:
 
 
 _TOP_FINDINGS_CAP = 8
-# `Report.security` is never scored (see `security_summary.py`/`SecuritySummary.scored`),
+# `Report.security` is never rated (see `security_summary.py`/`SecuritySummary.scored`),
 # so a SECURITY-category finding never competes with a readiness finding for
-# the same readiness-priority slots — it never moved the score, and a
-# security FAIL must not silently displace the readiness FAIL/WARN that
-# actually drove the Static Signal Score down (the 2026-09-16 top-findings
-# collision: `test_an_oversized_llms_txt_is_declared_as_a_partial_read_end_to_end`
+# the same readiness-priority slots — a security FAIL must not silently
+# displace a readiness FAIL/WARN (the 2026-09-16 top-findings collision: `test_an_oversized_llms_txt_is_declared_as_a_partial_read_end_to_end`
 # lost CORE-ACCESS-009 off the readiness top-8 the moment SEC-WEB findings
 # started competing for the same slots). Security findings are appended
 # AFTER the readiness top-8, in their own capped tail, so both stay visible.
 _SECURITY_TAIL_CAP = 8
 
 
+_SEVERITY_RANK = {Severity.CRITICAL: 0, Severity.HIGH: 1, Severity.MEDIUM: 2, Severity.LOW: 3, Severity.INFO: 4}
+
+
 def _sort_key(f: CheckResult) -> tuple:
-    return (f.status != CheckStatus.FAIL, -f.weight, f.id)
+    return (_SEVERITY_RANK[f.severity], f.status != CheckStatus.FAIL, f.id)
 
 
 def top_findings(findings: list[CheckResult], scored: bool) -> list[CheckResult]:
-    """FAIL and WARN findings, FAIL before WARN, then by weight descending,
-    id as the final stable tiebreak, capped at 8. An unscored experimental
-    finding (`scored=False`) is excluded — it never moved the score, so it
-    never belongs in "top findings". SECURITY-category findings never
+    """FAIL and WARN findings by severity (critical first), FAIL before WARN
+    within a severity, id as the final stable tiebreak, capped at 8. An
+    experimental finding is excluded unless the scan ran with
+    `--experimental` (`scored=True`) — without it, experimental findings have
+    their own block. SECURITY-category findings never
     compete with readiness findings for these 8 slots (`Report.security` is
     never scored); they are appended afterward, in their own capped tail —
     see `_SECURITY_TAIL_CAP` above."""

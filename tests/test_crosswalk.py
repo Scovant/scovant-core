@@ -97,7 +97,9 @@ def test_rule_rows_carry_the_rules_own_maturity():
 def test_intro_does_not_claim_checks_carry_no_score():
     doc = crosswalk.render_markdown()
     assert "carries no score" not in doc
-    assert "no weight in the Technical Readiness rating" in doc and "five-domain score" in doc
+    assert "no weight in the Technical Readiness rating" in doc
+    # 0.19.0 removed the five-domain score: the intro speaks of it in the past tense.
+    assert "removed in 0.19.0" in doc and "due to be removed" not in doc and "deprecated" not in doc
 
 
 def test_security_checks_are_no_rule():

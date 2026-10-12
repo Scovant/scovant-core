@@ -17,9 +17,9 @@ from scovant_core.report._common import (
 from scovant_core.report._cta import CTA_TEXT, cta_url
 
 
-def _f(id, status, weight=1, experimental=False):
+def _f(id, status, experimental=False):
     return CheckResult(id=id, title=id, category=Category.ACCESS, status=status,
-                       severity=Severity.MEDIUM, confidence=Confidence.HIGH, weight=weight,
+                       severity=Severity.MEDIUM, confidence=Confidence.HIGH,
                        summary="s", experimental=experimental)
 
 
@@ -33,11 +33,11 @@ def test_cta_text_is_pinned():
     assert CTA_TEXT == "Verify with real agents:"
 
 
-def test_top_findings_orders_fail_then_weight_then_id_and_caps_at_8():
-    fs = [_f("B", CheckStatus.WARN, 3), _f("A", CheckStatus.FAIL, 1), _f("C", CheckStatus.WARN, 3)] + [
+def test_top_findings_orders_fail_then_id_within_a_severity_and_caps_at_8():
+    fs = [_f("B", CheckStatus.WARN), _f("C", CheckStatus.FAIL), _f("A", CheckStatus.WARN)] + [
         _f(f"Z{i}", CheckStatus.WARN) for i in range(10)]
     ids = [f.id for f in top_findings(fs, scored=True)]
-    assert ids[:3] == ["A", "B", "C"] and len(ids) == 8
+    assert ids[:3] == ["C", "A", "B"] and len(ids) == 8
 
 
 def test_unscored_experimental_never_in_top_findings():

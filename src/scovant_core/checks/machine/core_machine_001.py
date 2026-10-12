@@ -10,7 +10,6 @@ class JsonLdParseability(CoreCheck):
     title = "JSON-LD parseability"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://json-ld.org/spec/latest/json-ld/",)
     why_it_matters = "A structured-data block an agent's parser cannot read is worse than no block: it promises machine-readable data and then withholds it."

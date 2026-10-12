@@ -13,7 +13,6 @@ class TermsDiscoverability(CoreCheck):
     category = Category.TRUST
     verification_mode = "DECLARED"
     profiles = frozenset({"commerce", "saas", "api"})
-    weight = 2
     references = ("https://schema.org/Legal",)
     why_it_matters = (
         "An agent transacting with a site — buying, subscribing, or calling an API — needs the terms it is "

@@ -14,7 +14,6 @@ class UcpProfilePresence(CoreCheck):
     category = Category.INTERFACES
     verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
-    weight = 2
     experimental = True
     severity_on_fail = Severity.MEDIUM
     references = ("https://ucp.dev/",)
@@ -27,7 +26,7 @@ class UcpProfilePresence(CoreCheck):
         "≥ 200 canonical scans of commerce sites publishing a UCP profile; a UCP specification "
         "at a stable, versioned schema with a settled well-known path; a false-positive review of the "
         "HTML-catch-all-versus-real-absence split, so a catch-all page never reads as a published "
-        "profile; then a scored weight and a RULESET_VERSION bump."
+        "profile; then promotion out of experimental and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow."
 

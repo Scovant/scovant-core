@@ -20,7 +20,6 @@ class OrganizationEntity(CoreCheck):
     title = "Organization entity"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://schema.org/Organization",)
     why_it_matters = "An agent trying to identify who operates a site (for trust, citation, or contact) needs a machine-readable Organization entity, not just a human-facing 'About' page."

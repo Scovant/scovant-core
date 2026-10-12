@@ -198,10 +198,14 @@ IP address:
 - `domain` — the scanned site's hostname only (no path, no query string)
 - `timestamp` — when the scan completed
 - `core_version`, `ruleset_version`, `ruleset_digest`
-- `profile` — the resolved site profile
+- `profile`, `profile_confidence`, `profile_detector_version` — the resolved
+  site profile and how it was detected
 - `experimental` — whether experimental checks were included
 - `check_statuses` — each check id's status (`PASS`/`WARN`/`FAIL`/`N/A`/`ERROR`)
-- `score` — `{value, grade, coverage, status}`
+- `scan_scope` — `CANONICAL` (only canonical scans are sent)
+- `technical` — Technical Readiness: rating, grade, coverage, status and
+  model id (only a scan whose Technical Readiness status is `OK` is sent)
+- `error_count` — how many checks errored
 
 `--contribute` is refused (exit 2) when combined with
 `--allow-private-networks` — the same SSRF guard described above already
@@ -601,7 +605,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.18.0
+V=0.19.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

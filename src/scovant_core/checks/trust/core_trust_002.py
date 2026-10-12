@@ -13,7 +13,6 @@ class ShippingPolicyDiscoverability(CoreCheck):
     category = Category.TRUST
     verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
-    weight = 2
     references = ("https://schema.org/DeliveryTimeSettings",)
     why_it_matters = (
         "An agent completing a purchase on a user's behalf needs to know shipping cost and timing "

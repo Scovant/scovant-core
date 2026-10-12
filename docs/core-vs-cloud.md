@@ -47,10 +47,9 @@ This is a technical comparison, not a marketing one: everything below traces to 
 | Hosted, shareable reports | ❌ | ✅ |
 | Contextual fix plan | ❌ | ✅ |
 
-`(experimental)` marks a check that evaluates and reports on every scan but
-never moves Technical Readiness, Core's headline, and is excluded from the
-deprecated five-domain Static Signal Score (removed in 0.19.0) until it has
-been calibrated against real-world traffic — see `docs/methodology.md`.
+`(experimental)` marks a check that evaluates and reports on every scan in
+its own block until it has been calibrated against real-world traffic. No
+check moves Technical Readiness, Core's rating — see `docs/methodology.md`.
 
 ## Examples
 

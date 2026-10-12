@@ -18,7 +18,6 @@ class WebMcpToolQuality(CoreCheck):
     title = "WebMCP tool declaration quality"
     category = Category.INTERFACES
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     experimental = True
     severity_on_fail = Severity.LOW
     references = ("https://github.com/webmachinelearning/webmcp",)
@@ -35,7 +34,7 @@ class WebMcpToolQuality(CoreCheck):
         "a false-positive review of the static `registerTool(` extraction against tools enumerated "
         "at runtime, so a dynamically-built declaration is not counted as a missing one; a WebMCP "
         "tool-declaration shape that stayed stable across two consecutive specification revisions; "
-        "then a scored weight and a RULESET_VERSION bump."
+        "then promotion out of experimental and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud enumerates WebMCP tools live in a real browser, seeing runtime-only definitions this static scan cannot."
 

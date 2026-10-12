@@ -20,7 +20,7 @@ def test_checks_md_has_security_section_with_family_ids():
 
 def test_docs_state_counts_and_boundary():
     meth = (ROOT / "docs/methodology.md").read_text(encoding="utf-8")
-    assert "68 checks" in meth and "18 security checks" in meth and "never enter the score" in meth
+    assert "68 checks" in meth and "18 security checks" in meth and "are never rated" in meth
     sec = (ROOT / "docs/security.md").read_text(encoding="utf-8")
     for must in ("PASSIVE SIGNALS ONLY", "Core MUST NOT", "MACHINE-DATA-005", "RFC 9116", "RFC 9728", "No failures were observed"):
         assert must in sec
@@ -62,3 +62,25 @@ def test_standards_mapping_table_is_derived_from_the_registry():
         # share the MCP-AUTH prefix and are pinned by tests/test_owasp.py instead.
         if line.startswith(("| SEC-", "| MACHINE-DATA-", "| PROMPT-SURFACE-", "| MCP-AUTH-")) and len(cells) == 5:
             assert tuple(cells[:3]) in declared, line
+
+
+def _documented_payload_fields(text: str) -> set[str]:
+    """The backticked field names of the bullet list that follows the
+    "request body carries exactly these fields" sentence."""
+    import re
+
+    block = text.split("carries exactly these fields", 1)[1].split("\n\n", 2)[1]
+    return {name for line in block.splitlines() if line.startswith("- ")
+            for name in re.findall(r"`([a-z_]+)`", line.split(" — ", 1)[0])}
+
+
+def test_security_md_lists_exactly_the_real_contribute_payload():
+    """docs/security.md is a public privacy statement ("exactly these fields
+    and nothing else"): its list must be the payload `build_payload` really
+    sends — a real report, not a hand-written key set."""
+    from scovant_core.contribute import build_payload
+    from tests.test_report_markdown import _report
+
+    real = set(build_payload(_report("commerce-good")))
+    sec = (ROOT / "docs/security.md").read_text(encoding="utf-8")
+    assert _documented_payload_fields(sec) == real

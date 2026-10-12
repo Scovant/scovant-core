@@ -1,16 +1,14 @@
 # Methodology
 
-This document explains what Scovant Core measures, how its scores are
-computed, and — just as importantly — what they do not tell you.
+This document explains what Scovant Core measures, how its rating is
+computed, and — just as importantly — what it does not tell you.
 
-**Headline since 0.18.0: Technical Readiness.** The number Core leads with,
-and the one `--min-score` and `--require-canonical` gate on, is Technical
-Readiness (`readiness.technical`), the open R2 model documented in
-[`r2.md`](r2.md). The five-domain Scovant Core Static Signal Score (`Core
-Score`) described in "Scoring formula", "Coverage floor" and "Scan scope
-and score status" below is **deprecated**: it stays in the JSON report
-(`score`, marked `deprecated: true`, `replaced_by: readiness.technical`),
-is printed and gated only with `--legacy-score`, and is removed in 0.19.0.
+**Core's one rating is Technical Readiness** (`readiness.technical`), the
+open R2 model documented in [`r2.md`](r2.md). It is the number every report
+leads with and the one `--min-score` and `--require-canonical` gate on. The
+checks described below are diagnostics: each reports its own verdict and
+evidence, and none of them carries a weight (see "Before 0.19.0" for the
+five-domain score they used to feed).
 
 ## What Core measures
 
@@ -27,7 +25,7 @@ rendered from it — `text` (human-readable terminal output, the default),
 `json` (versioned, machine-readable, for CI pipelines and the MCP server),
 `markdown` (GitHub-flavored, for pasting into a PR or issue), and `html`
 (one self-contained document, no external resources, no JavaScript). All
-four carry the same score, findings, and evidence — only the presentation
+four carry the same rating, findings, and evidence — only the presentation
 differs. See the README's "JSON, Markdown and HTML output" section for
 examples.
 
@@ -78,10 +76,12 @@ Every check returns exactly one status:
 
 **`N/A` vs. `ERROR`:** a document or page that *should* have been readable
 but could not be — a fetch failure, a 5xx, an unparseable body — is
-`ERROR`. It is excluded from the numeric score but still counts toward the
-category's *applicable* weight, so a site that is genuinely unreachable
-drops the scan's evidence coverage below the floor rather than being
-scored on whatever few checks happened to still evaluate. `N/A` means there
+`ERROR`: a data-quality gap, reported as such and counted in the report's
+`error_count`. Technical Readiness treats the same gap the same way — a
+rule whose input could not be read is `NOT_MEASURED` and lowers coverage,
+so a site that is genuinely unreachable ends `INSUFFICIENT_EVIDENCE` rather
+than being rated on whatever few rules happened to still evaluate (see
+[`r2.md`](r2.md)). `N/A` means there
 was nothing to evaluate in the first place — the check does not apply to
 this profile, or the thing being checked is optional and a real response
 confirmed its absence. `ERROR` must never silently become `FAIL`, and
@@ -90,7 +90,7 @@ optional. Several optional agent-facing protocols (MCP, WebMCP, UCP,
 llms.txt, OpenAPI, OAuth discovery, Content-Signal, security.txt) are
 additionally surfaced as a separate `present`/`absent`/`invalid`/`not_checked`
 "Capabilities detected" summary derived from these same findings — it is
-purely descriptive, reported alongside the score, and never itself enters it.
+purely descriptive, reported alongside the rating, and never itself enters it.
 
 **The document-status rule:** every check that fetches a single well-known
 document (robots.txt, a sitemap, llms.txt, an MCP/OpenAPI/OAuth/UCP/
@@ -156,131 +156,60 @@ Reports produced before this contract existed are identified by
 `provenance.core_version` / `core_version` in the report payload; the flag
 carries its stated meaning from the version that introduced it onward.
 
-## Scoring formula
+## Technical Readiness
 
-This section describes the deprecated five-domain Static Signal Score
-(removed in 0.19.0); Technical Readiness's formula is in [`r2.md`](r2.md).
+Technical Readiness is computed by the open R2 model over the evidence Core
+gathers — its rules, categories, weights, coverage floor, statuses and
+grades are documented in [`r2.md`](r2.md) and identified in every report by
+`readiness.technical.model_id`. The checks below do not feed it: a check and
+a readiness rule may read the same signal (the curated
+[`crosswalk.md`](crosswalk.md) says which), but each check's verdict stands
+on its own.
 
-Each check has a local integer weight. Per category, the raw ratio is:
-
-```text
-sum(check_weight × status_value) / sum(applicable, evaluated weight)
-```
-
-where `status_value` is `PASS=1.0`, `WARN=0.5`, `FAIL=0.0`; `N/A` and
-`ERROR` results are excluded from both sums, and so is any `experimental`
-check regardless of its status — an experimental check's evidence is still
-computed and reported (see `docs/checks.md` for which five checks currently
-carry that flag), it is simply never added into a category's weight sums
-until it has been calibrated and promoted to non-experimental. This ratio
-is kept **unrounded**
-through the rest of the computation — only the category score shown in a
-report is rounded (to 0.1) for display, because rounding each category
-before weighting can flip the overall score's grade band on inputs that sit
-near a rounding boundary.
-
-The overall score is the weighted sum of the unrounded category ratios
-against the category weights below, **renormalized over only the
-categories that actually produced a ratio** — a category whose every check
-came back `N/A`/`ERROR` for this scan (zero evaluated weight) drops out of
-both the numerator and the weight total entirely, rather than being
-averaged in as a 0. The result is rounded to the nearest whole number with
-half-up rounding (never Python's banker's rounding, so a `.5` always rounds
-up):
-
-| Category | Weight |
-|---|---:|
-| Access & Discovery | 25 |
-| Machine Understanding | 25 |
-| Agent Interfaces | 20 |
-| Trust & Commerce | 15 |
-| Operability & Efficiency | 15 |
-| **Total** | **100** |
-
-Minimum evidence coverage: 60%. Below this coverage, no score is emitted (`INSUFFICIENT_EVIDENCE`) instead of scoring on whatever few checks happened to evaluate.
-
-| Score | Grade |
-|---|---|
-| 90–100 | A |
-| 80–89 | B |
-| 70–79 | C |
-| 60–69 | D |
-| 0–59 | F |
-
-## v0.1 category coverage
+## Check catalog
 
 Ruleset 2026.10 ships 68 checks: 50 readiness checks (7 of them
-`experimental` — evaluated and reported, but excluded from the score until
-calibrated and promoted; see `docs/checks.md`) and 18 security checks (10
-experimental) that never enter the score — see `docs/security.md`. The
-table below covers the 5 scored, weighted readiness categories only;
-"local weight" counts experimental checks in both columns:
+`experimental`; see `docs/checks.md`) and 18 security checks (10
+experimental) that are never rated — see `docs/security.md`. The
+readiness checks fall into five themes:
 
-| Category | Checks / local weight | Category weight |
-|---|---|---:|
-| Access & Discovery | 11 / 26 | 25 |
-| Machine Understanding | 12 / 26 | 25 |
-| Agent Interfaces | 9 / 20 | 20 |
-| Trust & Commerce | 7 / 15 | 15 |
-| Operability & Efficiency | 11 / 23 | 15 |
+| Theme | Checks |
+|---|---:|
+| Access & Discovery | 11 |
+| Machine Understanding | 12 |
+| Agent Interfaces | 9 |
+| Trust & Commerce | 7 |
+| Operability & Efficiency | 11 |
 
-Every category now carries enough checks that a single verdict rarely
-decides the whole category on its own — Trust & Commerce and Operability &
-Efficiency, the thinnest in v0.1's first draft (one check each), now carry
-seven or more apiece. Several Machine Understanding and Trust & Commerce checks are
+Several Machine Understanding and Trust & Commerce checks are
 profile-restricted (e.g. Product/Offer/identifier checks apply only to the
-`commerce` profile), so a given scan's *applicable* set within a category is
-usually smaller than its full local-weight total above — the `(n/N)`
-coverage the CLI prints beside each category is what tells you how many of
-*that scan's* applicable checks actually ran, which is always a better read
-than the static table above.
+`commerce` profile), so a given scan's applicable set within a theme is
+usually smaller than the table above. Read each finding with its evidence
+in the JSON report, not as a broad measurement of its whole theme.
 
-Read a category score together with the `(n/N)` coverage the CLI prints
-beside it (`n` checks evaluated of `N` applicable, excluding experimental
-checks and any check the resolved profile doesn't apply to) and with the
-per-check detail in the JSON report — not as a broad measurement of that
-whole theme. The category weights themselves are held stable so scores
-stay comparable within a ruleset version.
-
-## Coverage floor
-
-There are two coverage floors, not one:
-
-- **Evidence floor (60%).** A score is only emitted when at least 60% of the
-  total applicable check weight was actually evaluated (not `N/A`, not
-  `ERROR`). Below that floor, `Score.status` is `INSUFFICIENT_EVIDENCE` and
-  `Score.value`/`Score.grade` are both `null` — Core will not present a
-  number computed from mostly missing evidence as if it meant something.
-  Coverage itself is still reported so a caller can see how far short of
-  the floor the scan fell.
-- **Canonical floor (85%).** A full-selection scan (no `--include`,
-  `--exclude`, or `--experimental`) that clears the 60% evidence floor but
-  falls short of 85% coverage, or that hit any `ERROR` check, still gets a
-  `value`/`coverage` but no `grade`: `Score.status` is `DEGRADED`. Only a
-  full scan at ≥85% coverage with zero errored checks reaches `status: OK`
-  and a letter grade.
-
-## Experimental checks: measure first, score later
+## Experimental checks: measure first, promote later
 
 A check ships experimental when its signal is real but its *calibration* is
 not yet defensible — an emerging protocol whose shape is still moving, or a
 heuristic whose false-positive rate has not been measured on a real corpus.
-Experimental checks run and are reported (`--experimental`), but they are
-excluded from the score entirely: they cannot move a value, a grade, or the
-coverage denominator. Scoring a signal we cannot yet defend would be worse
-than not measuring it.
+Experimental findings are reported in their own block, apart from the
+established checks; `--experimental` also runs the experimental-only
+gatherers and ranks those findings with the rest (the scan's scope is then
+`CUSTOM`). No check moves Technical Readiness, experimental or not.
+Presenting a signal we cannot yet defend as established would be worse than
+not measuring it.
 
 Every experimental check publishes four fields in
 [`checks.md`](checks.md), on a `**Status:**` line under its description:
 
 | Field | Meaning |
 |---|---|
-| status | `experimental` — visible in reports, gated behind `--experimental`. |
-| scored | Always `no` while experimental. |
+| status | `experimental` — reported in its own block; `--experimental` ranks it with the rest. |
+| scored | Always `no` (since 0.19.0 no check carries a score). |
 | reason | Why the check exists at all — the signal it claims to measure. |
-| promotion criteria | What it would take to make this check scored — written per check, in `CoreCheck.promotion_criteria`. |
+| promotion criteria | What it would take to promote this check out of experimental — written per check, in `CoreCheck.promotion_criteria`. |
 
-What running a check unscored buys is the same for all of them: a distribution
+What running a check as experimental buys is the same for all of them: a distribution
 of the signal across real sites, and the false positives that distribution
 exposes.
 
@@ -290,35 +219,33 @@ of the same five general requirements:
 1. **Sufficient corpus.** Enough canonical scans of sites where the check
    actually applies to know the signal's real distribution, not an anecdote.
 2. **False-positive review.** Each heuristic reviewed against sites it flags,
-   so a known false-positive class is fixed or documented before it can cost
-   anyone points.
+   so a known false-positive class is fixed or documented before it can
+   mislead anyone.
 3. **Documented causal relationship.** A stated, defensible link between the
    signal and agent behaviour — not "this looks like it should matter".
 4. **Stable semantics.** The thing being measured no longer changes shape
    underneath the check (for emerging protocols: a settled, versioned
    specification).
-5. **Versioned scoring impact.** Promotion lands in its own calibrated change
-   that assigns the weight and bumps `RULESET_VERSION`, because scores before
-   and after are not comparable.
+5. **Versioned change.** Promotion lands in its own calibrated change that
+   moves the check out of experimental and bumps `RULESET_VERSION`, because
+   reports before and after are not comparable.
 
 A check that cannot meet these is not promoted. Staying experimental
 indefinitely, or being removed, are both acceptable outcomes; quietly
-scoring it is not.
+promoting it is not.
 
 ## Security signals are reported, not scored
 
 The `CORE-SECURITY-*` checks (category "Agentic Security & Trust") sit
-outside Technical Readiness and the deprecated five-domain score entirely —
-by construction, not by convention. They never carry a `Category` weight (`CATEGORY_WEIGHTS` has no
-`security` key), they never count toward the evidence-coverage denominator,
-and excluding them (`--exclude security`) changes nothing about the
-score, a category score, or any readiness finding's own verdict — this is
-what `tests/test_security_is_score_neutral.py` proves on every fixture, on
-every commit. A SECURITY check that ERRORs (a security-only probe that could
-not be read at all) is neutral in the same way: it never degrades the
-readiness score, its coverage, its scope, or its grade — only a readiness
-check's ERROR can do that. The report still reports both, as `error_count`
-(total) and `security_error_count` (the security slice of it). Full
+outside Technical Readiness entirely — by construction, not by convention.
+No readiness rule reads a security finding, and excluding them
+(`--exclude security`) changes nothing about Technical Readiness, its
+per-rule outcomes, or any readiness finding's own verdict — this is what
+`tests/test_security_is_score_neutral.py` proves on every fixture, on every
+commit. A SECURITY check that ERRORs (a security-only probe that could not
+be read at all) is neutral in the same way: it never degrades Technical
+Readiness, its coverage, or its grade. The report still counts it, as
+`error_count` (total) and `security_error_count` (the security slice of it). Full
 boundary, label semantics, and standards mapping: `docs/security.md`.
 
 Every SECURITY finding carries two axes a readiness finding does not:
@@ -341,7 +268,7 @@ Every SECURITY finding carries two axes a readiness finding does not:
 
 ## How Scovant Core validates new checks
 
-Every check — experimental or scored — goes through the same seven steps:
+Every check — experimental or established — goes through the same seven steps:
 
 1. **Proposed check.** A stated claim about what evidence means, with the
    limitation of a passive scanner written down first.
@@ -355,10 +282,10 @@ Every check — experimental or scored — goes through the same seven steps:
 5. **False-positive review.** Flagged sites are inspected by hand; each
    false-positive class is either fixed or written into the check's
    `limitations`.
-6. **Experimental (unscored) period.** The check ships visible but excluded
-   from the score, gathering evidence against the promotion criteria above.
-7. **Promotion to a scored rule.** A dedicated, calibrated change assigns the
-   weight and bumps `RULESET_VERSION`.
+6. **Experimental period.** The check ships visible, in its own report
+   block, gathering evidence against the promotion criteria above.
+7. **Promotion.** A dedicated, calibrated change moves the check out of
+   experimental and bumps `RULESET_VERSION`.
 
 [`fixtures/http-semantics/`](../fixtures/http-semantics) is the worked
 example of steps 2 and 3: alongside the positive cases (a real soft-404, a
@@ -379,30 +306,23 @@ infrastructure before inclusion. A
 contribution tells us *where to look*; it is never itself the measurement
 that gets published.
 
-## Scan scope and score status
+## Scan scope
 
-Every report carries `Score.scope` (a property of the **selection**) and
-`Score.status` (a property of the **resulting score**):
+Every report carries `provenance.scan_scope`, a property of the
+**selection** alone:
 
-| Scope | Meaning | Status | Grade |
-|---|---|---|---|
-| `CANONICAL` | Full check selection (no `--include`/`--exclude`/`--experimental`), coverage ≥ 85%, zero `ERROR`ed checks | `OK` | Yes |
-| `PARTIAL` | Full check selection, but coverage < 85% or any check `ERROR`ed (and coverage still ≥ 60%) | `DEGRADED` | No |
-| `PARTIAL` or `CUSTOM` | Coverage < 60% (evidence floor) | `INSUFFICIENT_EVIDENCE` | No |
-| `CUSTOM` | `--include`/`--exclude`/`--experimental` narrowed or widened the run (and coverage ≥ 60%) | `NOT_CANONICAL` | No |
+| Scope | Meaning |
+|---|---|
+| `CANONICAL` | The default check selection (no `--include`/`--exclude`/`--experimental`). |
+| `CUSTOM` | `--include`/`--exclude`/`--experimental` narrowed or widened the run; reports say "Scope: CUSTOM (subset of checks)". |
 
-A `CUSTOM` scan reports a **Subset Diagnostic Score** rather than the
-Scovant Core Static Signal Score, and the CLI's "Canonical Core Score: NOT
-CALCULATED" line for it now appears only with `--legacy-score` (the
-deprecated five-domain block) — a subset score is useful for local
-debugging of a specific check, but it is not comparable across sites or
-over time the way a canonical score is. With `--legacy-score`,
-`--require-canonical` makes a CI job fail fast when a scan is accidentally
-scoped down; without it, `--require-canonical` requires Technical
-Readiness status `OK`. `--contribute`
-refuses to send anything but a `CANONICAL`-scope report — the CLI prints
-`contributed: skipped (scan is CUSTOM; only canonical scans are accepted)`
-instead of posting.
+Evidence quality is not a scope: it is Technical Readiness's own `status`
+(`OK`, `DEGRADED`, `INSUFFICIENT_EVIDENCE` — see [`r2.md`](r2.md)). A full
+selection whose checks errored is still `CANONICAL`; read its Technical
+status to see how far the evidence can be trusted. `--require-canonical`
+requires Technical Readiness status `OK`. `--contribute` sends only a
+`CANONICAL` report whose Technical Readiness status is `OK` — otherwise the
+CLI prints `contributed: skipped (…)` with the reason instead of posting.
 
 ## Profiles
 
@@ -414,28 +334,33 @@ returns `N/A`, not `FAIL`.
 
 ## Determinism
 
-Given the same fetched evidence, the same check version, and the same
-scoring constants, a scan produces byte-identical output (`report.provenance`
-aside, which records genuinely environment-dependent facts like the Python
-interpreter). There is no LLM in the scoring path. The package's golden
-tests (`tests/test_golden.py`) pin this for four canonical fixture sites.
+Given the same fetched evidence, the same check versions, and the same R2
+model, a scan produces byte-identical output (`report.provenance` aside,
+which records genuinely environment-dependent facts like the Python
+interpreter). There is no LLM in the rating path. The package's golden
+tests (`tests/test_golden.py`) pin this for every fixture site.
 
 ## Versioning
 
-A report carries three independent version fields:
+A report carries these independent version fields:
 
 - `core_version` — the installed `scovant-core` package version (semver).
 - `ruleset_version` — the calendar-stamped version of the check set itself
-  (e.g. `2026.09`), combined with a content digest (`ruleset_digest()`,
-  hashing every check id, its own version, and the scoring constants) so
-  any change to what is measured or how it is weighted is detectable even
-  within the same calendar version string.
+  (e.g. `2026.10`), combined with a content digest (`ruleset_digest()`,
+  hashing every check id and its own version) so any change to what is
+  checked is detectable even within the same calendar version string.
+  Before 0.19.0 the digest also hashed the five-domain scoring constants;
+  dropping them changed it once (`7f440d6205c3` → `e7426fb13abe`) with
+  `ruleset_version` unchanged.
+- `readiness.technical.model_id` — the Technical Readiness model (rules and
+  policy); any change to how the rating is computed mints a new id.
 - `schema_version` — the JSON report schema version.
 
-Scores are only meaningfully comparable across two scans when their
-`ruleset_version` (and digest) match. A report whose ruleset changed
-between two scans of the same site should be read as "the measurement
-changed," not "the site changed."
+Ratings are only meaningfully comparable across two scans when their
+`model_id` matches, and check verdicts when their `ruleset_version` (and
+digest) match. A report whose model or ruleset changed between two scans of
+the same site should be read as "the measurement changed," not "the site
+changed."
 
 ## Report schema
 
@@ -453,12 +378,22 @@ committed `docs/report.schema.json` and therefore needs a git checkout of
 write to, and the command says so instead of failing obscurely.
 
 Bump policy: adding a key to the report is not a breaking change and does
-not bump `schema_version`. A minor bump marks a deprecation: 1.2 marks the
+not bump `schema_version`. A minor bump marks a deprecation: 1.2 marked the
 five-domain `score` deprecated (`score.deprecated`, `score.replaced_by`),
-and 2.0 removes it. Removing or retyping an existing field is breaking and
+and 2.0 removed it. Removing or retyping an existing field is breaking and
 bumps the major version — the schema deliberately allows additional
 properties at the top level so additive changes never require a consumer
 update.
+
+## Before 0.19.0
+
+Until 0.18.x Core also computed a five-domain score from the checks
+themselves (the "Static Signal Score": a per-check local weight, five
+weighted categories, its own coverage floors and a `PARTIAL` scope for an
+errored full scan). 0.18.0 made Technical Readiness the headline and
+deprecated it (report schema 1.2, `--legacy-score`); 0.19.0 removed it
+(report schema 2.0) together with every per-check weight. Older reports
+are identified by `schema_version` and `core_version`.
 
 ## Limitations
 

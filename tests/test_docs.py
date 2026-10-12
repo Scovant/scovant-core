@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 import scovant_core.docs as _docs_module
-from scovant_core.docs import main, render_checks, render_example, render_weights_table
+from scovant_core.docs import main, render_checks, render_example
 
 PKG_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = PKG_ROOT / "docs" / "example-report.md"
@@ -60,11 +60,6 @@ README_SECTIONS = (
 def test_checks_md_matches_generator():
     committed = (PKG_ROOT / "docs" / "checks.md").read_text(encoding="utf-8")
     assert committed == render_checks()
-
-
-def test_methodology_contains_weights_table_verbatim():
-    methodology = (PKG_ROOT / "docs" / "methodology.md").read_text(encoding="utf-8")
-    assert render_weights_table() in methodology
 
 
 def test_readme_has_every_section_heading_in_order():

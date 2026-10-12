@@ -3,19 +3,16 @@ import re
 from scovant_core.report.html import render_html
 from tests.test_report_markdown import _report
 
-SECTION_IDS = ("summary", "score", "categories", "findings", "evidence", "remediation",
+SECTION_IDS = ("summary", "score", "findings", "evidence", "remediation",
                "limitations", "not-tested", "cloud-comparison", "methodology", "provenance")
 
 
 def test_html_has_every_section_in_spec_order():
-    """`categories` (the deprecated five-domain block) renders only with
-    `legacy_score=True`; every other section always renders, in order."""
-    html = render_html(_report(), legacy_score=True)
+    """Every section renders, in order; the five-domain `categories` section
+    is gone (0.19.0)."""
+    html = render_html(_report())
+    assert 'id="categories"' not in html
     positions = [html.index(f'id="{s}"') for s in SECTION_IDS]
-    assert positions == sorted(positions)
-    default = render_html(_report())
-    assert 'id="categories"' not in default
-    positions = [default.index(f'id="{s}"') for s in SECTION_IDS if s != "categories"]
     assert positions == sorted(positions)
 
 

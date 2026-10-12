@@ -11,7 +11,6 @@ class MetadataQuality(CoreCheck):
     title = "Metadata quality"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://ogp.me/",)
     why_it_matters = "Title, description, and Open Graph tags are the first summary an agent (or a link preview) sees of a page."

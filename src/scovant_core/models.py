@@ -6,12 +6,10 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-REPORT_SCHEMA_VERSION = "1.2"
-SCORE_NAME = "Scovant Core Static Signal Score"
-SCORE_SHORT_NAME = "Core Score"
-SCORE_SUBSET_NAME = "Subset Diagnostic Score"
-SCAN_SCOPES = ("CANONICAL", "CUSTOM", "PARTIAL")
-SCORE_STATUSES = ("OK", "DEGRADED", "NOT_CANONICAL", "INSUFFICIENT_EVIDENCE")
+REPORT_SCHEMA_VERSION = "2.0"
+# `provenance.scan_scope`: CANONICAL (the full default selection) or CUSTOM
+# (--include/--exclude/--experimental). A property of the SELECTION only.
+SCAN_SCOPES = ("CANONICAL", "CUSTOM")
 # How a check's evidence was obtained — DECLARED (a document/header the site
 # published) and PASSIVE_OBSERVED (an unauthenticated observation Core made
 # itself) are the only two Core ever emits; ACTIVE_SAFE and
@@ -49,8 +47,8 @@ class Category(StrEnum):
     INTERFACES = "interfaces"
     TRUST = "trust"
     OPERABILITY = "operability"
-    # Never scored (see scoring.SCORED_CATEGORIES) — passive security/trust
-    # signals only, surfaced through `Report.security`, not `Report.score`.
+    # Passive security/trust signals only, surfaced through `Report.security`;
+    # never part of Technical Readiness.
     SECURITY = "security"
 
 
@@ -71,7 +69,6 @@ class CheckResult(BaseModel):
     status: CheckStatus
     severity: Severity
     confidence: Confidence
-    weight: int
     summary: str
     evidence: dict = Field(default_factory=dict)
     why_it_matters: str = ""
@@ -92,14 +89,6 @@ class CheckResult(BaseModel):
     owasp_agentic: list[dict] = Field(default_factory=list)
 
 
-class CategoryScore(BaseModel):
-    title: str
-    score: float | None
-    weight: int
-    applicable_weight: float
-    evaluated_weight: float
-
-
 class Target(BaseModel):
     input_url: str
     final_url: str | None
@@ -108,29 +97,9 @@ class Target(BaseModel):
     profile_confidence: float
 
 
-class Score(BaseModel):
-    name: str = SCORE_NAME
-    value: int | None
-    grade: str | None
-    coverage: float
-    # OK | DEGRADED | NOT_CANONICAL | INSUFFICIENT_EVIDENCE — see docs/methodology.md
-    status: str
-    # CANONICAL (full selection, coverage >= 0.85, no ERROR) | CUSTOM
-    # (--include/--exclude/--experimental) | PARTIAL (full selection but
-    # under-covered or errored). A property of the SELECTION and evidence;
-    # `status` is a property of the score.
-    scope: str = "CANONICAL"
-    # Deprecated since 0.18.0 (schema 1.2): the CLI gates on and renderers
-    # lead with `readiness.technical`. The five-domain score stays for one
-    # minor release behind `--legacy-score` and is removed in 0.19.0 (2.0).
-    deprecated: bool = True
-    replaced_by: str = "readiness.technical"
-
-
 class SecuritySummary(BaseModel):
     """The report's `security` block — counts over SECURITY-category
-    findings only. Never a score; see `scoring.SCORED_CATEGORIES` and
-    docs/security.md."""
+    findings only. Never a score; see docs/security.md."""
     scored: bool = False
     label: str = "PASSIVE SIGNALS ONLY"
     findings_by_severity: dict[str, int] = Field(default_factory=dict)
@@ -187,8 +156,6 @@ class Report(BaseModel):
     started_at: str
     completed_at: str
     target: Target
-    score: Score
-    categories: dict[str, CategoryScore]
     findings: list[CheckResult]
     metrics: dict = Field(default_factory=dict)
     not_tested: list[str] = Field(default_factory=list)

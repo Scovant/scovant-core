@@ -24,7 +24,6 @@ class ContributeResult:
 
 def build_payload(report: Report) -> dict:
     host = (urlsplit(report.target.final_url or report.target.input_url).hostname or "").lower()
-    s = report.score
     t = report.readiness.technical if report.readiness is not None else None
     return {
         "domain": host, "timestamp": report.completed_at,
@@ -35,8 +34,7 @@ def build_payload(report: Report) -> dict:
         "profile_detector_version": report.provenance.get("profile_detector_version", ""),
         "experimental": bool(report.provenance.get("experimental")),
         "check_statuses": {f.id: f.status.value for f in report.findings},
-        "score": {"value": s.value, "grade": s.grade, "coverage": s.coverage, "status": s.status},
-        "scan_scope": s.scope, "score_status": s.status,
+        "scan_scope": report.provenance.get("scan_scope", ""),
         "error_count": int(report.metrics.get("error_count", 0)),
         # Technical Readiness (R2); None when Core could not compute it.
         "technical": None if t is None else {

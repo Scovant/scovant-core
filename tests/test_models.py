@@ -1,6 +1,5 @@
 from scovant_core.models import (
     REPORT_SCHEMA_VERSION,
-    SCORE_NAME,
     Category,
     CheckResult,
     CheckStatus,
@@ -21,21 +20,10 @@ def test_check_result_defaults():
         status=CheckStatus.PASS,
         severity=Severity.LOW,
         confidence=Confidence.HIGH,
-        weight=2,
         summary="ok",
     )
     assert r.evidence == {} and r.experimental is False and r.remediation == ""
 
 
-def test_score_name_and_schema():
-    assert SCORE_NAME == "Scovant Core Static Signal Score"
-    assert REPORT_SCHEMA_VERSION == "1.2"
-
-
-def test_five_domain_score_carries_deprecation_markers():
-    """0.18.0: the five-domain score is deprecated in favour of
-    `readiness.technical` (schema 1.2, additive); removed in 0.19.0 (2.0)."""
-    from scovant_core.models import Score
-
-    s = Score(value=90, grade="A", coverage=1.0, status="OK")
-    assert s.deprecated is True and s.replaced_by == "readiness.technical"
+def test_schema_is_2_0():
+    assert REPORT_SCHEMA_VERSION == "2.0"

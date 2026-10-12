@@ -59,7 +59,7 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.18.0</p>
+<p><strong>Core version:</strong> 0.19.0</p>
 <p>51 PASS, 3 WARN, 1 FAIL, 13 N/A, 0 ERROR (68 checks)</p>
 </section>
 <section id="score">
@@ -737,7 +737,7 @@ a { color: #0969da; }
 </section>
 <section id="methodology">
 <h2>Methodology</h2>
-<p>Technical Readiness is the open R2 rating over the passive evidence Core gathered. Each rule outcome counts PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 within its category, and the categories are weighted into a 0&ndash;100 rating. Coverage is the share of applicable weight Core could measure. A rule Core could not measure is listed as not measured, with a reason, and lowers coverage; it is never a FAIL. Below the coverage floor there is no number (INSUFFICIENT_EVIDENCE); an under-covered or errored measurement is DEGRADED (a number, no grade). Formula, weights and outcome states: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/r2.md">docs/r2.md</a>. The five-domain Static Signal Score is deprecated: it prints only with --legacy-score and is removed in 0.19.0.</p>
+<p>Technical Readiness is the open R2 rating over the passive evidence Core gathered. Each rule outcome counts PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 within its category, and the categories combine into a 0&ndash;100 rating. Coverage is the severity-adjusted share of the applicable rules Core could measure. A rule Core could not measure is listed as not measured, with a reason, and lowers coverage; it is never a FAIL. Below the coverage floor there is no number (INSUFFICIENT_EVIDENCE); an under-covered or errored measurement is DEGRADED (a number, no grade). Formula, category shares and outcome states: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/r2.md">docs/r2.md</a>. Checks are diagnostics: each reports its own verdict and evidence and none feeds the rating.</p>
 </section>
 <section id="provenance">
 <h2>Provenance</h2>
@@ -745,14 +745,14 @@ a { color: #0969da; }
 <dt>scan_id</dt><dd>local-golden</dd>
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
-<dt>schema_version</dt><dd>1.2</dd>
-<dt>core_version</dt><dd>0.18.0</dd>
+<dt>schema_version</dt><dd>2.0</dd>
+<dt>core_version</dt><dd>0.19.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>7f440d6205c3</dd>
+<dt>ruleset_digest</dt><dd>e7426fb13abe</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.18.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.19.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>
@@ -762,8 +762,6 @@ a { color: #0969da; }
 <dt>included_checks</dt><dd>[]</dd>
 <dt>excluded_checks</dt><dd>[]</dd>
 <dt>error_count</dt><dd>0</dd>
-<dt>evidence_min_coverage</dt><dd>0.6</dd>
-<dt>canonical_min_coverage</dt><dd>0.85</dd>
 <dt>dependencies</dt><dd>&lt;runtime&gt;</dd>
 <dt>environment_digest</dt><dd>&lt;runtime&gt;</dd>
 </dl>

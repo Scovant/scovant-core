@@ -1,6 +1,5 @@
 """Score-neutrality tripwire (AS-1 §D3): SECURITY-category findings must
-never move the Static Signal Score, a category score, or a readiness
-finding's own verdict. Comparing a scan WITH security checks against the
+never move Technical Readiness or a readiness finding's own verdict. Comparing a scan WITH security checks against the
 same scan run with `exclude=("security",)` is the only way to prove that —
 a passing test here means the security category really is layered on top
 of the existing readiness engine, not wired into it."""
@@ -17,7 +16,7 @@ from tests.test_golden import CLOCK, FROZEN_TODAY, SITES
 
 
 @pytest.mark.parametrize("site", SITES)
-def test_score_and_categories_identical_with_and_without_security(site, monkeypatch):
+def test_technical_readiness_identical_with_and_without_security(site, monkeypatch):
     # Freeze "today" exactly as test_golden.py does — CORE-ACCESS-006 and
     # gatherers.security_txt are the only checks that read real wall-clock
     # time, and a midnight rollover between the two scans below could
@@ -33,8 +32,8 @@ def test_score_and_categories_identical_with_and_without_security(site, monkeypa
         "https://example.com/", ScanOptions(exclude=("security",)),
         transport=FixtureTransport(FIXTURES / "sites" / site), clock=CLOCK, scan_id="x",
     )
-    assert a.score.value == b.score.value and a.score.coverage == b.score.coverage
-    assert {k: v.score for k, v in a.categories.items()} == {k: v.score for k, v in b.categories.items()}
+    assert a.readiness is not None and a.readiness == b.readiness
+    assert a.technical_outcomes == b.technical_outcomes
     readiness_a = {f.id: (f.status, f.severity, f.evidence) for f in a.findings if f.category.value != "security"}
     readiness_b = {f.id: (f.status, f.severity, f.evidence) for f in b.findings}
     assert readiness_a == readiness_b
@@ -69,22 +68,22 @@ def _content_scan(transport, monkeypatch):
     )
 
 
-def test_security_only_error_never_degrades_the_readiness_score(monkeypatch):
+def test_security_only_error_never_degrades_technical_readiness_or_the_scope(monkeypatch):
     site = FIXTURES / "sites" / "commerce-good"
     clean = _content_scan(FixtureTransport(site), monkeypatch)
     broken = _content_scan(_SecurityTxtUnreachable(site), monkeypatch)
 
     # The scenario is only meaningful if the clean run really did earn a
-    # grade under a CANONICAL scope — otherwise "the score did not change"
-    # would be trivially true of two ungraded reports.
-    assert clean.score.grade is not None and clean.score.scope == "CANONICAL"
+    # grade — otherwise "the rating did not change" would be trivially true
+    # of two ungraded reports.
+    assert clean.readiness.technical.grade is not None and clean.readiness.technical.status == "OK"
     sec006 = {f.id: f for f in broken.findings}["CORE-SECURITY-006"]
     assert sec006.status == CheckStatus.ERROR
     assert {f.id: f.status for f in broken.findings}["CORE-TRUST-006"] == CheckStatus.NA
 
-    # The WHOLE Score object: value, grade, coverage, status AND scope.
-    assert broken.score == clean.score
-    assert {k: v.score for k, v in broken.categories.items()} == {k: v.score for k, v in clean.categories.items()}
+    # The WHOLE Technical block, and the selection scope.
+    assert broken.readiness == clean.readiness
+    assert broken.provenance["scan_scope"] == clean.provenance["scan_scope"] == "CANONICAL"
 
     assert broken.metrics["security_error_count"] == 1
     assert broken.metrics["error_count"] == 1  # the total still reports it

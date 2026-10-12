@@ -10,7 +10,6 @@ import re
 
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category
-from scovant_core.scoring import SCORING_DIGEST
 
 RULESET_VERSION = "2026.10"
 RETIRED_IDS: frozenset[str] = frozenset()
@@ -25,7 +24,7 @@ _ID_CATEGORY = {
 }
 # SECURITY checks are grouped into families (a family = one identity/attack
 # surface, e.g. every web-security-header check shares SEC-WEB-*) instead of
-# the flat id space the five scored categories use — `family_id` is what the
+# the flat id space the five readiness categories use — `family_id` is what the
 # summary/report renderers group by, independent of check id ordering.
 _FAMILY_RE = re.compile(r"^(SEC-WEB|SEC-TXT|MACHINE-DATA|PROMPT-SURFACE|MCP-AUTH)-\d{3}$")
 
@@ -46,8 +45,6 @@ def validate_registry() -> None:
             raise ValueError(f"invalid check id: {c.id!r}")
         if c.id in RETIRED_IDS:
             raise ValueError(f"{c.id} is retired and may not be reused")
-        if c.weight < 1:
-            raise ValueError(f"{c.id}: weight must be >= 1")
         expected_category = _ID_CATEGORY[m.group(1)]
         if c.category != expected_category:
             raise ValueError(
@@ -68,7 +65,7 @@ def validate_registry() -> None:
 
 def _digest() -> str:
     pairs = "\n".join(f"{c.id}:{c.check_version}" for c in sorted(CHECKS, key=lambda c: c.id))
-    return hashlib.sha256(f"{pairs}\nscoring:{SCORING_DIGEST}".encode()).hexdigest()[:12]
+    return hashlib.sha256(pairs.encode()).hexdigest()[:12]
 
 
 def ruleset_digest() -> str:

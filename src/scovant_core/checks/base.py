@@ -4,18 +4,16 @@ failure never aborts the scan, only degrades that one check to ERROR.
 
 ERROR vs. N/A (product spec §6): a document or page that SHOULD have been
 readable but could not be (a fetch failed, a 5xx, an unparseable body) is
-`self.error(...)` — it stays out of the score itself but counts toward a
-category's *applicable* weight, so a site that is genuinely unreachable
-drops the scan's evidence coverage below the floor in `scoring.py` and the
-report is honestly reported as `INSUFFICIENT_EVIDENCE` rather than scored
-on whatever the two or three checks that happened to still evaluate found.
+`self.error(...)` — the check could not reach a verdict, and the report
+says so (`metrics.error_count`, the ERROR group) rather than presenting
+whatever the remaining checks found as the whole picture.
 `self.na(...)` is reserved for "nothing to evaluate here" — the check does
 not apply to this site's resolved profile, or the thing being checked is
 genuinely absent by a real, meaningful HTTP response (a real 404 where
 absence is not itself a defect, e.g. an optional MCP discovery file) rather
 than a read failure. Getting this wrong in either direction either hides a
-broken/unreachable site behind a false score, or drags an evidence floor
-down over sites that simply don't have the optional thing being checked."""
+broken/unreachable site behind a false verdict, or reports a read failure
+over sites that simply don't have the optional thing being checked."""
 from __future__ import annotations
 
 import dataclasses
@@ -32,7 +30,6 @@ class CoreCheck(ABC):
     title: str
     category: Category
     profiles: frozenset[str] | None = None
-    weight: int = 1
     severity_on_fail: Severity = Severity.MEDIUM
     check_version: str = "1.0"
     experimental: bool = False
@@ -40,7 +37,7 @@ class CoreCheck(ABC):
     standards: tuple[str, ...] = ()
     why_it_matters: str = ""
     # Experimental checks only (and required there — `tests/test_registry.py`):
-    # what it would take to make this check scored. Without it "experimental"
+    # what it would take to promote this check out of experimental. Without it "experimental"
     # is an indefinite parking space rather than a stage with an exit.
     promotion_criteria: str = ""
     limitations: str = (
@@ -70,7 +67,7 @@ class CoreCheck(ABC):
         sev = severity or (self.severity_on_fail if status in (CheckStatus.FAIL, CheckStatus.WARN) else Severity.INFO)
         return CheckResult(
             id=self.id, title=self.title, category=self.category, status=status, severity=sev,
-            confidence=confidence, weight=self.weight, summary=summary, evidence=evidence or {},
+            confidence=confidence, summary=summary, evidence=evidence or {},
             why_it_matters=self.why_it_matters, limitations=self.limitations,
             cloud_extension=self.cloud_extension, remediation=remediation,
             experimental=self.experimental, check_version=self.check_version,

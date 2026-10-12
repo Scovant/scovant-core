@@ -55,7 +55,6 @@ class LlmsTxtUtility(CoreCheck):
     title = "llms.txt utility"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 1
     severity_on_fail = Severity.INFO
     experimental = True
     references = ("https://llmstxt.org/",)
@@ -70,7 +69,7 @@ class LlmsTxtUtility(CoreCheck):
     promotion_criteria = (
         "≥ 500 canonical scans with an llms.txt present; a false-positive review of the "
         "summary-length and placeholder heuristics; a documented link between the utility signal and "
-        "agent retrieval outcomes; then a scored weight and a RULESET_VERSION bump."
+        "agent retrieval outcomes; then promotion out of experimental and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud compares llms.txt against what agents actually fetch."
 

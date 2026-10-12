@@ -8,7 +8,6 @@ class HttpsReachability(CoreCheck):
     title = "HTTPS reachability"
     category = Category.ACCESS
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.CRITICAL
     references = ("https://www.rfc-editor.org/rfc/rfc9110",)
     why_it_matters = "An agent that cannot complete a request against the entry URL cannot use anything else the site declares."

@@ -29,7 +29,6 @@ class ProductStructuredData(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce"})
-    weight = 4
     severity_on_fail = Severity.HIGH
     references = ("https://schema.org/Product",)
     why_it_matters = "An agent completing a purchase needs a machine-readable Product entity with stable identifiers, not just human-facing catalog copy."

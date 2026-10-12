@@ -21,7 +21,6 @@ class WebSiteOrPageEntity(CoreCheck):
     title = "WebSite/WebPage entity"
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://schema.org/WebSite", "https://schema.org/WebPage")
     why_it_matters = "A WebSite or WebPage entity anchors the rest of a site's structured data to a concrete machine-readable resource."

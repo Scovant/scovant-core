@@ -1,5 +1,5 @@
 """The scan entry point: wires evidence gathering, profile resolution, check
-execution and scoring into one deterministic `Report`. `clock` and `scan_id`
+execution and Technical Readiness into one deterministic `Report`. `clock` and `scan_id`
 are injectable so tests can pin timestamps/ids without patching globals."""
 from __future__ import annotations
 
@@ -20,14 +20,13 @@ from scovant_core.gatherers import _register  # noqa: F401 — registers evidenc
 from scovant_core.models import Category, CheckStatus, Report, Target
 from scovant_core.profiles import PROFILE_DETECTOR_VERSION, apply_profile
 from scovant_core.provenance import environment_fingerprint
-from scovant_core.scoring import CANONICAL_MIN_COVERAGE, EVIDENCE_MIN_COVERAGE, score_results
 from scovant_core.security.client import SecureClient
 from scovant_core.security.policy import CORE_USER_AGENT, SecurityPolicy
 from scovant_core.security.url_safety import display_url, redact_message, redact_report_strings
 from scovant_core.security_summary import build_security_summary
 from scovant_core.standards.agentready import agentready_coverage
 
-__all__ = ["NOT_TESTED", "UnknownSelector", "scan", "user_agent_for", "validate_selectors"]
+__all__ = ["NOT_TESTED", "UnknownSelector", "scan", "scan_scope", "user_agent_for", "validate_selectors"]
 
 
 class UnknownSelector(ValueError):
@@ -91,6 +90,14 @@ def _include_filtered(options: ScanOptions):
 
 def _selected(options: ScanOptions):
     return [c for c in _include_filtered(options) if not (options.exclude and _match(c, options.exclude))]
+
+
+def scan_scope(options: ScanOptions) -> str:
+    """`provenance.scan_scope`: CUSTOM when the caller narrowed or widened the
+    default selection (`--include`, `--exclude`, `--experimental`), else
+    CANONICAL. A property of the selection alone — evidence quality is
+    Technical Readiness' own `status`."""
+    return "CUSTOM" if (options.include or options.exclude or options.experimental) else "CANONICAL"
 
 
 def scan(
@@ -164,22 +171,12 @@ def scan(
     finally:
         client.close()
     # SECURITY-category findings never feed readiness/protocol-adoption
-    # metrics — those measure the five scored categories' surfaces, and a
+    # metrics — those measure the five readiness categories' surfaces, and a
     # SECURITY check (e.g. a header probe) is not a protocol/standard signal.
     readiness_results = [r for r in results if r.category != Category.SECURITY]
     error_count = sum(1 for r in results if r.status == CheckStatus.ERROR)
-    # Only a READINESS error may degrade the score's scope/status. A
-    # transport failure on a security-only probe (security.txt on a profile
-    # CORE-TRUST-006 does not cover, say) would otherwise force
-    # scope=PARTIAL / status=DEGRADED / grade=None and fail
-    # `--require-canonical` — i.e. a SECURITY check moving the readiness
-    # score, exactly what docs/security.md's score-neutrality rule forbids.
     readiness_error_count = sum(1 for r in readiness_results if r.status == CheckStatus.ERROR)
     security_error_count = error_count - readiness_error_count
-    selection_is_custom = bool(options.include or options.exclude or options.experimental)
-    score, cats = score_results(results, include_experimental=options.experimental,
-                                selection_is_custom=selection_is_custom,
-                                error_count=readiness_error_count)
     # `included_checks` is the resolved post-`--include` selection (before
     # `--exclude` is applied); `excluded_checks` is exactly what `--exclude`
     # removed FROM THAT selection — never `all checks minus selected`, which
@@ -242,8 +239,6 @@ def scan(
             resolved_profile=ctx.resolved_profile,
             profile_confidence=ctx.profile_confidence,
         ),
-        score=score,
-        categories=cats,
         findings=results,
         metrics={
             "requests": len(client.requests),
@@ -254,7 +249,7 @@ def scan(
             "error_count": error_count,
             # Total (readiness + security) above; the security slice is
             # broken out so a reader can see that a non-zero `error_count`
-            # on a CANONICAL/OK report came from security probes alone.
+            # came from security probes alone.
             "security_error_count": security_error_count,
             "ai_crawler_policy": ai_crawler_policy,
             "technical_readiness_error": technical_error,
@@ -278,12 +273,10 @@ def scan(
             "network_mode": "pinned" if transport is None else "fixture",
             "experimental": options.experimental,
             "allow_private_networks": options.allow_private_networks,
-            "scan_scope": score.scope,
+            "scan_scope": scan_scope(options),
             "included_checks": included_ids if options.include else [],
             "excluded_checks": excluded_ids if options.exclude else [],
             "error_count": error_count,
-            "evidence_min_coverage": EVIDENCE_MIN_COVERAGE,
-            "canonical_min_coverage": CANONICAL_MIN_COVERAGE,
             "dependencies": dependencies,
             "environment_digest": environment_digest,
         },

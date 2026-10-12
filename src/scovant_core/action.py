@@ -13,20 +13,16 @@ location a CI runner would use.
 
 Four subcommands:
 - `outputs core.json --report-path PATH` — appends the action outputs to
-  `$GITHUB_OUTPUT`. Since 0.18.0 `score`/`grade`/`score_status`/`coverage`
-  are Technical Readiness (`readiness.technical`); the deprecated
-  five-domain value is `legacy_score`. Empty strings stand for "no number"
+  `$GITHUB_OUTPUT`. `score`/`grade`/`score_status`/`coverage` are Technical
+  Readiness (`readiness.technical`). Empty strings stand for "no number"
   / "no block", never 0.
-- `summary core.json [--legacy-score]` — appends the Markdown block to
-  `$GITHUB_STEP_SUMMARY`, led by Technical Readiness; the legacy line only
-  with `--legacy-score`.
-- `report core.json --format html|markdown --out PATH [--legacy-score]` —
-  renders the chosen format via the same renderers the CLI uses, with
-  `utm_medium="github"`.
-- `gate core.json --min-score N --fail-on never|warn|fail [--legacy-score]`
-  — re-applies `cli._threshold_exit_code` over the JSON re-parsed into a
-  `Report`, so a red check always reflects the site, never a rendering
-  difference. `--legacy-score` gates on the deprecated five-domain score.
+- `summary core.json` — appends the Markdown block to
+  `$GITHUB_STEP_SUMMARY`, led by Technical Readiness.
+- `report core.json --format html|markdown --out PATH` — renders the chosen
+  format via the same renderers the CLI uses, with `utm_medium="github"`.
+- `gate core.json --min-score N --fail-on never|warn|fail` — re-applies
+  `cli._threshold_exit_code` over the JSON re-parsed into a `Report`, so a
+  red check always reflects the site, never a rendering difference.
 """
 from __future__ import annotations
 
@@ -41,10 +37,8 @@ from scovant_core.models import Category, CheckStatus, Report, Severity, Technic
 from scovant_core.report._common import (
     TECHNICAL_LABEL,
     diagnostics_parts,
-    legacy_headline,
     scored_experimental,
     status_counts,
-    status_note,
     top_findings,
 )
 from scovant_core.report._cta import cta_url
@@ -68,17 +62,15 @@ INPUT_KEYS = (
     "trusted-target",
     "require-canonical",
     "fail-on-security",
-    "legacy-score",
 )
 
 # `action.yml`'s `outputs:` keys, in the order §25 defines them, plus the
-# four security counts, plus (0.18.0) `legacy_score`/`model_id`. `score`/
-# `grade`/`coverage`/`score_status` are Technical Readiness
-# (`readiness.technical`); `scan_scope` stays the five-domain selection
-# scope, and `legacy_score` the deprecated five-domain value (removed with
-# it in 0.19.0). `pass_count`/`warn_count`/`fail_count` are
+# four security counts, plus `model_id`. `score`/`grade`/`coverage`/
+# `score_status` are Technical Readiness (`readiness.technical`);
+# `scan_scope` is the selection scope (`provenance.scan_scope`).
+# `pass_count`/`warn_count`/`fail_count` are
 # READINESS-ONLY (SECURITY-category findings excluded) — `Report.security`
-# is never scored, so folding a security FAIL into the readiness `fail_count`
+# is never rated, so folding a security FAIL into the readiness `fail_count`
 # would silently change what that number means; `security_critical`/
 # `security_high` (from `Report.security.findings_by_severity`, FAIL+WARN)
 # and `security_fail_count`/`security_warn_count` (readiness-gate-shaped
@@ -99,7 +91,6 @@ OUTPUT_KEYS = (
     "security_high",
     "security_fail_count",
     "security_warn_count",
-    "legacy_score",
     "model_id",
 )
 
@@ -147,15 +138,11 @@ def _build_parser() -> argparse.ArgumentParser:
 
     summary_p = sub.add_parser("summary", help="write the step summary to $GITHUB_STEP_SUMMARY")
     summary_p.add_argument("report_json")
-    summary_p.add_argument("--legacy-score", action="store_true", dest="legacy_score",
-                           help="add the deprecated five-domain score line")
 
     report_p = sub.add_parser("report", help="render the chosen report format to --out")
     report_p.add_argument("report_json")
     report_p.add_argument("--format", choices=_REPORT_FORMATS, required=True)
     report_p.add_argument("--out", required=True)
-    report_p.add_argument("--legacy-score", action="store_true", dest="legacy_score",
-                          help="render the deprecated five-domain score block")
 
     gate_p = sub.add_parser("gate", help="re-apply the CLI's threshold exit code")
     gate_p.add_argument("report_json")
@@ -163,16 +150,11 @@ def _build_parser() -> argparse.ArgumentParser:
     gate_p.add_argument("--fail-on", choices=_FAIL_ON, default="never", dest="fail_on")
     gate_p.add_argument(
         "--require-canonical", action="store_true", dest="require_canonical",
-        help="fail unless Technical Readiness status is OK (with --legacy-score: "
-             "the five-domain scan is CANONICAL with score status OK)",
+        help="fail unless Technical Readiness status is OK",
     )
     gate_p.add_argument(
         "--fail-on-security", choices=_FAIL_ON_SECURITY, default="never", dest="fail_on_security",
         help="exit 6 when a security finding FAILs at or above this severity (WARN never gates)",
-    )
-    gate_p.add_argument(
-        "--legacy-score", action="store_true", dest="legacy_score",
-        help="gate on the deprecated five-domain Static Signal Score; removed in 0.19.0",
     )
 
     return parser
@@ -209,11 +191,10 @@ def _not_measured_line(technical: TechnicalReadiness) -> str:
     return f"**Not measured by Core:** {text}"
 
 
-def render_summary(report: Report, *, legacy_score: bool = False) -> str:
+def render_summary(report: Report) -> str:
     """The Markdown block written verbatim to `$GITHUB_STEP_SUMMARY`:
-    Technical Readiness first, then its model id and not-measured list, the
-    readiness diagnostics, and — only with `legacy_score` — the deprecated
-    five-domain score line."""
+    Technical Readiness first, then its model id and not-measured list, and
+    the readiness diagnostics."""
     # Readiness-only, matching the `pass_count`/`warn_count`/`fail_count`
     # outputs this Action publishes (see the OUTPUT_KEYS comment): one
     # summary block must not count a population the outputs exclude.
@@ -248,12 +229,6 @@ def render_summary(report: Report, *, legacy_score: bool = False) -> str:
         lines.append(f"{TECHNICAL_LABEL} was not computed for this scan.")
     label, diag = diagnostics_parts(report)
     lines += ["", f"**{label}:** {diag}"]
-    if legacy_score:
-        lines += ["", f"**{legacy_headline(report)}**"]
-        note = status_note(report)
-        if note:
-            strong, rest = note
-            lines.append(f"**{strong}**{rest}")
     lines += [
         "",
         # Never folded into the line above: security findings are never
@@ -277,7 +252,6 @@ def render_summary(report: Report, *, legacy_score: bool = False) -> str:
 
 def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
     report = _load_report(args.report_json)
-    s = report.score
     # Readiness-only: `Report.security` is never scored, so pass_count/
     # warn_count/fail_count must never mix a security finding into a
     # readiness population — see the OUTPUT_KEYS comment above.
@@ -298,13 +272,12 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
         f"report_path={args.report_path}",
         f"coverage={'' if t is None else t.coverage}",
         f"score_status={'' if t is None else t.status}",
-        f"scan_scope={s.scope}",
+        f"scan_scope={report.provenance.get('scan_scope', '')}",
         f"error_count={report.metrics.get('error_count', 0)}",
         f"security_critical={sec_sev.get('critical', 0)}",
         f"security_high={sec_sev.get('high', 0)}",
         f"security_fail_count={security_counts[CheckStatus.FAIL]}",
         f"security_warn_count={security_counts[CheckStatus.WARN]}",
-        f"legacy_score={'' if s.value is None else s.value}",
         f"model_id={'' if t is None else t.model_id}",
     ]
     _append(env.get("GITHUB_OUTPUT"), "".join(f"{line}\n" for line in lines))
@@ -313,14 +286,14 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
 
 def _cmd_summary(args: argparse.Namespace, env: Mapping[str, str]) -> int:
     report = _load_report(args.report_json)
-    _append(env.get("GITHUB_STEP_SUMMARY"), render_summary(report, legacy_score=args.legacy_score) + "\n")
+    _append(env.get("GITHUB_STEP_SUMMARY"), render_summary(report) + "\n")
     return 0
 
 
 def _cmd_report(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa: ARG001 — env unused, kept for the shared call shape
     report = _load_report(args.report_json)
     render = render_html if args.format == "html" else render_markdown
-    rendered = render(report, utm_medium="github", legacy_score=args.legacy_score)
+    rendered = render(report, utm_medium="github")
     if not rendered.endswith("\n"):
         rendered += "\n"
     Path(args.out).write_text(rendered, encoding="utf-8")
@@ -332,7 +305,6 @@ def _cmd_gate(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa:
     return _threshold_exit_code(
         report, min_score=args.min_score, fail_on=args.fail_on,
         require_canonical=args.require_canonical, fail_on_security=args.fail_on_security,
-        legacy_score=args.legacy_score,
     )
 
 

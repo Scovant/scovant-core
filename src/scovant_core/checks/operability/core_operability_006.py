@@ -13,7 +13,6 @@ class FormControlLabels(CoreCheck):
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"commerce", "saas"})
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.w3.org/WAI/tutorials/forms/labels/",)
     why_it_matters = "An agent filling out a form has to guess an unlabeled input's purpose from placeholder text or surrounding prose alone — a labeled control is the difference between a reliable fill and a guess."

@@ -96,11 +96,10 @@ EXPECTED_TRUNCATION_FLAGGED_IDS = frozenset({
 })
 
 
-def test_truncation_changes_confidence_and_evidence_but_never_status_or_score(
+def test_truncation_changes_confidence_and_evidence_but_never_status(
         truncated_store, full_store, ctx):
-    """The whole plan is an honesty change, not a scoring change: every
-    check's verdict (status) and the resulting composite score must be
-    identical whether the underlying document was read in full or cut off
+    """The whole plan is an honesty change, not a verdict change: every
+    check's verdict (status) must be identical whether the underlying document was read in full or cut off
     at the fetch cap — only the evidence flag/confidence/summary wording may
     differ. Runs through `run()` (not the raw `evaluate()`), exactly the
     entry point the real engine uses, so a check whose evidence dependency
@@ -108,14 +107,12 @@ def test_truncation_changes_confidence_and_evidence_but_never_status_or_score(
     both sides instead of raising out of the test."""
     import scovant_core.gatherers._register  # noqa: F401 — registers every real gatherer
     from scovant_core.checks import registry
-    from scovant_core.scoring import score_results
 
     def run(store):
         return [check.run(store, ctx) for check in registry.CHECKS]
 
     a, b = run(full_store), run(truncated_store)
     assert [f.status for f in a] == [f.status for f in b]
-    assert score_results(a) == score_results(b)
     flagged_ids = {f.id for f in b if f.evidence.get("truncated")}
     assert flagged_ids == EXPECTED_TRUNCATION_FLAGGED_IDS
 

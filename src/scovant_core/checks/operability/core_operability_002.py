@@ -18,7 +18,6 @@ class RedirectComplexity(CoreCheck):
     title = "Redirect chain complexity"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 1
     severity_on_fail = Severity.LOW
     references = ("https://www.rfc-editor.org/rfc/rfc9110#name-redirection-3xx",)
     why_it_matters = "Every redirect hop is a round trip an agent pays for before it reaches real content; a long or looping chain wastes budget CORE-ACCESS-001 already spent getting there."

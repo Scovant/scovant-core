@@ -18,7 +18,6 @@ class ServerRenderedCoreContent(CoreCheck):
     title = "Server-rendered core content"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://developer.chrome.com/docs/lighthouse/performance/",)
     why_it_matters = (

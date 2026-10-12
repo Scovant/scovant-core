@@ -61,7 +61,6 @@ class RateLimitSignalled(CoreCheck):
     title = "Rate limiting is signalled"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 1
     severity_on_fail = Severity.LOW
     standards = ("AR-READ-02",)
     references = ("https://www.rfc-editor.org/rfc/rfc6585#section-4", "https://www.rfc-editor.org/rfc/rfc9110#name-retry-after")

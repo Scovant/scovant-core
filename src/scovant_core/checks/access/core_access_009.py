@@ -9,7 +9,6 @@ class LlmsTxtIntegrity(CoreCheck):
     title = "llms.txt presence and integrity"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 2
     severity_on_fail = Severity.LOW
     references = ("https://llmstxt.org/",)
     why_it_matters = "A well-formed llms.txt gives agents a curated map of the pages worth reading; a broken one sends them to dead links."

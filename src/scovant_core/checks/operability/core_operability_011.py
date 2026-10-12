@@ -24,7 +24,6 @@ class DiscoveryLinkage(CoreCheck):
     title = "Discovery linkage"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     severity_on_fail = Severity.LOW
     experimental = True
     references = ("https://www.rfc-editor.org/rfc/rfc8288",)
@@ -49,7 +48,7 @@ class DiscoveryLinkage(CoreCheck):
         "surface and `Link`-header attribution wired into the Core evidence pipeline, so an "
         "‘unlinked’ verdict is a property of the site rather than of what Core happens to gather; "
         "a false-positive review of exact-URL matching against equivalent surface URLs spelled "
-        "differently; then a scored weight and a RULESET_VERSION bump."
+        "differently; then promotion out of experimental and a RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud measures real agent discovery success across providers."
 

@@ -15,11 +15,11 @@ Profile: api? (confidence LOW, 0.55) — canonical comparison should specify --p
 ## Top findings
 
 - **CORE-OPERABILITY-004** — 1 of 2 machine-consumable reference(s) do not resolve.
+- **CORE-TRUST-004** — The privacy policy page link is broken (HTTP 404).
 - **CORE-ACCESS-005** — No sitemap was found.
-- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 155 chars of visible text (< 200).
 - **CORE-INTERFACE-005** — No OpenAPI document discovered at the conventional paths.
 - **CORE-MACHINE-002** — No Organization entity was found on the sampled pages.
-- **CORE-TRUST-004** — The privacy policy page link is broken (HTTP 404).
+- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 155 chars of visible text (< 200).
 - **CORE-TRUST-005** — No terms/conditions page was found linked from the entry page.
 - **CORE-MACHINE-003** — No WebSite or WebPage entity was found on the sampled pages.
 - **[security]** **CORE-SECURITY-003** — Neither Content-Security-Policy nor X-Frame-Options is sent.
@@ -647,7 +647,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

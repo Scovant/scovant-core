@@ -24,7 +24,7 @@ def _scan(fixture: str = "commerce-good", **kwargs):
 
 def test_scan_returns_a_report_with_every_check_run():
     report = _scan()
-    assert isinstance(report.score.value, int)
+    assert isinstance(report.readiness.technical.rating, int)
     assert len(report.findings) == len(CHECKS)
     assert [f.id for f in report.findings] == sorted(f.id for f in report.findings)
 
@@ -72,15 +72,14 @@ def test_unreachable_host_yields_insufficient_evidence_and_never_raises():
     """A host that refuses every connection must never crash the scan. Per
     product spec §6 (checks/base.py's ERROR-vs-N/A rule), every
     content-dependent check now degrades to ERROR — not N/A — when its
-    document genuinely could not be read, so ERROR counts toward applicable
-    weight and the resulting near-zero coverage trips the
-    `INSUFFICIENT_EVIDENCE` floor in `scoring.py`."""
+    document genuinely could not be read, and Technical Readiness — whose own
+    fetches failed too — has no number (`INSUFFICIENT_EVIDENCE`)."""
     def _boom(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("connection refused", request=request)
 
     report = scan(URL, transport=httpx.MockTransport(_boom), clock=CLOCK, scan_id="local-test")
-    assert report.score.status == "INSUFFICIENT_EVIDENCE"
-    assert report.score.value is None
+    assert report.readiness.technical.status == "INSUFFICIENT_EVIDENCE"
+    assert report.readiness.technical.rating is None
     assert any(f.status == CheckStatus.FAIL and f.id == "CORE-ACCESS-001" for f in report.findings)
     # No shipped gatherer ever raises (each catches its own fetch failures
     # and returns a "soft" error dict — see `gatherers/http.py`/`pages.py`),
@@ -142,19 +141,6 @@ def test_unknown_exclude_selector_raises_value_error():
         _scan(options=ScanOptions(exclude=("bogus",)))
 
 
-def test_render_text_shows_evaluated_over_applicable_check_counts_per_category():
-    """Each category line carries `(n/N)` — checks evaluated / applicable —
-    so a category resting on one check never reads like a broad measurement.
-    See docs/methodology.md's v0.1 category coverage section."""
-    report = _scan()
-    text = render_text(report, legacy_score=True)
-    line = next(ln for ln in text.splitlines() if ln.startswith("Operability & Efficiency"))
-    assert line.endswith("(7/7)")
-    for ln in text.splitlines():
-        if ln.startswith("Access & Discovery"):
-            assert "(10/10)" in ln
-
-
 def test_final_url_is_null_when_the_entry_fetch_failed():
     """A scan whose entry URL never answered has no final URL. Reporting the
     input URL as `final_url` would claim we reached a page we never reached."""
@@ -170,8 +156,7 @@ def test_final_url_is_null_when_the_entry_fetch_failed():
 def test_experimental_block_appears_when_off_and_excluded_from_top_findings():
     """A WARN/FAIL experimental finding, with `--experimental` off, must
     appear ONLY in the dedicated 'Experimental (not scored)' block — never
-    mixed into 'Top findings' (which is reserved for findings that actually
-    moved the score) and never counted in the category (n/N) totals."""
+    mixed into 'Top findings'."""
     from scovant_core.evidence import GATHERERS
 
     original = dict(GATHERERS)
@@ -209,9 +194,9 @@ def test_experimental_block_appears_when_off_and_excluded_from_top_findings():
 
 
 def test_experimental_findings_scored_and_no_block_when_on():
-    """With `--experimental` on, experimental findings are scored like any
-    other — they show up in the normal Top findings list, the header notes
-    scoring is on, and the dedicated unscored block disappears entirely."""
+    """With `--experimental` on, experimental findings are shown like any
+    other — they show up in the normal Top findings list, and the dedicated
+    experimental block disappears entirely."""
     from scovant_core.evidence import GATHERERS
 
     original = dict(GATHERERS)
@@ -235,7 +220,7 @@ def test_experimental_findings_scored_and_no_block_when_on():
 
     assert report.provenance["experimental"] is True
     text = render_text(report)
-    assert "Experimental checks: scored" in render_text(report, legacy_score=True)
+    assert "Experimental checks: scored" not in text
     assert "Experimental (not scored)" not in text
     top_block = text[text.index("Top findings"):text.index("Not tested by Scovant Core")]
     assert "CORE-OPERABILITY-007" in top_block

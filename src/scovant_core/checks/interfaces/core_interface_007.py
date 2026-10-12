@@ -14,7 +14,6 @@ class OAuthProtectedResourceMetadata(CoreCheck):
     category = Category.INTERFACES
     verification_mode = "DECLARED"
     profiles = frozenset({"api", "saas"})
-    weight = 2
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.rfc-editor.org/rfc/rfc9728",)
     why_it_matters = (

@@ -20,7 +20,6 @@ class TrainingVsSearchSeparation(CoreCheck):
     title = "Training vs. search crawler separation"
     category = Category.ACCESS
     verification_mode = "DECLARED"
-    weight = 2
     severity_on_fail = Severity.LOW
     check_version = "1.1"
     references = ("https://www.rfc-editor.org/rfc/rfc9309",)

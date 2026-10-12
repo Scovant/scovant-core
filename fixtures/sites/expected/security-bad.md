@@ -19,9 +19,9 @@
 - **[security]** **CORE-SECURITY-004** — Session-like cookie(s) without Secure+HttpOnly: sessionid.
 - **[security]** **CORE-SECURITY-006** — Expires is in the past.
 - **[security]** **CORE-SECURITY-001** — https is served, but http:// answers 200 without redirecting to https.
+- **[security]** **CORE-SECURITY-007** — 1 possible credential-like value(s) (heuristic match, redacted).
 - **[security]** **CORE-SECURITY-002** — HSTS missing, unparsable or max-age below one day.
 - **[security]** **CORE-SECURITY-005** — Missing: referrer-policy, x-content-type-options.
-- **[security]** **CORE-SECURITY-007** — 1 possible credential-like value(s) (heuristic match, redacted).
 - **[security]** **CORE-SECURITY-008** — 2 internal network reference(s) in public machine-facing documents.
 
 ## Findings
@@ -1208,7 +1208,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

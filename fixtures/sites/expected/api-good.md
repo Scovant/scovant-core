@@ -13,9 +13,9 @@
 
 ## Top findings
 
-- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 155 chars of visible text (< 200).
-- **CORE-MACHINE-002** — No Organization entity was found on the sampled pages.
 - **CORE-TRUST-004** — A privacy policy page was found but has too little text (135 chars) to be a real policy document.
+- **CORE-MACHINE-002** — No Organization entity was found on the sampled pages.
+- **CORE-OPERABILITY-001** — The entry page's static HTML carries only 155 chars of visible text (< 200).
 - **CORE-TRUST-005** — No terms/conditions page was found linked from the entry page.
 - **CORE-MACHINE-003** — No WebSite or WebPage entity was found on the sampled pages.
 - **CORE-OPERABILITY-003** — The entry response carries no cache validator (ETag, Last-Modified, or Cache-Control).
@@ -718,7 +718,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

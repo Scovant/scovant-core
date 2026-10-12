@@ -46,16 +46,34 @@ def test_the_contract_rejects_a_workflow_without_trusted_target():
     assert missing == {"trusted-target"}
 
 
-def test_smoke_assert_check_passes_on_a_healthy_report():
-    assert check({
-        "score": {"status": "OK", "scope": "CANONICAL", "grade": "A", "value": 91},
+def _healthy() -> dict:
+    return {
+        "readiness": {"technical": {"status": "OK", "grade": "B", "rating": 86, "model_id": "R2.1@67df90af85b0"}},
+        "provenance": {"scan_scope": "CANONICAL"},
         "security": {"scored": False},
-    }) == []
+    }
+
+
+def test_smoke_assert_check_passes_on_a_healthy_report():
+    assert check(_healthy()) == []
 
 
 def test_smoke_assert_check_reports_every_violated_invariant():
-    problems = check({"score": {"status": "OK", "scope": "CANONICAL", "grade": "B", "value": 84}})
-    assert problems == ["grade='B'", "value=84 < 85", "security.scored != false"]
+    bad = _healthy()
+    bad["readiness"]["technical"].update(status="DEGRADED", grade=None, rating=79)
+    bad["provenance"]["scan_scope"] = "CUSTOM"
+    bad["security"] = {}
+    bad["score"] = {"value": 91}
+    assert check(bad) == [
+        "technical.status='DEGRADED'", "technical.grade=None", "technical.rating=79 < 80",
+        "scan_scope='CUSTOM'", "security.scored != false", "removed key present: score",
+    ]
+
+
+def test_smoke_assert_check_without_a_readiness_block():
+    bad = _healthy()
+    bad["readiness"] = None
+    assert check(bad) == ["readiness.technical missing"]
 
 
 # --- cross-step $GITHUB_STEP_SUMMARY read (the 2026-09-14..15 always-red bug) ---

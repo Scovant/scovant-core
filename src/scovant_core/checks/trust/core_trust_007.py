@@ -22,7 +22,6 @@ class PricingDiscoverability(CoreCheck):
     category = Category.TRUST
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"saas", "commerce"})
-    weight = 3
     references = ("https://schema.org/Offer",)
     why_it_matters = (
         "An agent comparing options or completing a purchase on a user's behalf needs a readable price — "

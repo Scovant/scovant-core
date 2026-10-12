@@ -107,8 +107,7 @@ def _counts(data: dict) -> dict:
 
 
 def _technical(data: dict) -> dict | None:
-    """Technical Readiness (`readiness.technical`) — the headline since
-    0.18.0. `None` when the engine recorded no `readiness` block (Technical
+    """Technical Readiness (`readiness.technical`) — Core's rating. `None` when the engine recorded no `readiness` block (Technical
     raised); `rating`/`grade` are `None` when there is no number — never 0."""
     readiness = data.get("readiness")
     if readiness is None:
@@ -128,7 +127,7 @@ def _technical(data: dict) -> dict | None:
 
 
 def _summary(data: dict) -> dict:
-    s, counts = data["score"], _counts(data)
+    counts = _counts(data)
     return {
         "technical": _technical(data),
         "pass": counts["PASS"],
@@ -137,9 +136,6 @@ def _summary(data: dict) -> dict:
         "error": counts["ERROR"],
         "na": counts["N/A"],
         "scan_id": data["scan_id"],
-        # The five-domain Static Signal Score, deprecated since 0.18.0 and
-        # removed in 0.19.0.
-        "legacy_score": {"value": s["value"], "grade": s["grade"], "status": s["status"], "deprecated": True},
     }
 
 
@@ -150,25 +146,20 @@ def _shape_findings(data: dict, medium: str) -> dict:
     """The plugin's default: everything an agent needs to act, nothing it
     does not — non-PASS findings with their evidence, PASS as ids only.
 
-    SECURITY-category findings (CORE-SECURITY-*) are never scored (see
+    SECURITY-category findings (CORE-SECURITY-*) are never rated (see
     `models.Category.SECURITY`/`Report.security`) and must never sit
     interleaved with the readiness `findings` a caller might sort/act on as
-    if they carried weight toward the score — they're split into their own
+    if they were readiness diagnostics — they're split into their own
     `security_findings` list with an explicit disclaimer instead."""
-    s, t = data["score"], data["target"]
+    t = data["target"]
     findings = data["findings"]
     return {
         "scan_id": data["scan_id"],
         "input_url": t["input_url"],
         "final_url": t["final_url"],
         "profile": t["resolved_profile"],
-        # The five-domain fields are deprecated (0.18.0, removed in 0.19.0);
-        # `technical` is the headline.
-        "score": {
-            "value": s["value"], "grade": s["grade"], "coverage": s["coverage"],
-            "status": s["status"], "scope": s["scope"], "deprecated": True,
-            "technical": _technical(data),
-        },
+        "technical": _technical(data),
+        "scan_scope": data["provenance"].get("scan_scope"),
         "counts": _counts(data),
         "findings": [f for f in findings if f["status"] != "PASS" and f["category"] != "security"],
         "security_findings": [f for f in findings if f["status"] != "PASS" and f["category"] == "security"],
@@ -220,8 +211,8 @@ def build_server():
     @server.tool(
         description=(
             "Passive/static only. Run the scan and return only the Technical Readiness summary "
-            "(rating, grade, coverage, status, model id, rules Core could not measure), status counts over "
-            "every finding, and the deprecated five-domain score as legacy_score."
+            "(rating, grade, coverage, status, model id, rules Core could not measure) and status counts "
+            "over every finding."
         ),
     )
     def get_core_score(url: str, profile: str = "auto") -> str:

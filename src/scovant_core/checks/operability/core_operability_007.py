@@ -24,7 +24,6 @@ class MachineReferenceIntegrity(CoreCheck):
     title = "Machine reference integrity"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 2
     experimental = True
     severity_on_fail = Severity.HIGH
     references = ("https://llmstxt.org/",)
@@ -34,8 +33,8 @@ class MachineReferenceIntegrity(CoreCheck):
         "≥ 250 canonical scans in which the lookup budget was not exhausted, so BROKEN/UNCLAIMED "
         "verdicts are known not to be budget artefacts; a false-positive review against registries "
         "that rate-limit or 404 legitimate packages; a documented causal link from an unclaimed "
-        "reference to a real dependency-confusion outcome; then a scored weight and a RULESET_VERSION "
-        "bump."
+        "reference to a real dependency-confusion outcome; then promotion out of experimental and a "
+        "RULESET_VERSION bump."
     )
     cloud_extension = "Scovant Cloud resolves a larger reference surface on a recurring schedule and tracks resolution drift over time."
     standards = ("AR-READ-06",)

@@ -27,7 +27,6 @@ class CanonicalIntegrity(CoreCheck):
     title = "Canonical URL integrity"
     category = Category.ACCESS
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.MEDIUM
     references = ("https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",)
     why_it_matters = "A broken or off-host canonical tells agents the entry page's authoritative content lives somewhere else."

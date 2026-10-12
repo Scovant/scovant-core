@@ -15,7 +15,6 @@ class ImageAltCoverage(CoreCheck):
     category = Category.MACHINE
     verification_mode = "PASSIVE_OBSERVED"
     profiles = frozenset({"content", "commerce"})
-    weight = 1
     severity_on_fail = Severity.MEDIUM
     references = ("https://www.w3.org/WAI/tutorials/images/decision-tree/",)
     why_it_matters = "Alt text (or a deliberate empty/decorative alt) is how an agent that cannot see an image learns what it shows."

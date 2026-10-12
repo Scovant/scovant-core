@@ -89,7 +89,7 @@ def test_summary_counts_recount_from_mapping():
 
 def _f(cid, status):
     return CheckResult(id=cid, title=cid, category=Category.ACCESS, status=status,
-                       severity=Severity.INFO, confidence=Confidence.HIGH, weight=1,
+                       severity=Severity.INFO, confidence=Confidence.HIGH,
                        summary="", evidence={})
 
 

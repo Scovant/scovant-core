@@ -36,7 +36,6 @@ class BrokenMachineEndpoints(CoreCheck):
     title = "Broken machine-consumable endpoints"
     category = Category.OPERABILITY
     verification_mode = "PASSIVE_OBSERVED"
-    weight = 3
     severity_on_fail = Severity.HIGH
     references = ("https://llmstxt.org/", "https://www.sitemaps.org/protocol.html")
     why_it_matters = "A declared machine reference that 404s wastes an agent's time and budget following a dead link the site itself pointed it at."

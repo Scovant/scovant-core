@@ -5,7 +5,7 @@ from scovant_core.models import Category, CheckResult, CheckStatus, Confidence, 
 
 def _r(cid, status, **ev):
     return CheckResult(id=cid, title=cid, category=Category.INTERFACES, status=status,
-                       severity=Severity.INFO, confidence=Confidence.MEDIUM, weight=1,
+                       severity=Severity.INFO, confidence=Confidence.MEDIUM,
                        summary="", evidence=ev)
 
 
