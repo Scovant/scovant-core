@@ -106,19 +106,40 @@ def _counts(data: dict) -> dict:
     return counts
 
 
+def _technical(data: dict) -> dict | None:
+    """Technical Readiness (`readiness.technical`) — the headline since
+    0.18.0. `None` when the engine recorded no `readiness` block (Technical
+    raised); `rating`/`grade` are `None` when there is no number — never 0."""
+    readiness = data.get("readiness")
+    if readiness is None:
+        return None
+    t = readiness["technical"]
+    return {
+        "rating": t["rating"],
+        "grade": t["grade"],
+        "coverage": t["coverage"],
+        "status": t["status"],
+        "model_id": t["model_id"],
+        "not_measured": sorted(
+            ({"rule": n["rule"], "reason": n["reason"]} for n in t["not_measured"]),
+            key=lambda n: (n["rule"], n["reason"]),
+        ),
+    }
+
+
 def _summary(data: dict) -> dict:
     s, counts = data["score"], _counts(data)
     return {
-        "score": s["value"],
-        "grade": s["grade"],
-        "coverage": s["coverage"],
-        "status": s["status"],
+        "technical": _technical(data),
         "pass": counts["PASS"],
         "warn": counts["WARN"],
         "fail": counts["FAIL"],
         "error": counts["ERROR"],
         "na": counts["N/A"],
         "scan_id": data["scan_id"],
+        # The five-domain Static Signal Score, deprecated since 0.18.0 and
+        # removed in 0.19.0.
+        "legacy_score": {"value": s["value"], "grade": s["grade"], "status": s["status"], "deprecated": True},
     }
 
 
@@ -141,9 +162,12 @@ def _shape_findings(data: dict, medium: str) -> dict:
         "input_url": t["input_url"],
         "final_url": t["final_url"],
         "profile": t["resolved_profile"],
+        # The five-domain fields are deprecated (0.18.0, removed in 0.19.0);
+        # `technical` is the headline.
         "score": {
             "value": s["value"], "grade": s["grade"], "coverage": s["coverage"],
-            "status": s["status"], "scope": s["scope"],
+            "status": s["status"], "scope": s["scope"], "deprecated": True,
+            "technical": _technical(data),
         },
         "counts": _counts(data),
         "findings": [f for f in findings if f["status"] != "PASS" and f["category"] != "security"],
@@ -194,14 +218,18 @@ def build_server():
         return json.dumps(_shape_findings(data, _medium()), ensure_ascii=False)
 
     @server.tool(
-        description="Passive/static only. Run the scan and return only the Static Signal Score summary.",
+        description=(
+            "Passive/static only. Run the scan and return only the Technical Readiness summary "
+            "(rating, grade, coverage, status, model id, rules Core could not measure), status counts over "
+            "every finding, and the deprecated five-domain score as legacy_score."
+        ),
     )
     def get_core_score(url: str, profile: str = "auto") -> str:
         _, d = _run_scan(url, profile, False)
         return json.dumps(_summary(d))
 
     @server.tool(
-        description="Passive/static only. List every check in the registry with category, weight, profiles and experimental flag.",
+        description="Passive/static only. List every check in the registry with category, profiles and experimental flag.",
     )
     def list_checks() -> str:
         return json.dumps(
@@ -210,7 +238,6 @@ def build_server():
                     "id": c.id,
                     "title": c.title,
                     "category": c.category.value,
-                    "weight": c.weight,
                     "profiles": sorted(c.profiles) if c.profiles else None,
                     "experimental": c.experimental,
                 }
@@ -232,7 +259,6 @@ def build_server():
                 "id": c.id,
                 "title": c.title,
                 "category": c.category.value,
-                "weight": c.weight,
                 "profiles": sorted(c.profiles) if c.profiles else None,
                 "experimental": c.experimental,
                 "why_it_matters": c.why_it_matters,

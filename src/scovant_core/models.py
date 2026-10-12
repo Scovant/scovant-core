@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-REPORT_SCHEMA_VERSION = "1.1"
+REPORT_SCHEMA_VERSION = "1.2"
 SCORE_NAME = "Scovant Core Static Signal Score"
 SCORE_SHORT_NAME = "Core Score"
 SCORE_SUBSET_NAME = "Subset Diagnostic Score"
@@ -120,6 +120,11 @@ class Score(BaseModel):
     # under-covered or errored). A property of the SELECTION and evidence;
     # `status` is a property of the score.
     scope: str = "CANONICAL"
+    # Deprecated since 0.18.0 (schema 1.2): the CLI gates on and renderers
+    # lead with `readiness.technical`. The five-domain score stays for one
+    # minor release behind `--legacy-score` and is removed in 0.19.0 (2.0).
+    deprecated: bool = True
+    replaced_by: str = "readiness.technical"
 
 
 class SecuritySummary(BaseModel):

@@ -12,15 +12,21 @@ so `$GITHUB_OUTPUT`/`$GITHUB_STEP_SUMMARY` never touch the real filesystem
 location a CI runner would use.
 
 Four subcommands:
-- `outputs core.json --report-path PATH` — appends the six action outputs
-  to `$GITHUB_OUTPUT` (`score`/`grade` as the empty string when unmeasured).
-- `summary core.json` — appends the product-spec §25.1 Markdown block to
-  `$GITHUB_STEP_SUMMARY`.
-- `report core.json --format html|markdown --out PATH` — renders the chosen
-  format via the same renderers the CLI uses, with `utm_medium="github"`.
-- `gate core.json --min-score N --fail-on never|warn|fail` — re-applies
-  `cli._threshold_exit_code` over the JSON re-parsed into a `Report`, so a
-  red check always reflects the site, never a rendering difference.
+- `outputs core.json --report-path PATH` — appends the action outputs to
+  `$GITHUB_OUTPUT`. Since 0.18.0 `score`/`grade`/`score_status`/`coverage`
+  are Technical Readiness (`readiness.technical`); the deprecated
+  five-domain value is `legacy_score`. Empty strings stand for "no number"
+  / "no block", never 0.
+- `summary core.json [--legacy-score]` — appends the Markdown block to
+  `$GITHUB_STEP_SUMMARY`, led by Technical Readiness; the legacy line only
+  with `--legacy-score`.
+- `report core.json --format html|markdown --out PATH [--legacy-score]` —
+  renders the chosen format via the same renderers the CLI uses, with
+  `utm_medium="github"`.
+- `gate core.json --min-score N --fail-on never|warn|fail [--legacy-score]`
+  — re-applies `cli._threshold_exit_code` over the JSON re-parsed into a
+  `Report`, so a red check always reflects the site, never a rendering
+  difference. `--legacy-score` gates on the deprecated five-domain score.
 """
 from __future__ import annotations
 
@@ -31,8 +37,11 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from scovant_core.cli import _threshold_exit_code
-from scovant_core.models import Category, CheckStatus, Report, Severity
+from scovant_core.models import Category, CheckStatus, Report, Severity, TechnicalReadiness
 from scovant_core.report._common import (
+    TECHNICAL_LABEL,
+    diagnostics_parts,
+    legacy_headline,
     scored_experimental,
     status_counts,
     status_note,
@@ -59,10 +68,15 @@ INPUT_KEYS = (
     "trusted-target",
     "require-canonical",
     "fail-on-security",
+    "legacy-score",
 )
 
 # `action.yml`'s `outputs:` keys, in the order §25 defines them, plus the
-# four security counts. `pass_count`/`warn_count`/`fail_count` are
+# four security counts, plus (0.18.0) `legacy_score`/`model_id`. `score`/
+# `grade`/`coverage`/`score_status` are Technical Readiness
+# (`readiness.technical`); `scan_scope` stays the five-domain selection
+# scope, and `legacy_score` the deprecated five-domain value (removed with
+# it in 0.19.0). `pass_count`/`warn_count`/`fail_count` are
 # READINESS-ONLY (SECURITY-category findings excluded) — `Report.security`
 # is never scored, so folding a security FAIL into the readiness `fail_count`
 # would silently change what that number means; `security_critical`/
@@ -85,6 +99,8 @@ OUTPUT_KEYS = (
     "security_high",
     "security_fail_count",
     "security_warn_count",
+    "legacy_score",
+    "model_id",
 )
 
 _FAIL_ON = ("fail", "warn", "never")
@@ -131,11 +147,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
     summary_p = sub.add_parser("summary", help="write the step summary to $GITHUB_STEP_SUMMARY")
     summary_p.add_argument("report_json")
+    summary_p.add_argument("--legacy-score", action="store_true", dest="legacy_score",
+                           help="add the deprecated five-domain score line")
 
     report_p = sub.add_parser("report", help="render the chosen report format to --out")
     report_p.add_argument("report_json")
     report_p.add_argument("--format", choices=_REPORT_FORMATS, required=True)
     report_p.add_argument("--out", required=True)
+    report_p.add_argument("--legacy-score", action="store_true", dest="legacy_score",
+                          help="render the deprecated five-domain score block")
 
     gate_p = sub.add_parser("gate", help="re-apply the CLI's threshold exit code")
     gate_p.add_argument("report_json")
@@ -143,29 +163,62 @@ def _build_parser() -> argparse.ArgumentParser:
     gate_p.add_argument("--fail-on", choices=_FAIL_ON, default="never", dest="fail_on")
     gate_p.add_argument(
         "--require-canonical", action="store_true", dest="require_canonical",
-        help="fail unless the scan is CANONICAL with score status OK",
+        help="fail unless Technical Readiness status is OK (with --legacy-score: "
+             "the five-domain scan is CANONICAL with score status OK)",
     )
     gate_p.add_argument(
         "--fail-on-security", choices=_FAIL_ON_SECURITY, default="never", dest="fail_on_security",
         help="exit 6 when a security finding FAILs at or above this severity (WARN never gates)",
     )
+    gate_p.add_argument(
+        "--legacy-score", action="store_true", dest="legacy_score",
+        help="gate on the deprecated five-domain Static Signal Score; removed in 0.19.0",
+    )
 
     return parser
 
 
-def render_summary(report: Report) -> str:
-    """The product-spec §25.1 Markdown block, written verbatim to
-    `$GITHUB_STEP_SUMMARY`."""
-    s = report.score
-    value = "—" if s.value is None else str(s.value)
-    grade = s.grade or "—"
+_NOT_MEASURED_CAP = 10
+
+
+def summary_headline(report: Report) -> str:
+    """The summary's first line: `## Scovant Core — Technical Readiness NN
+    / 100 (G) · coverage NN%`. No grade token without a grade (DEGRADED), a
+    status token when it is not OK, `— · STATUS` with no number, `not
+    computed` when the engine recorded no `readiness` block."""
+    head = f"## Scovant Core — {TECHNICAL_LABEL}"
+    if report.readiness is None:
+        return f"{head} not computed"
+    t = report.readiness.technical
+    coverage = f"coverage {t.coverage:.0%}"
+    if t.rating is None:
+        return f"{head} — · {t.status} · {coverage}"
+    grade = "" if t.grade is None else f" ({t.grade})"
+    status = "" if t.status == "OK" else f" · {t.status}"
+    return f"{head} {t.rating} / 100{grade}{status} · {coverage}"
+
+
+def _not_measured_line(technical: TechnicalReadiness) -> str:
+    """`RULE (reason), …` sorted by rule, at most ten, then `and N more`."""
+    items = sorted(technical.not_measured, key=lambda n: (n.rule, n.reason))
+    if not items:
+        return "**Not measured by Core:** none"
+    text = ", ".join(f"{n.rule} ({n.reason})" for n in items[:_NOT_MEASURED_CAP])
+    if len(items) > _NOT_MEASURED_CAP:
+        text += f" and {len(items) - _NOT_MEASURED_CAP} more"
+    return f"**Not measured by Core:** {text}"
+
+
+def render_summary(report: Report, *, legacy_score: bool = False) -> str:
+    """The Markdown block written verbatim to `$GITHUB_STEP_SUMMARY`:
+    Technical Readiness first, then its model id and not-measured list, the
+    readiness diagnostics, and — only with `legacy_score` — the deprecated
+    five-domain score line."""
     # Readiness-only, matching the `pass_count`/`warn_count`/`fail_count`
     # outputs this Action publishes (see the OUTPUT_KEYS comment): one
     # summary block must not count a population the outputs exclude.
     # SECURITY findings get their own line below instead.
-    readiness = [f for f in report.findings if f.category != Category.SECURITY]
     security = [f for f in report.findings if f.category == Category.SECURITY]
-    counts = status_counts(readiness)
     security_counts = status_counts(security)
     scored = scored_experimental(report)
 
@@ -186,22 +239,22 @@ def render_summary(report: Report) -> str:
     top = top_findings(report.findings, scored)
     top_line = f"`{top[0].id}` — {top[0].summary}" if top else "none"
 
-    note = status_note(report)
-
-    lines = [
-        f"## Scovant Core — scope {s.scope} · status {s.status}",
-        "",
-        f"**{s.name}:** {value} / 100 · grade {grade} · scope {s.scope} · status {s.status} · "
-        f"coverage {s.coverage:.0%}",
-    ]
-    if note:
-        strong, rest = note
-        lines.append(f"**{strong}**{rest}")
+    lines = [summary_headline(report), ""]
+    if report.readiness is not None:
+        t = report.readiness.technical
+        lines.append(f"**Model:** `{t.model_id}` · status {t.status} · passive evidence only")
+        lines.append(_not_measured_line(t))
+    else:
+        lines.append(f"{TECHNICAL_LABEL} was not computed for this scan.")
+    label, diag = diagnostics_parts(report)
+    lines += ["", f"**{label}:** {diag}"]
+    if legacy_score:
+        lines += ["", f"**{legacy_headline(report)}**"]
+        note = status_note(report)
+        if note:
+            strong, rest = note
+            lines.append(f"**{strong}**{rest}")
     lines += [
-        "",
-        f"{counts[CheckStatus.PASS]} pass · {counts[CheckStatus.WARN]} warn · "
-        f"{counts[CheckStatus.FAIL]} fail · {counts[CheckStatus.NA]} n/a · "
-        f"{counts[CheckStatus.ERROR]} error",
         "",
         # Never folded into the line above: security findings are never
         # scored, and "not measured" is not the same statement as "0 fail".
@@ -233,21 +286,26 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
     security = [f for f in report.findings if f.category == Category.SECURITY]
     security_counts = status_counts(security)
     sec_sev = report.security.findings_by_severity
+    # Technical Readiness: empty strings when the block is absent (Technical
+    # raised) and, for score/grade, when it carries no number — never 0.
+    t = report.readiness.technical if report.readiness is not None else None
     lines = [
-        f"score={'' if s.value is None else s.value}",
-        f"grade={s.grade or ''}",
+        f"score={'' if t is None or t.rating is None else t.rating}",
+        f"grade={'' if t is None else (t.grade or '')}",
         f"pass_count={counts[CheckStatus.PASS]}",
         f"warn_count={counts[CheckStatus.WARN]}",
         f"fail_count={counts[CheckStatus.FAIL]}",
         f"report_path={args.report_path}",
-        f"coverage={s.coverage}",
-        f"score_status={s.status}",
+        f"coverage={'' if t is None else t.coverage}",
+        f"score_status={'' if t is None else t.status}",
         f"scan_scope={s.scope}",
         f"error_count={report.metrics.get('error_count', 0)}",
         f"security_critical={sec_sev.get('critical', 0)}",
         f"security_high={sec_sev.get('high', 0)}",
         f"security_fail_count={security_counts[CheckStatus.FAIL]}",
         f"security_warn_count={security_counts[CheckStatus.WARN]}",
+        f"legacy_score={'' if s.value is None else s.value}",
+        f"model_id={'' if t is None else t.model_id}",
     ]
     _append(env.get("GITHUB_OUTPUT"), "".join(f"{line}\n" for line in lines))
     return 0
@@ -255,14 +313,14 @@ def _cmd_outputs(args: argparse.Namespace, env: Mapping[str, str]) -> int:
 
 def _cmd_summary(args: argparse.Namespace, env: Mapping[str, str]) -> int:
     report = _load_report(args.report_json)
-    _append(env.get("GITHUB_STEP_SUMMARY"), render_summary(report) + "\n")
+    _append(env.get("GITHUB_STEP_SUMMARY"), render_summary(report, legacy_score=args.legacy_score) + "\n")
     return 0
 
 
 def _cmd_report(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa: ARG001 — env unused, kept for the shared call shape
     report = _load_report(args.report_json)
-    rendered = render_html(report, utm_medium="github") if args.format == "html" \
-        else render_markdown(report, utm_medium="github")
+    render = render_html if args.format == "html" else render_markdown
+    rendered = render(report, utm_medium="github", legacy_score=args.legacy_score)
     if not rendered.endswith("\n"):
         rendered += "\n"
     Path(args.out).write_text(rendered, encoding="utf-8")
@@ -274,6 +332,7 @@ def _cmd_gate(args: argparse.Namespace, env: Mapping[str, str]) -> int:  # noqa:
     return _threshold_exit_code(
         report, min_score=args.min_score, fail_on=args.fail_on,
         require_canonical=args.require_canonical, fail_on_security=args.fail_on_security,
+        legacy_score=args.legacy_score,
     )
 
 

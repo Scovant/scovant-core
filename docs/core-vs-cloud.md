@@ -4,6 +4,8 @@ Scovant Core measures passive, machine-facing signals. Scovant Cloud verifies ho
 
 Core identifies itself as `ScovantCore/<version>` and never presents as ScovantBot, the Scovant Cloud crawler identity.
 
+For which readiness rules read the same signal as each check, see [`crosswalk.md`](crosswalk.md).
+
 This is a technical comparison, not a marketing one: everything below traces to a real check or a real gap in what a static, unauthenticated fetch can prove.
 
 ## Capability matrix
@@ -24,7 +26,7 @@ This is a technical comparison, not a marketing one: everything below traces to 
 | OAuth authorization-server / protected-resource metadata | ✅ | ✅ |
 | UCP profile validity | ✅ (experimental) | ✅ |
 | Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills) | ✅ (experimental) | ✅ |
-| Core Score | ✅ | — |
+| Technical Readiness from Core's own sampled evidence | ✅ | — |
 | **Cloud = observed, reproducible, cross-provider, longitudinal** | — | — |
 | Cloud's full compatibility score | ❌ | ✅ |
 | Cloud's full production ruleset | ❌ | ✅ |
@@ -46,8 +48,9 @@ This is a technical comparison, not a marketing one: everything below traces to 
 | Contextual fix plan | ❌ | ✅ |
 
 `(experimental)` marks a check that evaluates and reports on every scan but
-is excluded from Core's Static Signal Score until it has been calibrated
-against real-world traffic — see `docs/methodology.md`.
+never moves Technical Readiness, Core's headline, and is excluded from the
+deprecated five-domain Static Signal Score (removed in 0.19.0) until it has
+been calibrated against real-world traffic — see `docs/methodology.md`.
 
 ## Examples
 

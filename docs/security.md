@@ -575,7 +575,7 @@ compliance claim)".
 
 ### Disclaimer
 
-> A high Core Score does not prove that autonomous agents can complete real
+> A high Technical Readiness rating does not prove that autonomous agents can complete real
 > workflows on the site.
 
 The same principle applies, undiluted, to the Agentic Security & Trust
@@ -601,7 +601,7 @@ files, the git tree of the source that was built, and the commit the
 release tag points at. To verify a download:
 
 ```bash
-V=0.17.1
+V=0.18.0
 gh release download "v$V" --repo Scovant/scovant-core --dir rel
 python3 - <<'EOF'
 import hashlib, json, pathlib, sys

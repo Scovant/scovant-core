@@ -183,3 +183,12 @@ def test_technical_false_skips_the_technical_pass_and_its_requests(monkeypatch):
     assert off.metrics["technical_readiness_error"] is None
     assert off.metrics["technical_gather_errors"] == []
     assert off.metrics["requests"] < on.metrics["requests"]
+
+
+def test_commerce_good_golden_marks_the_five_domain_score_deprecated():
+    """0.18.0 (schema 1.2): the committed golden carries the deprecation
+    markers on `score`, pointing at `readiness.technical`."""
+    data = json.loads((EXPECTED_DIR / "commerce-good.json").read_text())
+    assert data["schema_version"] == "1.2"
+    assert data["score"]["deprecated"] is True
+    assert data["score"]["replaced_by"] == "readiness.technical"

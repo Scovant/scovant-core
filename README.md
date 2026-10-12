@@ -12,7 +12,7 @@ It reads what the site already exposes on request: robots/crawler policy,
 structured data, llms.txt, machine-readable discovery, MCP metadata, WebMCP
 declaration, commerce metadata, HTTP semantics, and its own usage in CI.
 
-> A high Core Score does not prove that autonomous agents can complete real workflows on the site.
+> A high Technical Readiness rating does not prove that autonomous agents can complete real workflows on the site.
 
 ## 30-second install
 
@@ -29,7 +29,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.17.1" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.17.1/constraints/constraints-0.17.1.txt
+    pip install "scovant-core==0.18.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.18.0/constraints/constraints-0.18.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -51,8 +51,8 @@ experimental check that evaluated to something other than `N/A` on this
 scan (including a WARN, as below — experimental findings are still shown,
 just never scored), plus a compact "N/A: ..." line naming the experimental
 checks that had nothing to evaluate — so every check the header counts is
-named somewhere, never merely counted. These never affect the Static Signal
-Score; pass `--experimental` to also run the experimental checks gated
+named somewhere, never merely counted. These never affect Technical
+Readiness (or the deprecated five-domain Static Signal Score); pass `--experimental` to also run the experimental checks gated
 behind that flag (omit it and they're skipped entirely, not evaluated as
 N/A). The "Agentic Security & Trust" block below it is the 16 SECURITY
 checks' own summary — see `docs/security.md` for the full boundary of what
@@ -64,10 +64,11 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.17.1
+Core version: 0.18.0
 
-Static Signal Score       100 / 100   A
-Scope: CANONICAL · Status: OK · Coverage: 100% · Errors: 0
+Technical Readiness  82 / 100  B · coverage 97% · model R2.1@67df90af85b0
+Not measured by Core: MCP_DISCOVERY_INVALID (handshake_not_performed)
+Diagnostics (50 readiness checks): 40 pass · 1 warn · 0 fail
 
 Capabilities detected (descriptive, not scored)
   mcp: present
@@ -81,12 +82,6 @@ Capabilities detected (descriptive, not scored)
 
 AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 3 pass · SHOULD 5/12 measured — 5 pass · MAY none measured (0/3)
   Mapping: docs/standards/agentready.md
-
-Access & Discovery        100   (10/10)
-Machine Understanding     100   (11/11)
-Agent Interfaces          100   (2/2)
-Trust & Commerce          100   (7/7)
-Operability & Efficiency  100   (7/7)
 
 68 checks
 51 PASS
@@ -173,6 +168,13 @@ Verify with real agents:
 https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss
 ```
 
+The headline is **Technical Readiness** (`readiness.technical` — the open
+R2 model, see [`docs/r2.md`](docs/r2.md)): `--min-score` and
+`--require-canonical` gate on it, and a scan whose Technical Readiness has
+no number fails `--min-score`. The five-domain Static Signal Score is
+deprecated since 0.18.0: it is printed and gated only with
+`--legacy-score`, and it is removed in 0.19.0.
+
 ## What Core checks
 
 68 checks total: 50 readiness checks across 5 categories (7 experimental)
@@ -207,8 +209,9 @@ experimental — they run and report but never affect the score; see below):
 ### Experimental checks
 
 Seven checks ship `experimental`: they evaluate and appear in every report,
-but their weight is excluded from the Static Signal Score until they have
-been calibrated against real-world traffic and promoted.
+but they never affect Technical Readiness, and their weight is excluded
+from the deprecated five-domain Static Signal Score, until they have been
+calibrated against real-world traffic and promoted.
 
 | ID | Title |
 |---|---|
@@ -227,7 +230,7 @@ scan` never resolves an external package registry or DNS name for it. The
 other six evaluate on every scan; they simply never move the score.
 
 See [`docs/checks.md`](docs/checks.md) for the full catalog — every check's
-id, weight, applicable profile, and why it matters — generated straight
+id, legacy five-domain weight, applicable profile, and why it matters — generated straight
 from the check registry so it can never drift from what the package
 actually runs.
 
@@ -239,7 +242,7 @@ CSP, cookie flags, `security.txt` validity, credential-like values or
 internal-network references exposed in machine-facing surfaces, privileged
 endpoints advertised to agents, and prompt-injection-shaped content in
 `llms.txt`/MCP tool descriptions. They never carry a score weight and never
-change the Static Signal Score — every scan reports the same
+change Technical Readiness (or the deprecated Static Signal Score) — every scan reports the same
 `PASSIVE SIGNALS ONLY` banner and the same four `NOT TESTED` lines
 (observed authorization, verified agent identity, prompt-injection
 resilience, tool invocation safety). Full boundary, verification-mode
@@ -273,6 +276,9 @@ matrix and concrete "Core can determine / cannot determine / Cloud can
 test" examples, and [scovant.com/open-source](https://scovant.com/open-source)
 for the same comparison as a live, always-current page.
 
+Which readiness rules read the same signal as each check:
+[`docs/crosswalk.md`](docs/crosswalk.md).
+
 ## GitHub Action
 
 ```yaml
@@ -280,14 +286,14 @@ for the same comparison as a live, always-current page.
   id: scan
   with:
     url: https://staging.example.com
-    min-core-score: '70'
+    min-core-score: '70'     # Technical Readiness rating; no number fails too
     fail-on: fail
     allow-private-networks: 'true'
     trusted-target: 'true'
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.17.1` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.18.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -305,34 +311,37 @@ step when the gate you configured trips.
 |---|---|---|
 | `url` | Entry URL to scan | *(required)* |
 | `profile` | `auto`\|`content`\|`commerce`\|`saas`\|`api` | `auto` |
-| `min-core-score` | Fail the step below this score (empty = no gate) | `''` |
+| `min-core-score` | Fail the step below this Technical Readiness rating, or when it has no number (empty = no gate) | `''` |
 | `fail-on` | `never`\|`fail`\|`warn` | `never` |
-| `experimental` | Score experimental checks too | `false` |
+| `experimental` | Score experimental checks too (deprecated five-domain score only) | `false` |
 | `timeout` | Total scan budget in seconds | `60` |
 | `report-format` | `html`\|`markdown` — the uploaded artifact | `html` |
 | `allow-private-networks` | Allow private/loopback targets (your own staging) | `false` |
 | `trusted-target` | Required (`true`) when `allow-private-networks` is `true`; never honoured for pull requests from forks | `false` |
-| `require-canonical` | Fail the step unless the scan is CANONICAL with score status OK | `false` |
+| `require-canonical` | Fail the step unless Technical Readiness status is `OK` (with `legacy-score`: the five-domain scan is CANONICAL with status OK) | `false` |
 | `fail-on-security` | `never`\|`critical`\|`high`\|`medium` — fail the step on a FAILed security finding at or above this severity (a WARN never gates) | `never` |
+| `legacy-score` | Gate (and summarise) on the deprecated five-domain Static Signal Score instead; the `score`/`grade`/`coverage`/`score_status` outputs stay Technical Readiness and the five-domain value is the `legacy_score` output (removed in 0.19.0) | `false` |
 
 ### Outputs
 
 | Output | Description |
 |---|---|
-| `score` | Static Signal Score (0-100, empty if unmeasured) |
-| `grade` | Letter grade (empty if unmeasured) |
+| `score` | Technical Readiness rating (0-100, empty when it has no number or was not computed) |
+| `grade` | Technical Readiness grade (empty when there is no grade, e.g. `DEGRADED`) |
 | `pass_count` | Number of PASS findings |
 | `warn_count` | Number of WARN findings |
 | `fail_count` | Number of FAIL findings |
 | `report_path` | Path to the uploaded report file on the runner |
-| `coverage` | Evidence coverage ratio (0.0-1.0) |
-| `score_status` | `OK`\|`DEGRADED`\|`NOT_CANONICAL`\|`INSUFFICIENT_EVIDENCE` |
-| `scan_scope` | `CANONICAL`\|`CUSTOM`\|`PARTIAL` |
+| `coverage` | Technical Readiness evidence coverage ratio (0.0-1.0; empty when not computed) |
+| `score_status` | Technical Readiness status: `OK`\|`DEGRADED`\|`INSUFFICIENT_EVIDENCE` (empty when not computed) |
+| `scan_scope` | Five-domain selection scope: `CANONICAL`\|`CUSTOM`\|`PARTIAL` |
 | `error_count` | Number of checks that errored |
 | `security_critical` | Number of `critical`-severity findings in the Agentic Security & Trust section (FAIL + WARN) |
 | `security_high` | Number of `high`-severity findings in the Agentic Security & Trust section (FAIL + WARN) |
 | `security_fail_count` | Number of FAIL findings in the Agentic Security & Trust section |
 | `security_warn_count` | Number of WARN findings in the Agentic Security & Trust section |
+| `legacy_score` | Deprecated five-domain Static Signal Score (0-100, empty if unmeasured; removed in 0.19.0) |
+| `model_id` | Technical Readiness model id, e.g. `R2.1@67df90af85b0` (empty when not computed) |
 
 `pass_count`/`warn_count`/`fail_count` are readiness-only (the Agentic
 Security & Trust section is never scored — see `Report.security.scored` —
@@ -370,8 +379,8 @@ scovant scan https://example.com --format json
 ```
 
 produces a versioned JSON report (`schema_version`, `core_version`,
-`ruleset_version`, per-category scores, every finding with its own
-evidence) suitable for CI pipelines, matching the published
+`ruleset_version`, Technical Readiness in `readiness.technical` with its
+per-rule `technical_outcomes`, every finding with its own evidence) suitable for CI pipelines, matching the published
 [`docs/report.schema.json`](docs/report.schema.json). Combine with
 `--min-score`/`--fail-on` for a CI-friendly exit code, or `--output
 report.json` to write it to a file. `--fail-on-security
@@ -384,8 +393,9 @@ from `--fail-on`/`--min-score`).
 scovant scan https://example.com --format markdown --output report.md
 ```
 
-renders the same report as GitHub-flavored Markdown — score, per-category
-table, findings grouped by status with collapsible evidence — ready to
+renders the same report as GitHub-flavored Markdown — the Technical
+Readiness headline (plus the five-domain category table with
+`--legacy-score`), findings grouped by status with collapsible evidence — ready to
 paste into a pull request or issue.
 
 ```bash
@@ -422,8 +432,8 @@ shell command. Claude Desktop (`claude_desktop_config.json`) and Cursor
 | Tool | Description |
 | --- | --- |
 | `scan_site` | Run all 68 checks against one public URL, return the JSON report |
-| `get_core_score` | Run the scan, return only the Static Signal Score summary |
-| `list_checks` | List every check with category, weight, profiles, experimental flag |
+| `get_core_score` | Run the scan, return the Technical Readiness summary (the deprecated five-domain score only as `legacy_score`) |
+| `list_checks` | List every check with category, profiles, experimental flag |
 | `explain_check` | Explain one check: why it matters, limitations, Cloud extension, references |
 | `get_finding` | Return one finding from a scan this server already ran (no re-scan) |
 
@@ -476,10 +486,15 @@ What is sent (exactly these fields, nothing else):
 - `timestamp` — when the scan completed
 - `core_version`, `ruleset_version`, `ruleset_digest` — which Core build and
   checklist produced the result
-- `profile` — the resolved site profile (`content`/`commerce`/`saas`/`api`)
+- `profile`, `profile_confidence`, `profile_detector_version` — the resolved
+  site profile (`content`/`commerce`/`saas`/`api`) and how it was detected
 - `experimental` — whether experimental checks were included
 - `check_statuses` — each check id's status (`PASS`/`WARN`/`FAIL`/`N/A`/`ERROR`)
-- `score` — the overall value, grade, coverage and status
+- `technical` — Technical Readiness: rating, grade, coverage, status and
+  model id (`null` when it was not computed)
+- `score`, `scan_scope`, `score_status` — the deprecated five-domain value,
+  grade, coverage, status and scope (removed in 0.19.0)
+- `error_count` — how many checks errored
 
 What is never sent: no page HTML, no evidence, no URLs beyond the domain
 itself, no IP address, no filesystem paths, no CLI flags beyond what's

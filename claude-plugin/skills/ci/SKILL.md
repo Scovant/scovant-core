@@ -13,9 +13,10 @@ description: Add a Scovant Core agent-readiness gate to the repository's GitHub 
 #
 # Runs entirely inside your workflow — no account, no token, no data leaves the
 # runner except the HTTP requests the scanner makes to the URL you name. The
-# step fails when the Core score drops below `min-core-score` or a check FAILs.
+# step fails when the Technical Readiness rating drops below `min-core-score`
+# (or has no number) or a check FAILs.
 #
-# Pin `@v0.17.1` instead of the moving `@v0` for an exact, never-moving version.
+# Pin `@v0.18.0` instead of the moving `@v0` for an exact, never-moving version.
 name: Scovant Core gate
 
 on:
@@ -40,11 +41,11 @@ jobs:
 
       - name: Show the result
         if: always()
-        run: echo "core score ${{ steps.scan.outputs.score }} (${{ steps.scan.outputs.grade }})"
+        run: echo "Technical Readiness ${{ steps.scan.outputs.score }} (${{ steps.scan.outputs.grade }}) · model ${{ steps.scan.outputs.model_id }}"
       # The full HTML report is uploaded as the workflow artifact
       # `scovant-core-report`; a Markdown summary lands in the Step Summary.
 ```
 
-3. Explain the knobs in one line each: `min-core-score` (fail below), `fail-on` (`never|fail|warn`), `require-canonical`, `fail-on-security`; for a private staging host `allow-private-networks: 'true'` + `trusted-target: 'true'` are both required and are never honoured for fork pull requests.
-4. Pin `@v0.17.1` instead of `@v0` if the user wants an exact, never-moving version.
+3. Explain the knobs in one line each: `min-core-score` (fail below this Technical Readiness rating, or when it has no number), `fail-on` (`never|fail|warn`), `require-canonical` (Technical Readiness status must be `OK`), `fail-on-security`, `legacy-score` (gate on the deprecated five-domain score instead — removed in 0.19.0); for a private staging host `allow-private-networks: 'true'` + `trusted-target: 'true'` are both required and are never honoured for fork pull requests.
+4. Pin `@v0.18.0` instead of `@v0` if the user wants an exact, never-moving version.
 5. If `SCOVANT_API_KEY` is set, OFFER (do not write unasked) the Scovant Cloud trigger step for post-deploy regression detection — `/scovant:cloud` explains it.

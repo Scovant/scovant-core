@@ -47,15 +47,62 @@ def test_get_finding_unknown_scan_is_an_error_not_a_rescan(server):
 
 
 def test_list_and_explain(server):
+    """Ruling 4: a check's weight belongs to the deprecated five-domain
+    score, so neither list_checks nor explain_check carries it."""
     checks = json.loads(_call(server, "list_checks")[0].text)
-    assert len(checks) == 68 and {"id", "title", "category", "weight", "profiles", "experimental"} <= set(checks[0])
+    assert len(checks) == 68
+    assert all(set(c) == {"id", "title", "category", "profiles", "experimental"} for c in checks)
     ex = json.loads(_call(server, "explain_check", check_id="CORE-MACHINE-007")[0].text)
     assert ex["id"] == "CORE-MACHINE-007" and ex["why_it_matters"] and ex["limitations"]
+    assert "weight" not in ex
+
+
+def test_list_checks_description_names_no_weight(server):
+    tools = {t.name: t for t in asyncio.run(server.list_tools())}
+    assert "weight" not in tools["list_checks"].description
 
 
 def test_get_core_score_shape(server):
+    """0.18.0: the summary leads with Technical Readiness; the deprecated
+    five-domain score rides along as `legacy_score`. commerce-good: Technical
+    82/B OK, five-domain 100/A."""
     s = json.loads(_call(server, "get_core_score", url="https://example.com/")[0].text)
-    assert {"score", "grade", "coverage", "status", "pass", "warn", "fail", "error", "na", "scan_id"} == set(s)
+    assert set(s) == {"technical", "pass", "warn", "fail", "error", "na", "scan_id", "legacy_score"}
+    assert s["technical"] == {
+        "rating": 82, "grade": "B", "coverage": s["technical"]["coverage"], "status": "OK",
+        "model_id": "R2.1@67df90af85b0",
+        "not_measured": [{"rule": "MCP_DISCOVERY_INVALID", "reason": "handshake_not_performed"}],
+    }
+    assert 0.9 < s["technical"]["coverage"] <= 1
+    assert s["legacy_score"] == {"value": 100, "grade": "A", "status": "OK", "deprecated": True}
+
+
+def test_get_core_score_description_names_technical_readiness(server):
+    tools = {t.name: t for t in asyncio.run(server.list_tools())}
+    assert "Technical Readiness summary" in tools["get_core_score"].description
+    assert "Static Signal Score summary" not in tools["get_core_score"].description
+
+
+def test_summary_without_a_technical_number(monkeypatch):
+    """INSUFFICIENT_EVIDENCE: rating and grade are null — never 0."""
+    from tests.test_cli import _real_report
+
+    data = json.loads(mcp_server.render_json(_real_report("commerce-good", keep={"/"})))
+    t = mcp_server._summary(data)["technical"]
+    assert (t["rating"], t["grade"], t["status"]) == (None, None, "INSUFFICIENT_EVIDENCE")
+
+
+def test_summary_without_a_readiness_block():
+    """Review Focus 1: no `readiness` block (Technical raised) — `technical`
+    is null, the legacy score is still reported."""
+    from tests.test_report_markdown import _report
+
+    report = _report("commerce-good").model_copy(update={"readiness": None})
+    data = json.loads(mcp_server.render_json(report))
+    s = mcp_server._summary(data)
+    assert s["technical"] is None
+    assert s["legacy_score"]["value"] == 100
+    assert mcp_server._shape_findings(data, "mcp")["score"]["technical"] is None
 
 
 def test_unknown_profile_is_a_tool_error_not_a_scan(server):
@@ -116,8 +163,9 @@ def test_scan_site_default_format_is_findings_without_pass_bodies(server):
         "scan_id", "input_url", "final_url", "profile", "score", "counts",
         "findings", "security_findings", "security_disclaimer", "passed", "cta",
     }
-    assert set(out["score"]) == {"value", "grade", "coverage", "status", "scope"}
-    assert out["score"]["scope"] == "CANONICAL"
+    assert set(out["score"]) == {"value", "grade", "coverage", "status", "scope", "deprecated", "technical"}
+    assert out["score"]["scope"] == "CANONICAL" and out["score"]["deprecated"] is True
+    assert out["score"]["technical"]["rating"] == 82 and out["score"]["technical"]["model_id"] == "R2.1@67df90af85b0"
     assert all(f["status"] != "PASS" for f in out["findings"])
     assert all(f["category"] != "security" for f in out["findings"])
     assert all(isinstance(i, str) and i.startswith("CORE-") for i in out["passed"])

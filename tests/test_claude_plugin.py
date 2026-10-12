@@ -86,3 +86,12 @@ def test_scan_skill_pins_the_same_version_in_its_cli_fallback():
     text = (PLUGIN / "skills" / "scan" / "SKILL.md").read_text(encoding="utf-8")
     assert f'scovant-core[mcp]=={_version()}' in text
     assert "--allow-private-networks" in text
+
+
+def test_no_skill_tells_the_agent_to_report_or_sort_by_weight():
+    """0.18.0: the MCP tools no longer return `weight` (it belonged to the
+    deprecated five-domain score), so no skill may ask an agent to report or
+    sort by it."""
+    for p in PLUGIN.glob("skills/*/SKILL.md"):
+        text = p.read_text(encoding="utf-8")
+        assert not re.search(r"\bweight\b", text, re.IGNORECASE), f"{p} still mentions weight"

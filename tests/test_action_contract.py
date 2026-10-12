@@ -119,7 +119,7 @@ def test_the_cross_step_summary_read_check_permits_the_env_override_escape_hatch
                         "run": (
                             'own="$RUNNER_TEMP/x.md"\n'
                             'GITHUB_STEP_SUMMARY="$own" python -m scovant_core.action summary "$RUNNER_TEMP/core.json"\n'
-                            'grep -q "Static Signal Score:" "$own"\n'
+                            'grep -q "Technical Readiness" "$own"\n'
                         ),
                     },
                 ],

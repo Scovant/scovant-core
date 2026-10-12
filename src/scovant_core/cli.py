@@ -1,7 +1,9 @@
 """`scovant` CLI: argparse entry point wired to `scovant_core.engine.scan` and
 the text/JSON renderers, with a stable exit-code contract for CI use.
 
-Exit codes: 0 ok; 1 `--min-score`/`--fail-on` triggered; 2 invalid input;
+Exit codes: 0 ok; 1 `--min-score`/`--require-canonical`/`--fail-on`
+triggered (the first two read Technical Readiness, `readiness.technical`;
+`--legacy-score` makes them read the deprecated five-domain score instead); 2 invalid input;
 3 network fatal (entry unreachable); 4 security block (entry blocked by the
 SSRF guard — private/reserved/localhost target); 5 internal error (an
 unexpected exception — `scan()` itself never raises for a bad/blocked URL,
@@ -137,7 +139,7 @@ def _build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument("--output", default=None, help="write the rendered report to PATH instead of stdout")
     scan_p.add_argument(
         "--min-score", type=_score_range, default=None,
-        help="exit 1 if the Static Signal Score is below this value (0..100)",
+        help="exit 1 if Technical Readiness is below this value, or has no number (0..100)",
     )
     scan_p.add_argument(
         "--fail-on", choices=_FAIL_ON, default="never",
@@ -145,7 +147,11 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     scan_p.add_argument(
         "--require-canonical", action="store_true", dest="require_canonical",
-        help="exit 1 unless the scan is CANONICAL with score status OK",
+        help="exit 1 unless Technical Readiness status is OK",
+    )
+    scan_p.add_argument(
+        "--legacy-score", action="store_true", dest="legacy_score",
+        help="gate and print the deprecated five-domain Static Signal Score; removed in 0.19.0",
     )
     scan_p.add_argument(
         "--fail-on-security", choices=_FAIL_ON_SECURITY, default="never", dest="fail_on_security",
@@ -163,7 +169,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     scan_p.add_argument("--no-color", action="store_true", help="disable ANSI colour in text output")
     scan_p.add_argument("--verbose", action="store_true", help="enable debug logging for scovant_core")
-    scan_p.add_argument("--quiet", action="store_true", help="text format only: print just the score line")
+    scan_p.add_argument("--quiet", action="store_true", help="text format only: print just the Technical Readiness headline line")
     scan_p.add_argument(
         "--include", action="append", default=[], metavar="ID|CATEGORY",
         help="run only checks matching this id or category (repeatable)",
@@ -235,14 +241,50 @@ def _entry_error_kind(report: Report) -> str | None:
 _SECURITY_SEVERITY_ORDER = {"critical": 3, "high": 2, "medium": 1}
 
 
+# Appended to every Technical Readiness gate failure: the way back to the
+# deprecated five-domain gate during its deprecation window.
+_LEGACY_GATE_HINT = " (deprecated five-domain gate: --legacy-score / Action legacy-score: 'true', until 0.19.0)"
+
+
+def _technical_gate_failure(report: Report, *, min_score: int | None, require_canonical: bool) -> str | None:
+    """The one-line reason the Technical Readiness gate fails, or None.
+
+    A report without a `readiness` block (Technical raised — recorded in
+    `metrics.technical_readiness_error` — or was not computed) and a block
+    without a number (INSUFFICIENT_EVIDENCE) both fail `--min-score`: no
+    number never passes a numeric gate. `--require-canonical` passes only on
+    status OK."""
+    technical = report.readiness.technical if report.readiness is not None else None
+    if require_canonical:
+        if technical is None:
+            return "Technical Readiness not computed; --require-canonical fails"
+        if technical.status != "OK":
+            return f"Technical Readiness status {technical.status} is not OK; --require-canonical fails"
+    if min_score is not None:
+        if technical is None:
+            return "Technical Readiness has no number (not computed); --min-score fails"
+        if technical.rating is None:
+            return f"Technical Readiness has no number (status {technical.status}); --min-score fails"
+        if technical.rating < min_score:
+            return f"Technical Readiness {technical.rating} < --min-score {min_score}"
+    return None
+
+
 def _threshold_exit_code(
     report: Report, *, min_score: int | None, fail_on: str, require_canonical: bool = False,
-    fail_on_security: str = "never",
+    fail_on_security: str = "never", legacy_score: bool = False,
 ) -> int:
-    if require_canonical and not (report.score.scope == "CANONICAL" and report.score.status == "OK"):
-        return _EXIT_THRESHOLD
-    if min_score is not None and (report.score.value is None or report.score.value < min_score):
-        return _EXIT_THRESHOLD
+    if legacy_score:
+        # The deprecated five-domain gate, unchanged and silent (removed in 0.19.0).
+        if require_canonical and not (report.score.scope == "CANONICAL" and report.score.status == "OK"):
+            return _EXIT_THRESHOLD
+        if min_score is not None and (report.score.value is None or report.score.value < min_score):
+            return _EXIT_THRESHOLD
+    else:
+        reason = _technical_gate_failure(report, min_score=min_score, require_canonical=require_canonical)
+        if reason is not None:
+            print(reason + _LEGACY_GATE_HINT, file=sys.stderr)
+            return _EXIT_THRESHOLD
     if fail_on != "never":
         # Readiness-only: `Report.security` is never scored (see
         # `Report.security.scored`), so a SECURITY-category finding must
@@ -255,7 +297,7 @@ def _threshold_exit_code(
             return _EXIT_THRESHOLD
     # Evaluated AFTER the readiness thresholds above — a readiness exit 1
     # wins over a security exit 6 when both would apply, so the CI-facing
-    # meaning of "1" (the Static Signal Score itself is bad) never gets
+    # meaning of "1" (the readiness gate itself is bad) never gets
     # masked by a passive, never-scored security signal.
     if fail_on_security != "never":
         floor = _SECURITY_SEVERITY_ORDER[fail_on_security]
@@ -326,28 +368,32 @@ def _run_scan(args: argparse.Namespace) -> int:
         exit_code = _threshold_exit_code(
             report, min_score=args.min_score, fail_on=args.fail_on,
             require_canonical=args.require_canonical, fail_on_security=args.fail_on_security,
+            legacy_score=args.legacy_score,
         )
 
     color = args.format == "text" and not args.no_color and not args.output and sys.stdout.isatty()
     if args.format == "json":
         rendered = render_json(report)
     elif args.format == "markdown":
-        rendered = render_markdown(report, utm_medium="cli")
+        rendered = render_markdown(report, utm_medium="cli", legacy_score=args.legacy_score)
     elif args.format == "html":
-        rendered = render_html(report, utm_medium="html")
+        rendered = render_html(report, utm_medium="html", legacy_score=args.legacy_score)
     else:
-        rendered = render_text(report, color=color)
+        rendered = render_text(report, color=color, legacy_score=args.legacy_score)
     if not rendered.endswith("\n"):
         rendered += "\n"
 
     if args.output:
         Path(args.output).write_text(rendered, encoding="utf-8")
     elif args.quiet and args.format == "text":
-        print(score_line(report))
+        print(score_line(report, legacy_score=args.legacy_score))
     else:
         print(rendered, end="")
 
     if args.contribute and report.metrics.get("entry_error") is None:
+        # Still keyed on the five-domain scope for the deprecation window:
+        # Cloud's accept gate reads `scan_scope`/`score_status`, so old and
+        # new clients keep contributing the same population.
         if report.score.scope != "CANONICAL":
             print(
                 f"contributed: skipped (scan is {report.score.scope}; only canonical scans are accepted)",

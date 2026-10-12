@@ -21,12 +21,14 @@ jobs:
             sleep 0.5
           done
           [[ "$ready" == "1" ]] || { echo "fixture server did not start" && exit 1; }
-      # 100/A is unreachable here: CORE-ACCESS-001 requires the final URL to
-      # be served over HTTPS (this is a plain-http loopback target), and
-      # CORE-ACCESS-007/CORE-OPERABILITY-004 fail because commerce-good's
-      # canonical/references are hardcoded to https://example.com. 90/A is
-      # the expected value today; the gate is set to 85 so it still exercises
-      # a real (passing) threshold check rather than always being a no-op.
+      # Technical Readiness (0.18.0 — the `score`/`grade` outputs) is 86/B
+      # here today: CORE-ACCESS-001 requires the final URL to be served over
+      # HTTPS (this is a plain-http loopback target), commerce-good's
+      # canonical/references are hardcoded to https://example.com, and the
+      # MCP handshake is never performed by Core. The gate is set to 80 so it
+      # still exercises a real (passing) threshold check rather than always
+      # being a no-op. The deprecated five-domain score is `legacy_score`
+      # (91 today).
       - name: Scan the fixture server
         id: scan
         uses: ./
@@ -34,13 +36,16 @@ jobs:
           url: http://127.0.0.1:8765/
           allow-private-networks: 'true'
           trusted-target: 'true'
-          min-core-score: '85'
+          min-core-score: '80'
           fail-on-security: never
       - name: Assert outputs
         run: |
           set -euo pipefail
-          (( "${{ steps.scan.outputs.score }}" >= 85 ))
-          [[ "${{ steps.scan.outputs.grade }}" == "A" ]]
+          (( "${{ steps.scan.outputs.score }}" >= 80 ))
+          [[ "${{ steps.scan.outputs.grade }}" == "B" ]]
+          [[ "${{ steps.scan.outputs.score_status }}" == "OK" ]]
+          [[ "${{ steps.scan.outputs.model_id }}" == R2.1@* ]]
+          (( "${{ steps.scan.outputs.legacy_score }}" >= 85 ))
           # The action's own "out" step already wrote the step summary — but
           # into ITS OWN step's summary file. GitHub gives every step a
           # fresh, separate GITHUB_STEP_SUMMARY, so reading that variable
@@ -51,4 +56,4 @@ jobs:
           # variable rather than reading the inherited (empty) one.
           own_summary="$RUNNER_TEMP/assert-outputs-summary.md"
           GITHUB_STEP_SUMMARY="$own_summary" python -m scovant_core.action summary "$RUNNER_TEMP/core.json"
-          grep -q "Static Signal Score:" "$own_summary"
+          grep -q "^## Scovant Core — Technical Readiness" "$own_summary"

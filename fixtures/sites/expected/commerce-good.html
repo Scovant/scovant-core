@@ -59,26 +59,17 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.17.1</p>
+<p><strong>Core version:</strong> 0.18.0</p>
 <p>51 PASS, 3 WARN, 1 FAIL, 13 N/A, 0 ERROR (68 checks)</p>
 </section>
 <section id="score">
-<h2>Scovant Core Static Signal Score</h2>
-<p style="font-size:2.5rem;font-weight:700;">100 / 100</p>
-<p><strong>Grade:</strong> A &middot; <strong>Scope:</strong> CANONICAL &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Errors:</strong> 0</p>
+<h2>Technical Readiness</h2>
+<p style="font-size:2.5rem;font-weight:700;">82 / 100</p>
+<p><strong>Grade:</strong> B &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 97% &middot; <strong>Model:</strong> <code>R2.1@67df90af85b0</code></p>
+<p><strong>Not measured by Core:</strong> MCP_DISCOVERY_INVALID (handshake_not_performed)</p>
+<p><strong>Diagnostics (50 readiness checks):</strong> 40 pass · 1 warn · 0 fail</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: present · webmcp: absent · ucp: present · llms_txt: present · openapi: not_checked · oauth: not_checked · content_signal: present · security_txt: present</p>
 <p><strong>Standards:</strong> AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 3 pass · SHOULD 5/12 measured — 5 pass · MAY none measured (0/3) — Mapping: docs/standards/agentready.md</p>
-</section>
-<section id="categories">
-<h2>Categories</h2>
-<table>
-<tr><th>Category</th><th>Weight</th><th>Score</th><th>Evaluated / applicable</th></tr>
-<tr><td>Access &amp; Discovery</td><td>25</td><td>100</td><td>25 / 25</td></tr>
-<tr><td>Machine Understanding</td><td>25</td><td>100</td><td>23 / 23</td></tr>
-<tr><td>Agent Interfaces</td><td>20</td><td>100</td><td>5 / 5</td></tr>
-<tr><td>Trust &amp; Commerce</td><td>15</td><td>100</td><td>15 / 15</td></tr>
-<tr><td>Operability &amp; Efficiency</td><td>15</td><td>100</td><td>16 / 16</td></tr>
-</table>
 </section>
 <section id="findings">
 <h2>Findings</h2>
@@ -721,7 +712,7 @@ a { color: #0969da; }
 <tr><td>OAuth authorization-server / protected-resource metadata</td><td>✅</td><td>✅</td></tr>
 <tr><td>UCP profile validity</td><td>✅ (experimental)</td><td>✅</td></tr>
 <tr><td>Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills)</td><td>✅ (experimental)</td><td>✅</td></tr>
-<tr><td>Core Score</td><td>✅</td><td>—</td></tr>
+<tr><td>Technical Readiness from Core&#x27;s own sampled evidence</td><td>✅</td><td>—</td></tr>
 <tr><td><strong>Cloud = observed, reproducible, cross-provider, longitudinal</strong></td><td>—</td><td>—</td></tr>
 <tr><td>Cloud&#x27;s full compatibility score</td><td>❌</td><td>✅</td></tr>
 <tr><td>Cloud&#x27;s full production ruleset</td><td>❌</td><td>✅</td></tr>
@@ -746,7 +737,7 @@ a { color: #0969da; }
 </section>
 <section id="methodology">
 <h2>Methodology</h2>
-<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage (a document that could not be read counts against evidence), and N/A is excluded entirely. A scan scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its applicable weight. A full-selection scan that clears that floor but falls short of 85% coverage, or that hit any ERROR, is reported as DEGRADED (a score, no letter grade) rather than being silently graded on incomplete evidence. Running with checks narrowed or widened via --include/--exclude/--experimental instead reports a NOT_CANONICAL Subset Diagnostic Score over that subset, not the full Core Score. Full reference: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">docs/methodology.md</a>.</p>
+<p>Technical Readiness is the open R2 rating over the passive evidence Core gathered. Each rule outcome counts PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 within its category, and the categories are weighted into a 0&ndash;100 rating. Coverage is the share of applicable weight Core could measure. A rule Core could not measure is listed as not measured, with a reason, and lowers coverage; it is never a FAIL. Below the coverage floor there is no number (INSUFFICIENT_EVIDENCE); an under-covered or errored measurement is DEGRADED (a number, no grade). Formula, weights and outcome states: <a href="https://github.com/Scovant/scovant-core/blob/main/docs/r2.md">docs/r2.md</a>. The five-domain Static Signal Score is deprecated: it prints only with --legacy-score and is removed in 0.19.0.</p>
 </section>
 <section id="provenance">
 <h2>Provenance</h2>
@@ -754,14 +745,14 @@ a { color: #0969da; }
 <dt>scan_id</dt><dd>local-golden</dd>
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
-<dt>schema_version</dt><dd>1.1</dd>
-<dt>core_version</dt><dd>0.17.1</dd>
+<dt>schema_version</dt><dd>1.2</dd>
+<dt>core_version</dt><dd>0.18.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
 <dt>ruleset_digest</dt><dd>7f440d6205c3</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.17.1 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.18.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

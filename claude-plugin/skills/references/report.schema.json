@@ -222,6 +222,11 @@
           "title": "Coverage",
           "type": "number"
         },
+        "deprecated": {
+          "default": true,
+          "title": "Deprecated",
+          "type": "boolean"
+        },
         "grade": {
           "anyOf": [
             {
@@ -236,6 +241,11 @@
         "name": {
           "default": "Scovant Core Static Signal Score",
           "title": "Name",
+          "type": "string"
+        },
+        "replaced_by": {
+          "default": "readiness.technical",
+          "title": "Replaced By",
           "type": "string"
         },
         "scope": {
@@ -597,7 +607,7 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "1.1",
+      "const": "1.2",
       "type": "string"
     },
     "score": {

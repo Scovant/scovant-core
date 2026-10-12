@@ -201,7 +201,7 @@ def test_readme_contains_both_pinned_sentences_verbatim():
         "readiness signals on websites."
     ) in readme
     assert (
-        "A high Core Score does not prove that autonomous agents can complete real "
+        "A high Technical Readiness rating does not prove that autonomous agents can complete real "
         "workflows on the site."
     ) in readme
 

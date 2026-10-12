@@ -32,7 +32,9 @@ def test_commerce_good_has_a_technical_block():
     assert set(t.categories) == {"discoverability", "structured", "consistency", "actionability",
                                  "trust", "ucp", "citability"}
     assert r.technical_outcomes and all(o.state for o in r.technical_outcomes)
-    assert r.schema_version == "1.1"                      # ruling 1: additive key, no bump
+    # 04a added `readiness` without a bump (additive); 04c bumps to 1.2 for the
+    # additive deprecation markers on the five-domain `score`.
+    assert r.schema_version == "1.2"
 
 
 def test_declared_mcp_endpoint_is_not_measured():

@@ -46,8 +46,8 @@ def test_security_category_exists_and_is_not_scored():
     assert "security" not in CATEGORY_WEIGHTS
 
 
-def test_schema_version_is_1_1():
-    assert REPORT_SCHEMA_VERSION == "1.1"
+def test_schema_version_is_1_2():
+    assert REPORT_SCHEMA_VERSION == "1.2"
 
 
 def test_security_results_never_enter_the_score():

@@ -8,13 +8,19 @@ from scovant_core.models import CATEGORY_TITLES, Category, CheckStatus, Report
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
+    TECHNICAL_LABEL,
     capabilities_lines,
+    diagnostics_parts,
     evaluated_experimental,
+    legacy_headline,
     na_experimental,
+    not_measured_text,
     profile_note,
     security_rows,
     standards_line,
     status_counts,
+    status_note,
+    technical_headline,
     top_findings,
 )
 from scovant_core.report._common import scored_experimental as _scored_experimental
@@ -53,37 +59,44 @@ def _profile_line(target) -> str:
     return f"Profile: {target.resolved_profile}"
 
 
-def _total_checks() -> int:
-    # Imported lazily to avoid a module-load cycle (checks import report
-    # helpers transitively; report.text must not import checks at module scope).
-    from scovant_core.checks.registry import CHECKS
+def score_line(report: Report, *, legacy_score: bool = False) -> str:
+    """The single summary line: the Technical Readiness headline
+    (`Technical Readiness  NN / 100  G · coverage NN% · model …`, or its
+    no-number / not-computed form), or — with `legacy_score` — the
+    deprecated five-domain line. Public so the CLI's `--quiet` mode can
+    print exactly this line without the rest of `render_text`."""
+    if legacy_score:
+        return legacy_headline(report)
+    return f"{TECHNICAL_LABEL}  {technical_headline(report)}"
 
-    return len(CHECKS)
+
+def _technical_lines(report: Report) -> list[str]:
+    """Headline, the not-measured line when non-empty, then Diagnostics."""
+    lines = [score_line(report)]
+    missing = not_measured_text(report)
+    if missing:
+        lines.append(f"Not measured by Core: {missing}")
+    lines.append(": ".join(diagnostics_parts(report)))
+    return lines
 
 
-def score_line(report: Report) -> str:
-    """The single summary line — `Static Signal Score NN / 100  GRADE`, or a
-    status-specific fallback for DEGRADED/NOT_CANONICAL/INSUFFICIENT_EVIDENCE
-    scans. Public so the CLI's `--quiet` mode can print exactly this line
-    without pulling in the rest of `render_text`."""
-    score = report.score
-    if score.status == "INSUFFICIENT_EVIDENCE" or score.value is None:
-        return f"Core Score: INSUFFICIENT EVIDENCE (coverage {score.coverage:.2f})"
-    if score.status == "NOT_CANONICAL":
-        selected = len(report.findings)
-        excluded = report.provenance.get("excluded_checks")
-        total = len(report.findings) + len(excluded) if excluded else _total_checks()
-        return (
-            f"{score.name} {score.value} / 100 — Canonical Core Score: NOT CALCULATED "
-            f"({selected} of {total} checks selected)"
-        )
-    if score.status == "DEGRADED":
-        n = int(report.metrics.get("error_count", 0))
-        return (
-            f"{'Static Signal Score'.ljust(_LABEL_WIDTH)}{score.value} / 100   "
-            f"(no grade — score DEGRADED, coverage {score.coverage:.2f}, {n} checks errored)"
-        )
-    return f"{'Static Signal Score'.ljust(_LABEL_WIDTH)}{score.value} / 100   {score.grade}"
+def _legacy_lines(report: Report, scored_experimental: bool) -> list[str]:
+    """The deprecated five-domain block — printed only with
+    `--legacy-score` (removed in 0.19.0)."""
+    s = report.score
+    error_count = report.metrics.get("error_count", 0)
+    lines = [
+        legacy_headline(report),
+        f"Scope: {s.scope} · Status: {s.status} · Coverage: {s.coverage:.0%} · Errors: {error_count}",
+    ]
+    note = status_note(report)
+    if note:
+        lines.append("".join(note))
+    if scored_experimental:
+        lines.append("Experimental checks: scored")
+    counts = _category_counts(report.findings, scored_experimental)
+    lines.extend(_category_lines(report.categories, counts))
+    return lines
 
 
 def _category_counts(findings: list, scored_experimental: bool) -> dict[str, tuple[int, int]]:
@@ -165,7 +178,7 @@ def _experimental_lines(findings: list, color: bool) -> list[str]:
     return _findings_block(evaluated_experimental(findings), color)
 
 
-def render_text(report: Report, *, color: bool = False) -> str:
+def render_text(report: Report, *, color: bool = False, legacy_score: bool = False) -> str:
     scored_experimental = _scored_experimental(report)
     lines = [
         "SCOVANT CORE", RULE, "",
@@ -175,26 +188,17 @@ def render_text(report: Report, *, color: bool = False) -> str:
     ]
     if report.provenance.get("allow_private_networks"):
         lines.append("Note: private-network targets allowed (--allow-private-networks)")
-    if scored_experimental:
-        lines.append("Experimental checks: scored")
-    s = report.score
-    error_count = report.metrics.get("error_count", 0)
-    lines.extend([
-        "",
-        score_line(report),
-    ])
+    lines.append("")
+    lines.extend(_technical_lines(report))
     note = profile_note(report)
     if note:
         lines.append(note)
-    lines.extend([
-        f"Scope: {s.scope} · Status: {s.status} · Coverage: {s.coverage:.0%} · Errors: {error_count}",
-        "",
-    ])
+    lines.append("")
     lines += ["Capabilities detected (descriptive, not scored)", *("  " + line for line in capabilities_lines(report)), ""]
     lines += [standards_line(report), "  " + STANDARDS_FOOTER, ""]
-    counts = _category_counts(report.findings, scored_experimental)
-    lines.extend(_category_lines(report.categories, counts))
-    lines.append("")
+    if legacy_score:
+        lines.extend(_legacy_lines(report, scored_experimental))
+        lines.append("")
     lines.append(f"{len(report.findings)} checks")
     lines.extend(_counts(report.findings))
     lines.append("")

@@ -37,7 +37,7 @@
     }
   },
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.17.1",
+  "core_version": "0.18.0",
   "findings": [
     {
       "category": "access",
@@ -2198,7 +2198,7 @@
   "provenance": {
     "allow_private_networks": false,
     "canonical_min_coverage": 0.85,
-    "core_version": "0.17.1",
+    "core_version": "0.18.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2215,7 +2215,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.17.1 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.18.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2265,11 +2265,13 @@
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "score": {
     "coverage": 1.0,
+    "deprecated": true,
     "grade": "B",
     "name": "Scovant Core Static Signal Score",
+    "replaced_by": "readiness.technical",
     "scope": "CANONICAL",
     "status": "OK",
     "value": 81

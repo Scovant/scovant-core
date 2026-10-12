@@ -8,8 +8,14 @@ SECTION_IDS = ("summary", "score", "categories", "findings", "evidence", "remedi
 
 
 def test_html_has_every_section_in_spec_order():
-    html = render_html(_report())
+    """`categories` (the deprecated five-domain block) renders only with
+    `legacy_score=True`; every other section always renders, in order."""
+    html = render_html(_report(), legacy_score=True)
     positions = [html.index(f'id="{s}"') for s in SECTION_IDS]
+    assert positions == sorted(positions)
+    default = render_html(_report())
+    assert 'id="categories"' not in default
+    positions = [default.index(f'id="{s}"') for s in SECTION_IDS if s != "categories"]
     assert positions == sorted(positions)
 
 

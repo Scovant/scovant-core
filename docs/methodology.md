@@ -1,8 +1,16 @@
 # Methodology
 
-This document explains what the Scovant Core Static Signal Score (`Core
-Score`) measures, how it is computed, and — just as importantly — what it
-does not tell you.
+This document explains what Scovant Core measures, how its scores are
+computed, and — just as importantly — what they do not tell you.
+
+**Headline since 0.18.0: Technical Readiness.** The number Core leads with,
+and the one `--min-score` and `--require-canonical` gate on, is Technical
+Readiness (`readiness.technical`), the open R2 model documented in
+[`r2.md`](r2.md). The five-domain Scovant Core Static Signal Score (`Core
+Score`) described in "Scoring formula", "Coverage floor" and "Scan scope
+and score status" below is **deprecated**: it stays in the JSON report
+(`score`, marked `deprecated: true`, `replaced_by: readiness.technical`),
+is printed and gated only with `--legacy-score`, and is removed in 0.19.0.
 
 ## What Core measures
 
@@ -50,7 +58,7 @@ only see the former. Concretely, out of scope for Core:
   site)
 - Regression stability over time (Core reports one point-in-time scan)
 
-> A high Core Score does not prove that autonomous agents can complete real
+> A high Technical Readiness rating does not prove that autonomous agents can complete real
 > workflows on the site.
 
 Scovant Cloud is the paid product that measures the items above by running
@@ -149,6 +157,9 @@ Reports produced before this contract existed are identified by
 carries its stated meaning from the version that introduced it onward.
 
 ## Scoring formula
+
+This section describes the deprecated five-domain Static Signal Score
+(removed in 0.19.0); Technical Readiness's formula is in [`r2.md`](r2.md).
 
 Each check has a local integer weight. Per category, the raw ratio is:
 
@@ -384,8 +395,10 @@ A `CUSTOM` scan reports a **Subset Diagnostic Score** rather than the
 Scovant Core Static Signal Score, and the CLI prints "Canonical Core Score:
 NOT CALCULATED" instead of a value — a subset score is useful for local
 debugging of a specific check, but it is not comparable across sites or
-over time the way a canonical score is. Use `--require-canonical` to make a
-CI job fail fast when a scan is accidentally scoped down. `--contribute`
+over time the way a canonical score is. With `--legacy-score`,
+`--require-canonical` makes a CI job fail fast when a scan is accidentally
+scoped down; without it, `--require-canonical` requires Technical
+Readiness status `OK`. `--contribute`
 refuses to send anything but a `CANONICAL`-scope report — the CLI prints
 `contributed: skipped (scan is CUSTOM; only canonical scans are accepted)`
 instead of posting.
@@ -439,8 +452,10 @@ committed `docs/report.schema.json` and therefore needs a git checkout of
 write to, and the command says so instead of failing obscurely.
 
 Bump policy: adding a key to the report is not a breaking change and does
-not bump `schema_version`. Removing or retyping an existing field is
-breaking and bumps it — the schema deliberately allows additional
+not bump `schema_version`. A minor bump marks a deprecation: 1.2 marks the
+five-domain `score` deprecated (`score.deprecated`, `score.replaced_by`),
+and 2.0 removes it. Removing or retyping an existing field is breaking and
+bumps the major version — the schema deliberately allows additional
 properties at the top level so additive changes never require a consumer
 update.
 

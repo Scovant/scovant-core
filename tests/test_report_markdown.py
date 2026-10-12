@@ -20,8 +20,10 @@ def _report(site="commerce-bad", experimental=False):
 def test_markdown_header_and_sections():
     md = render_markdown(_report())
     assert md.startswith("# Scovant Core — https://example.com/")
-    for h in ("## Score", "## Categories", "## Findings", "## Not tested by Scovant Core", "## Provenance"):
+    for h in ("## Technical Readiness", "## Findings", "## Not tested by Scovant Core", "## Provenance"):
         assert h in md
+    assert "## Categories" not in md
+    assert "## Categories" in render_markdown(_report(), legacy_score=True)
     assert md.rstrip().endswith("utm_medium=cli&utm_campaign=oss)")
 
 

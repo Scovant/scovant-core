@@ -12,7 +12,7 @@ PAYLOAD_KEYS = {
     "domain", "timestamp", "core_version", "ruleset_version", "ruleset_digest",
     "profile", "profile_confidence", "profile_detector_version",
     "experimental", "check_statuses", "score",
-    "scan_scope", "score_status", "error_count",
+    "scan_scope", "score_status", "error_count", "technical",
 }
 
 
@@ -28,6 +28,18 @@ def test_payload_is_exactly_d3_v0_1_1():
     assert p["error_count"] == 0
     assert p["profile_confidence"] == report.target.profile_confidence
     assert p["profile_detector_version"] == "1.0"
+    t = report.readiness.technical
+    assert p["technical"] == {
+        "rating": t.rating, "grade": t.grade, "coverage": t.coverage,
+        "status": t.status, "model_id": t.model_id,
+    }
+    assert isinstance(p["technical"]["rating"], int)
+
+
+def test_payload_technical_is_none_without_readiness():
+    report = _report("commerce-good").model_copy(update={"readiness": None})
+    p = build_payload(report)
+    assert set(p) == PAYLOAD_KEYS and p["technical"] is None
 
 
 def test_cli_skips_contribute_for_a_custom_scan(monkeypatch, capsys):

@@ -46,6 +46,63 @@ def status_note(report: Report) -> tuple[str, str] | None:
     return None
 
 
+TECHNICAL_LABEL = "Technical Readiness"
+LEGACY_REMOVAL = "(removed in 0.19.0)"
+
+
+def technical_headline(report: Report, *, grade_prefix: str = "  ") -> str:
+    """The Technical Readiness headline after its label, shared by every
+    renderer so the forms never drift: `NN / 100<prefix>G · coverage NN% ·
+    model ID` (a status token after the grade when it is not OK; no grade
+    token at all when there is no grade), `— ·
+    STATUS · coverage NN%` with no number, `not computed` when the engine
+    recorded no `readiness` block (Technical raised)."""
+    if report.readiness is None:
+        return "not computed"
+    t = report.readiness.technical
+    coverage = f"coverage {t.coverage:.0%}"
+    if t.rating is None:
+        return f"— · {t.status} · {coverage}"
+    grade = "" if t.grade is None else f"{grade_prefix}{t.grade}"
+    status = "" if t.status == "OK" else f" · {t.status}"
+    return f"{t.rating} / 100{grade}{status} · {coverage} · model {t.model_id}"
+
+
+def not_measured_text(report: Report) -> str | None:
+    """`RULE (reason), …` sorted by rule — the required, weighted rules Core
+    could not measure. None when there are none (or no block at all)."""
+    if report.readiness is None or not report.readiness.technical.not_measured:
+        return None
+    items = sorted(report.readiness.technical.not_measured, key=lambda n: (n.rule, n.reason))
+    return ", ".join(f"{n.rule} ({n.reason})" for n in items)
+
+
+def diagnostics_parts(report: Report) -> tuple[str, str]:
+    """`("Diagnostics (N readiness checks)", "P pass · W warn · F fail")`
+    over the readiness checks — every non-SECURITY finding (security is
+    never part of readiness), experimental ones included when present. The
+    label names the population so it never reads as the report's total."""
+    readiness = [f for f in report.findings if f.category != Category.SECURITY]
+    counts = status_counts(readiness)
+    return (f"Diagnostics ({len(readiness)} readiness checks)",
+            f"{counts[CheckStatus.PASS]} pass · {counts[CheckStatus.WARN]} warn · "
+            f"{counts[CheckStatus.FAIL]} fail")
+
+
+def legacy_headline(report: Report) -> str:
+    """The deprecated five-domain score in one line — printed only with
+    `--legacy-score`. A non-OK status is named inline; its explaining
+    sentence is `status_note`."""
+    s = report.score
+    label = "Legacy Subset Diagnostic Score" if s.status == "NOT_CANONICAL" else "Legacy Static Signal Score"
+    if s.value is None:
+        return f"{label} — · {s.status} · coverage {s.coverage:.0%} {LEGACY_REMOVAL}"
+    # The five-domain grade, as 0.17.x printed it, whenever it has one.
+    grade = f" {s.grade}" if s.grade else ""
+    status = "" if s.status == "OK" else f" · {s.status}"
+    return f"{label} {s.value} / 100{grade}{status} {LEGACY_REMOVAL}"
+
+
 def profile_note(report: Report) -> str | None:
     """Audit §14: an auto-detected profile below LOW_CONFIDENCE is stated on
     the report — never silently scored as if declared. None for a declared

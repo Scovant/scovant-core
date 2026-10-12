@@ -1,23 +1,13 @@
 # Scovant Core — https://example.com/step4
 
-## Score
+## Technical Readiness
 
-**Scovant Core Static Signal Score:** 38 / 100 · grade F · coverage 100%
-**Scope:** CANONICAL · **Status:** OK · **Errors:** 0
+**Technical Readiness:** 57 / 100 · grade D · coverage 100% · model R2.1@67df90af85b0
+**Diagnostics (50 readiness checks):** 4 pass · 24 warn · 8 fail
 **Profile:** commerce (requested auto, confidence 85%)
 
 **Capabilities detected** (descriptive, not scored): mcp: absent · webmcp: absent · ucp: invalid · llms_txt: invalid · openapi: not_checked · oauth: not_checked · content_signal: invalid · security_txt: invalid
 **Standards:** AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 warn, 2 fail · SHOULD 4/12 measured — 3 warn, 1 fail · MAY none measured (0/3) — Mapping: docs/standards/agentready.md
-
-## Categories
-
-| Category | Weight | Score | Evaluated / applicable |
-|---|---:|---:|---:|
-| Access & Discovery | 25 | 17 | 23 / 23 |
-| Machine Understanding | 25 | 41 | 22 / 22 |
-| Agent Interfaces | 20 | n/a | 0 / 0 |
-| Trust & Commerce | 15 | 42 | 12 / 12 |
-| Operability & Efficiency | 15 | 64 | 18 / 18 |
 
 68 checks: 12 PASS, 26 WARN, 10 FAIL, 20 N/A, 0 ERROR
 
@@ -849,7 +839,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.17.1 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.18.0 · ruleset 2026.10 (digest `7f440d6205c3`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

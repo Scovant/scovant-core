@@ -8,11 +8,15 @@ from scovant_core.owasp import describe
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
+    TECHNICAL_LABEL,
     capabilities_lines,
+    diagnostics_parts,
     evaluated_experimental,
     grouped_by_status,
     has_experimental,
+    legacy_headline,
     na_experimental,
+    not_measured_text,
     profile_note,
     scored_experimental,
     security_findings,
@@ -20,6 +24,7 @@ from scovant_core.report._common import (
     standards_line,
     status_counts,
     status_note,
+    technical_headline,
     top_findings,
 )
 from scovant_core.report._cta import CTA_TEXT, cta_url
@@ -31,16 +36,12 @@ _STATUS_HEADING = {
 
 
 def _score_block(r: Report) -> list[str]:
-    s = r.score
-    value = "—" if s.value is None else str(s.value)
-    grade = s.grade or "—"
-    error_count = r.metrics.get("error_count", 0)
-    lines = [f"**{s.name}:** {value} / 100 · grade {grade} · coverage {s.coverage:.0%}"]
-    lines.append(f"**Scope:** {s.scope} · **Status:** {s.status} · **Errors:** {error_count}")
-    note = status_note(r)
-    if note:
-        strong, rest = note
-        lines.append(f"**{strong}**{rest}")
+    lines = [f"**{TECHNICAL_LABEL}:** {technical_headline(r, grade_prefix=' · grade ')}"]
+    missing = not_measured_text(r)
+    if missing:
+        lines.append(f"**Not measured by Core:** {missing}")
+    label, counts = diagnostics_parts(r)
+    lines.append(f"**{label}:** {counts}")
     p_note = profile_note(r)
     if p_note:
         lines.append(p_note)
@@ -49,8 +50,6 @@ def _score_block(r: Report) -> list[str]:
         f"**Profile:** {t.resolved_profile} (requested {t.requested_profile}, "
         f"confidence {t.profile_confidence:.0%})"
     )
-    if scored_experimental(r):
-        lines.append("**Experimental checks:** scored")
     if r.provenance.get("allow_private_networks"):
         lines.append(
             "**Note:** private-network targets were allowed for this scan "
@@ -59,6 +58,22 @@ def _score_block(r: Report) -> list[str]:
     lines.append("")
     lines.append("**Capabilities detected** (descriptive, not scored): " + " · ".join(capabilities_lines(r)))
     lines.append(f"**Standards:** {standards_line(r)} — {STANDARDS_FOOTER}")
+    return lines
+
+
+def _legacy_block(r: Report) -> list[str]:
+    """The deprecated five-domain score — only with `--legacy-score`
+    (removed in 0.19.0)."""
+    s = r.score
+    error_count = r.metrics.get("error_count", 0)
+    lines = [f"**{legacy_headline(r)}**"]
+    lines.append(f"**Scope:** {s.scope} · **Status:** {s.status} · **Errors:** {error_count}")
+    note = status_note(r)
+    if note:
+        strong, rest = note
+        lines.append(f"**{strong}**{rest}")
+    if scored_experimental(r):
+        lines.append("**Experimental checks:** scored")
     return lines
 
 
@@ -82,11 +97,13 @@ def _finding(f) -> list[str]:
     return lines
 
 
-def render_markdown(report: Report, *, utm_medium: str = "cli") -> str:
+def render_markdown(report: Report, *, utm_medium: str = "cli", legacy_score: bool = False) -> str:
     scored = scored_experimental(report)
     counts = status_counts(report.findings)
-    out = [f"# Scovant Core — {report.target.final_url or report.target.input_url}", "", "## Score", ""]
-    out += _score_block(report) + ["", "## Categories", ""] + _categories(report)
+    out = [f"# Scovant Core — {report.target.final_url or report.target.input_url}", "", f"## {TECHNICAL_LABEL}", ""]
+    out += _score_block(report)
+    if legacy_score:
+        out += ["", "## Categories", ""] + _legacy_block(report) + [""] + _categories(report)
     out += [
         "",
         f"{len(report.findings)} checks: "

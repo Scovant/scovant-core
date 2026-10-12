@@ -12,11 +12,15 @@ from scovant_core.report._cloud_matrix import CORE_BOUNDARY, CORE_VS_CLOUD
 from scovant_core.report._common import (
     SECURITY_DISCLAIMER,
     STANDARDS_FOOTER,
+    TECHNICAL_LABEL,
     capabilities_lines,
+    diagnostics_parts,
     evaluated_experimental,
     grouped_by_status,
     has_experimental,
+    legacy_headline,
     na_experimental,
+    not_measured_text,
     profile_note,
     scored_experimental,
     security_findings,
@@ -102,8 +106,6 @@ def _summary_section(r: Report) -> list[str]:
         f"(requested {e(t.requested_profile)}, confidence {t.profile_confidence:.0%})</p>"
     )
     out.append(f"<p><strong>Core version:</strong> {e(r.core_version)}</p>")
-    if scored_experimental(r):
-        out.append("<p><strong>Experimental checks:</strong> scored</p>")
     if r.provenance.get("allow_private_networks"):
         out.append(
             "<p><strong>Note:</strong> private-network targets were allowed for this "
@@ -122,21 +124,24 @@ def _summary_section(r: Report) -> list[str]:
 
 
 def _score_section(r: Report) -> list[str]:
-    s = r.score
-    value = "—" if s.value is None else str(s.value)
-    grade = s.grade or "—"
-    error_count = r.metrics.get("error_count", 0)
-    out = ['<section id="score">', f"<h2>{e(s.name)}</h2>"]
-    out.append(f'<p style="font-size:2.5rem;font-weight:700;">{e(value)} / 100</p>')
-    out.append(
-        f"<p><strong>Grade:</strong> {e(grade)} &middot; <strong>Scope:</strong> {e(s.scope)} "
-        f"&middot; <strong>Status:</strong> {e(s.status)} &middot; "
-        f"<strong>Coverage:</strong> {s.coverage:.0%} &middot; <strong>Errors:</strong> {error_count}</p>"
-    )
-    note = status_note(r)
-    if note:
-        strong, rest = note
-        out.append(f"<p><strong>{e(strong)}</strong>{e(rest)}</p>")
+    out = ['<section id="score">', f"<h2>{e(TECHNICAL_LABEL)}</h2>"]
+    if r.readiness is None:
+        out.append(f"<p><strong>{e(TECHNICAL_LABEL)} not computed.</strong></p>")
+    else:
+        t = r.readiness.technical
+        value = "—" if t.rating is None else f"{t.rating} / 100"
+        out.append(f'<p style="font-size:2.5rem;font-weight:700;">{e(value)}</p>')
+        grade = "" if t.grade is None else f"<strong>Grade:</strong> {e(t.grade)} &middot; "
+        out.append(
+            f"<p>{grade}<strong>Status:</strong> {e(t.status)} "
+            f"&middot; <strong>Coverage:</strong> {t.coverage:.0%} &middot; "
+            f"<strong>Model:</strong> <code>{e(t.model_id)}</code></p>"
+        )
+    missing = not_measured_text(r)
+    if missing:
+        out.append(f"<p><strong>Not measured by Core:</strong> {e(missing)}</p>")
+    label, counts = diagnostics_parts(r)
+    out.append(f"<p><strong>{e(label)}:</strong> {e(counts)}</p>")
     p_note = profile_note(r)
     if p_note:
         out.append(f"<p><em>{e(p_note)}</em></p>")
@@ -150,7 +155,24 @@ def _score_section(r: Report) -> list[str]:
 
 
 def _categories_section(r: Report) -> list[str]:
-    out = ['<section id="categories">', "<h2>Categories</h2>", "<table>"]
+    """The deprecated five-domain score and its categories — rendered only
+    with `--legacy-score` (removed in 0.19.0)."""
+    s = r.score
+    error_count = r.metrics.get("error_count", 0)
+    out = ['<section id="categories">', "<h2>Categories</h2>"]
+    out.append(f"<p><strong>{e(legacy_headline(r))}</strong></p>")
+    out.append(
+        f"<p><strong>Grade:</strong> {e(s.grade or '—')} &middot; <strong>Scope:</strong> {e(s.scope)} "
+        f"&middot; <strong>Status:</strong> {e(s.status)} &middot; "
+        f"<strong>Coverage:</strong> {s.coverage:.0%} &middot; <strong>Errors:</strong> {error_count}</p>"
+    )
+    note = status_note(r)
+    if note:
+        strong, rest = note
+        out.append(f"<p><strong>{e(strong)}</strong>{e(rest)}</p>")
+    if scored_experimental(r):
+        out.append("<p><strong>Experimental checks:</strong> scored</p>")
+    out.append("<table>")
     out.append("<tr><th>Category</th><th>Weight</th><th>Score</th><th>Evaluated / applicable</th></tr>")
     for c in r.categories.values():
         score = "n/a" if c.score is None else f"{c.score:.0f}"
@@ -315,18 +337,17 @@ def _cloud_comparison_section() -> list[str]:
 def _methodology_section() -> list[str]:
     out = ['<section id="methodology">', "<h2>Methodology</h2>"]
     out.append(
-        "<p>Category weights are 25/25/20/15/15. Each check contributes PASS&nbsp;=&nbsp;1, "
-        "WARN&nbsp;=&nbsp;0.5, FAIL&nbsp;=&nbsp;0 to its category; ERROR lowers coverage "
-        "(a document that could not be read counts against evidence), and N/A is excluded "
-        "entirely. A scan scores INSUFFICIENT_EVIDENCE below a 60% coverage floor of its "
-        "applicable weight. A full-selection scan that clears that floor but falls short of "
-        "85% coverage, or that hit any ERROR, is reported as DEGRADED (a score, no letter "
-        "grade) rather than being silently graded on incomplete evidence. Running with "
-        "checks narrowed or widened via --include/--exclude/--experimental instead reports a "
-        "NOT_CANONICAL Subset Diagnostic Score over that subset, not the full Core Score. "
-        "Full reference: "
-        '<a href="https://github.com/Scovant/scovant-core/blob/main/docs/methodology.md">'
-        "docs/methodology.md</a>.</p>"
+        "<p>Technical Readiness is the open R2 rating over the passive evidence Core "
+        "gathered. Each rule outcome counts PASS&nbsp;=&nbsp;1, WARN&nbsp;=&nbsp;0.5, "
+        "FAIL&nbsp;=&nbsp;0 within its category, and the categories are weighted into a "
+        "0&ndash;100 rating. Coverage is the share of applicable weight Core could measure. "
+        "A rule Core could not measure is listed as not measured, with a reason, and lowers "
+        "coverage; it is never a FAIL. Below the coverage floor there is no number "
+        "(INSUFFICIENT_EVIDENCE); an under-covered or errored measurement is DEGRADED (a "
+        "number, no grade). Formula, weights and outcome states: "
+        '<a href="https://github.com/Scovant/scovant-core/blob/main/docs/r2.md">'
+        "docs/r2.md</a>. The five-domain Static Signal Score is deprecated: it prints only "
+        "with --legacy-score and is removed in 0.19.0.</p>"
     )
     out.append("</section>")
     return out
@@ -345,7 +366,7 @@ def _provenance_section(r: Report) -> list[str]:
     return out
 
 
-def render_html(report: Report, *, utm_medium: str = "html") -> str:
+def render_html(report: Report, *, utm_medium: str = "html", legacy_score: bool = False) -> str:
     scored = scored_experimental(report)
     target_label = report.target.final_url or report.target.input_url
     out = [
@@ -362,7 +383,8 @@ def render_html(report: Report, *, utm_medium: str = "html") -> str:
     ]
     out += _summary_section(report)
     out += _score_section(report)
-    out += _categories_section(report)
+    if legacy_score:
+        out += _categories_section(report)
     out += _findings_section(report, scored)
     out += _evidence_section(report.findings, scored)
     out += _remediation_section(report.findings, scored)

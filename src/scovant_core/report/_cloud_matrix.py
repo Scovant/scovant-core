@@ -36,7 +36,10 @@ CORE_VS_CLOUD: tuple[tuple[str, str, str], ...] = (
         "✅ (experimental)",
         "✅",
     ),
-    ("Core Score", "✅", "—"),
+    # Cloud rates Technical Readiness with the same public model, but on its
+    # own crawl — "—" means Cloud does not run Core's sampling, not that it
+    # lacks the rating.
+    ("Technical Readiness from Core's own sampled evidence", "✅", "—"),
     ("Cloud = observed, reproducible, cross-provider, longitudinal", "—", "—"),
     ("Cloud's full compatibility score", "❌", "✅"),
     ("Cloud's full production ruleset", "❌", "✅"),

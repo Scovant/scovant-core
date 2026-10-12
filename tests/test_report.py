@@ -58,7 +58,7 @@ def test_render_json_is_byte_stable_across_two_runs():
 def test_render_text_layout():
     report = _scan()
     text = render_text(report)
-    assert "Static Signal Score" in text or "Core Score: INSUFFICIENT EVIDENCE" in text
+    assert any(ln.startswith("Technical Readiness  ") for ln in text.splitlines())
     assert "Not tested by Scovant Core" in text
     cta = "https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss"
     assert cta in text
@@ -147,7 +147,7 @@ def test_render_text_shows_evaluated_over_applicable_check_counts_per_category()
     so a category resting on one check never reads like a broad measurement.
     See docs/methodology.md's v0.1 category coverage section."""
     report = _scan()
-    text = render_text(report)
+    text = render_text(report, legacy_score=True)
     line = next(ln for ln in text.splitlines() if ln.startswith("Operability & Efficiency"))
     assert line.endswith("(7/7)")
     for ln in text.splitlines():
@@ -235,7 +235,7 @@ def test_experimental_findings_scored_and_no_block_when_on():
 
     assert report.provenance["experimental"] is True
     text = render_text(report)
-    assert "Experimental checks: scored" in text
+    assert "Experimental checks: scored" in render_text(report, legacy_score=True)
     assert "Experimental (not scored)" not in text
     top_block = text[text.index("Top findings"):text.index("Not tested by Scovant Core")]
     assert "CORE-OPERABILITY-007" in top_block
