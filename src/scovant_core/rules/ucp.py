@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, probe_measured, register_rule
+from scovant_core.rules.products import _gated
 
 # Site types for which a UCP profile is relevant. For every other type the
 # ucp category is not scored at all (the R2 public policy's ucp profile is
@@ -215,7 +216,9 @@ class UcpCheckoutMissing(CoreRule):
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        return _published(domain, ctx, types=UCP_CHECKOUT_SITE_TYPES, need_valid=True)
+        if (g := _gated(self.code, ctx)) is not None:
+            return g
+        return _published(domain, ctx, types=None, need_valid=True)
 
 
 @register_rule
@@ -321,8 +324,8 @@ class AgentPaymentsAbsent(CoreRule):
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        if ctx.site_category not in UCP_CHECKOUT_SITE_TYPES:
-            return OutcomeState.NA
+        if (g := _gated(self.code, ctx)) is not None:
+            return g
         verdict = probe_measured(domain, ctx, "agent_payments", "ucp")
         if verdict:
             return verdict

@@ -27,10 +27,10 @@ COMMERCE_GATED_CODES: frozenset[str] = frozenset({
 # its homepage was classified, or after the classifier failed). Distinct from
 # an unlisted/unheard-of type, which may transact: on `unknown` the
 # commerce-gated rules are not applicable, and the scan says so
-# (`required_capability_not_established`). Policy id recorded on every scan's
+# (`capability_not_established:<flag>`). Policy id recorded on every scan's
 # profile provenance; bump it when this applicability rule changes.
 UNKNOWN_SITE_TYPE = "unknown"
-PROFILE_POLICY_ID = "applicability-2026.10.1"
+PROFILE_POLICY_ID = "applicability-2026.11.1"
 # Words in a product page's visible text that suggest it offers variants.
 VARIANT_KEYWORDS: frozenset[str] = frozenset({"size", "color", "colour", "variant", "style", "material"})
 
@@ -44,6 +44,27 @@ def commerce_gated(code: str, site_category: str | None) -> bool:
     return code in COMMERCE_GATED_CODES and (
         site_category in NON_TRANSACTING_SITE_TYPES or site_category == UNKNOWN_SITE_TYPE
     )
+
+
+def _gated(code: str, ctx: Any) -> Any:
+    """The N/A verdict when `code` does not apply to this site, else None (keep measuring).
+
+    With capability flags on the context, the flag decides. Without them (a
+    caller that did not derive capabilities) the old site-type check applies."""
+    from scovant_core.capabilities import CODE_FLAG, gate  # noqa: PLC0415 (capabilities import r2)
+    from scovant_core.r2.outcome import OutcomeState  # noqa: PLC0415
+
+    caps = getattr(ctx, "capabilities", None)
+    if caps is not None:
+        hit = gate(code, caps)
+        return hit[0] if hit else None
+    if CODE_FLAG.get(code) == "transactional_checkout":
+        from scovant_core.rules.ucp import UCP_CHECKOUT_SITE_TYPES  # noqa: PLC0415
+
+        return OutcomeState.NA if ctx.site_category not in UCP_CHECKOUT_SITE_TYPES else None
+    if commerce_gated(code, ctx.site_category):
+        return OutcomeState.NA
+    return None
 
 
 def find_products(schema_org: list[dict]) -> list[dict]:

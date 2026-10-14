@@ -8,6 +8,26 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.20.0] - 2026-10-14
+
+`ruleset_version` UNCHANGED (`2026.10`). Technical model id changes once:
+`R2.1@939b502f6bc2`. Report `schema_version` is `2.1` (additive).
+
+Added: capability flags. `readiness.technical.capabilities` reports three
+tri-state flags (`product_catalog`, `physical_goods`,
+`transactional_checkout`), each `{value, source, evidence}`. Evidence on the
+sampled pages or the domain sets a flag to `true`; absence never sets
+`false`; otherwise the site type's published default applies (see
+`docs/r2.md`).
+
+Changed: applicability of 10 rules (the product-schema, offer, price,
+availability, variant, price-mismatch, shipping, returns, UCP-checkout and
+agent-payments rules) now follows the capability flags instead of a single
+commerce-profile test; a gated rule is N/A with reason
+`capability_absent:<flag>` or `capability_not_established:<flag>`. The
+Technical model id changes, `BUILDER_VERSION` is `6`, and the policy id is
+`applicability-2026.11.1`.
+
 ## [0.19.0] - 2026-10-12
 
 `ruleset_version` UNCHANGED (`2026.10`); `ruleset_digest` changes once,

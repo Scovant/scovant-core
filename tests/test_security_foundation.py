@@ -42,7 +42,7 @@ def test_security_category_exists():
 
 
 def test_schema_version_is_2_0():
-    assert REPORT_SCHEMA_VERSION == "2.0"
+    assert REPORT_SCHEMA_VERSION == "2.1"
 
 
 def test_check_result_new_fields_default():

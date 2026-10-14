@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from scovant_core.analysis.token_cost import tokenizer_available
 from scovant_core.models import (
+    Capabilities,
     NotMeasured,
     Readiness,
     TechnicalCategory,
@@ -86,6 +87,7 @@ def technical_report(store, ctx) -> tuple[Readiness, list[TechnicalOutcome]]:
         categories={name: TechnicalCategory(rating=c.score, applicable=c.applicable)
                     for name, c in sorted(res.categories.items())},
         not_measured=not_measured,
+        capabilities=Capabilities.model_validate(run.capabilities.to_dict()),
     )
     outcomes = [TechnicalOutcome(rule=o.rule_id, state=o.state.value,
                                  reason=_reason(o, ev.defaulted) if o.state in _UNMEASURED else o.reason,

@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.19.0",
+  "core_version": "0.20.0",
   "findings": [
     {
       "category": "access",
@@ -2087,7 +2087,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.19.0",
+    "core_version": "0.20.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2103,11 +2103,28 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.19.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.20.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
       "badge": null,
+      "capabilities": {
+        "physical_goods": {
+          "evidence": [],
+          "source": "type_default",
+          "value": true
+        },
+        "product_catalog": {
+          "evidence": [],
+          "source": "type_default",
+          "value": true
+        },
+        "transactional_checkout": {
+          "evidence": [],
+          "source": "type_default",
+          "value": true
+        }
+      },
       "categories": {
         "actionability": {
           "applicable": true,
@@ -2142,7 +2159,7 @@
       "evidence_state": "ESTIMATED",
       "grade": "D",
       "label": "Technical Readiness",
-      "model_id": "R2.1@67df90af85b0",
+      "model_id": "R2.1@939b502f6bc2",
       "not_measured": [],
       "rating": 57,
       "scope": "CORE_PASSIVE",
@@ -2153,7 +2170,7 @@
   },
   "ruleset_version": "2026.10",
   "scan_id": "local-golden",
-  "schema_version": "2.0",
+  "schema_version": "2.1",
   "security": {
     "by_domain": {
       "auth": {

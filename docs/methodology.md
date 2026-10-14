@@ -392,7 +392,7 @@ themselves (the "Static Signal Score": a per-check local weight, five
 weighted categories, its own coverage floors and a `PARTIAL` scope for an
 errored full scan). 0.18.0 made Technical Readiness the headline and
 deprecated it (report schema 1.2, `--legacy-score`); 0.19.0 removed it
-(report schema 2.0) together with every per-check weight. Older reports
+(report schema 2.0; 2.1 added the capability flags) together with every per-check weight. Older reports
 are identified by `schema_version` and `core_version`.
 
 ## Limitations

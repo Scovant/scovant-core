@@ -78,7 +78,7 @@ class RuleSpec(BaseModel):
 class Manifest:
     """An immutable, validated set of `RuleSpec`s."""
 
-    def __init__(self, specs: Iterable[RuleSpec]) -> None:
+    def __init__(self, specs: Iterable[RuleSpec], *, applicability: str | None = None) -> None:
         ordered = tuple(sorted(specs, key=lambda s: s.rule_id))
         seen_ids: set[str] = set()
         seen_signals: dict[str, str] = {}
@@ -103,6 +103,7 @@ class Manifest:
                 raise ValueError(f"root_cause_group {s.root_cause_group!r} spans categories "
                                  f"{first.value} and {s.category.value}")
         self.specs: tuple[RuleSpec, ...] = ordered
+        self.applicability = applicability
         self._by_id = {s.rule_id: s for s in ordered}
 
     def __contains__(self, rule_id: object) -> bool:
@@ -112,6 +113,9 @@ class Manifest:
         return self._by_id[rule_id]
 
     def digest(self) -> str:
-        payload = [s.model_dump(mode="json") for s in self.specs]
+        specs = [s.model_dump(mode="json") for s in self.specs]
+        # The applicability policy id joins the digest only when set, so a
+        # manifest without one keeps the digest it always had.
+        payload = {"specs": specs, "applicability": self.applicability} if self.applicability else specs
         blob = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(blob.encode()).hexdigest()[:12]

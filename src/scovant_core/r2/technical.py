@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from typing import Any
 
+from scovant_core.capabilities import Capabilities, gate
 from scovant_core.models import Severity
 from scovant_core.r2.manifest import Manifest, RuleScope, RuleSpec, ScoreEffect
 from scovant_core.r2.outcome import Outcome, OutcomeState, R2Category
@@ -37,7 +38,9 @@ DERIVATION_VERSION = "2"
 # Version of the outcome rules in `domain_outcome`/`page_outcome`.
 # 5: a page whose scored content was a bot-protection wall (`content_blocked`)
 #    is not measured for Technical Readiness
-BUILDER_VERSION = "5"
+# 6: gated rules follow capability flags (reasons `capability_absent:<flag>` /
+#    `capability_not_established:<flag>`)
+BUILDER_VERSION = "6"
 # Public rules whose finding is an informational marker, not a defect.
 MARKER_CODES: frozenset[str] = frozenset({"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"})
 
@@ -73,19 +76,24 @@ def rule_spec(rule: Any, *, owner: str, scope: RuleScope, marker: bool) -> RuleS
 
 def technical_manifest() -> Manifest:
     from scovant_core.rules import RULES  # noqa: PLC0415 (rules import this package)
+    from scovant_core.rules.products import PROFILE_POLICY_ID  # noqa: PLC0415
 
     return Manifest(
         [rule_spec(r, owner="core", scope=RuleScope(r.scope), marker=r.code in MARKER_CODES)
          for r in RULES if r.code not in DEAD_IN_PRODUCTION and r.maturity != "deprecated"]
-        + [GATE_ROBOTS_SPEC])
+        + [GATE_ROBOTS_SPEC], applicability=PROFILE_POLICY_ID)
 
 
 def domain_outcome(code: str, measure: Callable[[dict | None], Verdict] | None,
-                   domain: dict | None, *, fired: bool, have_pages: bool) -> Outcome:
+                   domain: dict | None, *, fired: bool, have_pages: bool,
+                   caps: Capabilities | None = None) -> Outcome:
     """A domain rule's outcome: no declaration → UNKNOWN; no page evaluated →
     NOT_MEASURED; the rule's own verdict when it gives one; else FAIL iff it fired."""
     if measure is None:
         return Outcome(rule_id=code, state=OutcomeState.UNKNOWN, reason="no_declaration")
+    hit = gate(code, caps)
+    if hit is not None:
+        return Outcome(rule_id=code, state=hit[0], reason=hit[1])
     if not have_pages:
         return Outcome(rule_id=code, state=OutcomeState.NOT_MEASURED, reason="no_pages_evaluated")
     verdict = measure(domain)
@@ -100,20 +108,19 @@ def content_blocked(page: dict) -> bool:
 
 def page_outcome(code: str, measure: Callable[[dict, dict | None], Verdict] | None,
                  pages: Sequence[dict], domain: dict | None, fired_per_page: Sequence[bool],
-                 *, site_category: str | None, skip_content_blocked: bool = False) -> Outcome:
+                 *, site_category: str | None, skip_content_blocked: bool = False,
+                 caps: Capabilities | None = None) -> Outcome:
     """A page rule's outcome over the sampled pages: FAIL iff a MEASURED page failed.
 
     With `skip_content_blocked` (Technical Readiness), a page whose scored
     content was a wall (`content_blocked`) is not measured for any rule but the
     one that reads the wall: its evidence is a challenge page, not the site.
     Without it (Agent Readiness) every page is scored as before."""
-    from scovant_core.rules.products import (  # noqa: PLC0415
-        COMMERCE_GATED_CODES,
-        UNKNOWN_SITE_TYPE,
-    )
-
     if measure is None:
         return Outcome(rule_id=code, state=OutcomeState.UNKNOWN, reason="no_declaration")
+    hit = gate(code, caps)
+    if hit is not None:
+        return Outcome(rule_id=code, state=hit[0], reason=hit[1])
     measured = failed = na = blocked = 0
     for page, fired in zip(pages, fired_per_page, strict=True):
         page = page or {}
@@ -130,9 +137,6 @@ def page_outcome(code: str, measure: Callable[[dict, dict | None], Verdict] | No
         state = OutcomeState.FAIL if failed else OutcomeState.PASS
         return Outcome(rule_id=code, state=state, pages_measured=measured, pages_failed=failed)
     if na and na == len(pages) - blocked:  # N/A on every page that was not walled
-        # an unestablished profile is a stated reason, not a generic predicate
-        if site_category == UNKNOWN_SITE_TYPE and code in COMMERCE_GATED_CODES:
-            return Outcome(rule_id=code, state=OutcomeState.NA, reason="required_capability_not_established")
         return Outcome(rule_id=code, state=OutcomeState.NA, reason="predicate")
     if blocked:
         return Outcome(rule_id=code, state=OutcomeState.NOT_MEASURED, reason="bot_protection_blocked")

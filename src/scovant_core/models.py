@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-REPORT_SCHEMA_VERSION = "2.0"
+REPORT_SCHEMA_VERSION = "2.1"
 # `provenance.scan_scope`: CANONICAL (the full default selection) or CUSTOM
 # (--include/--exclude/--experimental). A property of the SELECTION only.
 SCAN_SCOPES = ("CANONICAL", "CUSTOM")
@@ -118,6 +118,20 @@ class NotMeasured(BaseModel):
     reason: str
 
 
+class CapabilityFlag(BaseModel):
+    """One capability flag: True when evidence showed it, else the site type's
+    published default, else None (not established)."""
+    value: bool | None
+    source: str  # "evidence" | "type_default" | "unknown"
+    evidence: list[str] = Field(default_factory=list)
+
+
+class Capabilities(BaseModel):
+    product_catalog: CapabilityFlag
+    physical_goods: CapabilityFlag
+    transactional_checkout: CapabilityFlag
+
+
 class TechnicalReadiness(BaseModel):
     """Technical Readiness: the open R2 rating over the evidence Core gathered.
     Passive evidence only, so it is ESTIMATED (or NOT_MEASURED without a
@@ -135,6 +149,7 @@ class TechnicalReadiness(BaseModel):
     site_type_origin: str
     categories: dict[str, TechnicalCategory]
     not_measured: list[NotMeasured]
+    capabilities: Capabilities
 
 
 class Readiness(BaseModel):

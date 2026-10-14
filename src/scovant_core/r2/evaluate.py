@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from scovant_core.capabilities import Capabilities, derive_capabilities
 from scovant_core.r2.outcome import Outcome, OutcomeState
 from scovant_core.r2.policy import PUBLIC_POLICY
 from scovant_core.r2.score import R2Result, score_r2
@@ -31,6 +32,7 @@ _SEVERITY_RANK = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 class TechnicalRun:
     result: R2Result
     outcomes: tuple[Outcome, ...]
+    capabilities: Capabilities
 
 
 def _without_status(page: dict) -> dict:
@@ -41,9 +43,10 @@ def rule_rows(pages: Sequence[dict], domain: dict | None, *, site_category: str 
               defaulted: frozenset[str] | None) -> list[dict]:
     from scovant_core.rules import RULES, CoreRule, MeasureCtx  # noqa: PLC0415 (rules import r2)
 
-    ctx = MeasureCtx(site_category=site_category, defaulted=defaulted)
     domain = domain if isinstance(domain, dict) else None
     pages = [p if isinstance(p, dict) else {} for p in pages]
+    caps = derive_capabilities(site_category, pages, domain)
+    ctx = MeasureCtx(site_category=site_category, defaulted=defaulted, capabilities=caps)
     rows: list[dict] = []
     for rule in sorted((r for r in RULES if r.maturity != "deprecated"), key=lambda r: r.code):
         fired_per_page: list[bool] = []
@@ -64,13 +67,13 @@ def rule_rows(pages: Sequence[dict], domain: dict | None, *, site_category: str 
                 return r.measure({}, dd, ctx)
 
             outcome = domain_outcome(rule.code, measure_domain, domain,
-                                     fired=any(fired_per_page), have_pages=bool(pages))
+                                     fired=any(fired_per_page), have_pages=bool(pages), caps=caps)
         else:
             def measure_page(ex: dict, dd: dict | None, r: CoreRule = rule) -> OutcomeState | None:
                 return r.measure(ex, dd, ctx)
 
             outcome = page_outcome(rule.code, measure_page, pages, domain, fired_per_page,
-                                   site_category=site_category, skip_content_blocked=True)
+                                   site_category=site_category, skip_content_blocked=True, caps=caps)
         rows.append({**outcome.model_dump(mode="json"), "severity_seen": seen})
     return rows
 
@@ -83,4 +86,7 @@ def technical_readiness(pages: Sequence[dict], domain: dict | None, *, site_type
     outcomes = technical_outcomes(by_id, manifest)
     profile = (site_type or "other").strip().lower()
     result = score_r2(outcomes, profile=profile, manifest=manifest, policy=PUBLIC_POLICY)
-    return TechnicalRun(result=result, outcomes=tuple(sorted(outcomes, key=lambda o: o.rule_id)))
+    caps = derive_capabilities(site_type, [p if isinstance(p, dict) else {} for p in pages],
+                               domain if isinstance(domain, dict) else None)
+    return TechnicalRun(result=result, outcomes=tuple(sorted(outcomes, key=lambda o: o.rule_id)),
+                        capabilities=caps)

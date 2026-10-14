@@ -41,7 +41,7 @@ def test_markdown_and_html_carry_section_cards_and_disclaimer():
 
 def test_json_security_block_and_fields():
     d = json.loads(render_json(_report()))
-    assert d["schema_version"] == "2.0" and d["security"]["scored"] is False
+    assert d["schema_version"] == "2.1" and d["security"]["scored"] is False
     assert "categories" not in d and "score" not in d
     f = next(x for x in d["findings"] if x["id"] == "CORE-SECURITY-001")
     assert f["family_id"] == "SEC-WEB-001" and f["verification_mode"] == "PASSIVE_OBSERVED" and f["fix_owner"]

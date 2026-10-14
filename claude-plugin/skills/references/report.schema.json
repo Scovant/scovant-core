@@ -1,5 +1,58 @@
 {
   "$defs": {
+    "Capabilities": {
+      "properties": {
+        "physical_goods": {
+          "$ref": "#/$defs/CapabilityFlag"
+        },
+        "product_catalog": {
+          "$ref": "#/$defs/CapabilityFlag"
+        },
+        "transactional_checkout": {
+          "$ref": "#/$defs/CapabilityFlag"
+        }
+      },
+      "required": [
+        "product_catalog",
+        "physical_goods",
+        "transactional_checkout"
+      ],
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "CapabilityFlag": {
+      "description": "One capability flag: True when evidence showed it, else the site type's\npublished default, else None (not established).",
+      "properties": {
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "value",
+        "source"
+      ],
+      "title": "CapabilityFlag",
+      "type": "object"
+    },
     "Category": {
       "enum": [
         "access",
@@ -349,6 +402,9 @@
           ],
           "title": "Badge"
         },
+        "capabilities": {
+          "$ref": "#/$defs/Capabilities"
+        },
         "categories": {
           "additionalProperties": {
             "$ref": "#/$defs/TechnicalCategory"
@@ -431,7 +487,8 @@
         "site_type",
         "site_type_origin",
         "categories",
-        "not_measured"
+        "not_measured",
+        "capabilities"
       ],
       "title": "TechnicalReadiness",
       "type": "object"
@@ -439,7 +496,7 @@
   },
   "$id": "https://raw.githubusercontent.com/Scovant/scovant-core/main/docs/report.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Output of `scovant scan --format json`. Additive keys may appear without a schema_version bump; a removed or retyped field bumps schema_version.",
+  "description": "Output of `scovant scan --format json`. An additive block bumps the minor schema_version; a removed or retyped field bumps the major.",
   "properties": {
     "completed_at": {
       "title": "Completed At",
@@ -493,7 +550,7 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "2.0",
+      "const": "2.1",
       "type": "string"
     },
     "security": {

@@ -76,7 +76,7 @@ def test_commerce_gate():
     assert commerce_gated("MISSING_PRODUCT_SCHEMA", "saas")
     for site_type in ("commerce", "restaurant", "booking", "other", None, "unheard-of"):
         assert not commerce_gated("PRICE_MISMATCH", site_type), site_type
-    # applicability-2026.10.1: an UNESTABLISHED profile measures nothing for the
+    # applicability-2026.11.1: an UNESTABLISHED profile measures nothing for the
     # commerce-gated rules — "unknown" is not "may transact" (an unlisted type is)
     for code in COMMERCE_GATED_CODES:
         assert commerce_gated(code, UNKNOWN_SITE_TYPE), code
@@ -85,7 +85,7 @@ def test_commerce_gate():
 
 
 def test_profile_policy_id_is_pinned():
-    assert PROFILE_POLICY_ID == "applicability-2026.10.1"
+    assert PROFILE_POLICY_ID == "applicability-2026.11.1"
 
 
 def test_unknown_profile_measures_gated_rules_as_not_applicable():

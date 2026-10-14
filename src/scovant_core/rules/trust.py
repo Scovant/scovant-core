@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, register_rule
-from scovant_core.rules.products import commerce_gated
+from scovant_core.rules.products import _gated
 
 NA = OutcomeState.NA
 NM = OutcomeState.NOT_MEASURED
@@ -41,8 +41,8 @@ def has_structured_shipping(schema_org: list[dict]) -> bool:
 
 
 def _policy_measured(code: str, page: dict, ctx: MeasureCtx, *, schema_too: bool = False) -> OutcomeState | None:
-    if commerce_gated(code, ctx.site_category):
-        return NA
+    if (g := _gated(code, ctx)) is not None:
+        return g
     if "policy_links" not in page or (schema_too and "schema_org" not in page):
         return NM
     return None

@@ -36,8 +36,8 @@ def report_schema() -> dict:
     s["$id"] = SCHEMA_ID
     s["title"] = "Scovant Core report"
     s["description"] = (
-        "Output of `scovant scan --format json`. Additive keys may appear without a "
-        "schema_version bump; a removed or retyped field bumps schema_version."
+        "Output of `scovant scan --format json`. An additive block bumps the minor "
+        "schema_version; a removed or retyped field bumps the major."
     )
     s["properties"]["schema_version"] = {"type": "string", "const": REPORT_SCHEMA_VERSION}
     return s

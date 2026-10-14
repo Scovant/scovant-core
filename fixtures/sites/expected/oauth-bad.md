@@ -2,7 +2,7 @@
 
 ## Technical Readiness
 
-**Technical Readiness:** 98 / 100 · grade A · coverage 100% · model R2.1@67df90af85b0
+**Technical Readiness:** 98 / 100 · grade A · coverage 100% · model R2.1@939b502f6bc2
 **Diagnostics (50 readiness checks):** 16 pass · 8 warn · 1 fail
 Profile: api? (confidence LOW, 0.55) — canonical comparison should specify --profile.
 **Profile:** api (requested auto, confidence 55%)
@@ -714,7 +714,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.19.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.20.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

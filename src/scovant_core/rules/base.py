@@ -16,6 +16,7 @@ import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
+from scovant_core.capabilities import Capabilities
 from scovant_core.r2 import OutcomeState
 
 SEVERITIES: frozenset[str] = frozenset({"info", "low", "medium", "high", "critical"})
@@ -56,6 +57,8 @@ class MeasureCtx:
     # probes that fell back to an inert default because the fetch failed;
     # None = the evidence predates this marker (read as measured)
     defaulted: frozenset[str] | None
+    # capability flags derived for this scan; None = the caller did not derive them
+    capabilities: Capabilities | None = None
 
 
 class CoreRule(ABC):

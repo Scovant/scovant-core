@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from scovant_core.capabilities import derive_capabilities
 from scovant_core.r2 import PUBLIC_POLICY, Outcome, OutcomeState, RuleScope, ScoreEffect, model_id
 from scovant_core.r2.technical import (
     ABSENCE_CODES,
@@ -26,8 +27,8 @@ S = OutcomeState
 
 def test_manifest_digest_and_model_id_are_the_published_ones():
     m = technical_manifest()
-    assert m.digest() == "3d4902ab3793"
-    assert model_id(m, PUBLIC_POLICY) == "R2.1@67df90af85b0"
+    assert m.digest() == "37d0fdabe073"
+    assert model_id(m, PUBLIC_POLICY) == "R2.1@939b502f6bc2"
 
 
 def test_manifest_is_every_public_rule_plus_the_robots_gate():
@@ -44,7 +45,7 @@ def test_manifest_is_every_public_rule_plus_the_robots_gate():
 
 
 def test_versions_are_pinned():
-    assert (BUILDER_VERSION, DERIVATION_VERSION) == ("5", "2")
+    assert (BUILDER_VERSION, DERIVATION_VERSION) == ("6", "2")
     assert {"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"} == MARKER_CODES
     assert {"CITABILITY_WEAK", "PAGE_TOKEN_BLOAT"} == LOW_BAND_WARN_CODES
     assert "SITEMAP_MISSING_OR_INVALID" not in ABSENCE_CODES     # baseline hygiene, a defect
@@ -68,8 +69,9 @@ def test_page_outcome_counts_measured_pages_only():
 
 def test_page_outcome_all_na_and_unknown_profile_reason():
     pages = [{}, {}]
-    o = page_outcome("MISSING_PRODUCT_SCHEMA", lambda p, d: S.NA, pages, {}, [False, False], site_category="unknown")
-    assert (o.state, o.reason) == (S.NA, "required_capability_not_established")
+    o = page_outcome("MISSING_PRODUCT_SCHEMA", lambda p, d: S.NA, pages, {}, [False, False], site_category="unknown",
+                     caps=derive_capabilities("unknown", [], {}))
+    assert (o.state, o.reason) == (S.NA, "capability_not_established:product_catalog")
     o = page_outcome("SEMANTIC_HTML_ABSENT", lambda p, d: S.NA, pages, {}, [False, False], site_category="unknown")
     assert (o.state, o.reason) == (S.NA, "predicate")
     o = page_outcome("X", lambda p, d: S.NOT_MEASURED, [], {}, [], site_category="other")
@@ -108,8 +110,9 @@ BLOCKED = {"bot_protection": {"blocked": True, "protection_type": "cloudflare"},
 AGENT_ONLY_REFUSAL = {"bot_protection": {"blocked": True, "protection_type": "cloudflare"}}
 
 
-def _po(code, measure, pages, fired, *, skip=True, site_category="other"):
-    return page_outcome(code, measure, pages, {}, fired, site_category=site_category, skip_content_blocked=skip)
+def _po(code, measure, pages, fired, *, skip=True, site_category="other", caps=None):
+    return page_outcome(code, measure, pages, {}, fired, site_category=site_category, skip_content_blocked=skip,
+                        caps=caps)
 
 
 def test_page_outcome_all_pages_walled_is_not_measured():
@@ -134,8 +137,9 @@ def test_page_outcome_na_over_the_clean_pages_stays_na():
     pages = [dict(BLOCKED), {"a": 1}]
     o = _po("X", lambda p, d: S.NA if p.get("a") else None, pages, [True, False])
     assert (o.state, o.reason) == (S.NA, "predicate")
-    o = _po("MISSING_PRODUCT_SCHEMA", lambda p, d: S.NA, pages, [False, False], site_category="unknown")
-    assert (o.state, o.reason) == (S.NA, "required_capability_not_established")
+    o = _po("MISSING_PRODUCT_SCHEMA", lambda p, d: S.NA, pages, [False, False], site_category="unknown",
+            caps=derive_capabilities("unknown", [], {}))
+    assert (o.state, o.reason) == (S.NA, "capability_not_established:product_catalog")
 
 
 def test_page_outcome_walled_and_unmeasured_pages_report_the_wall():

@@ -25,7 +25,7 @@ def _report(site: str, options: ScanOptions | None = None, transport=None):
 def test_commerce_good_has_a_technical_block():
     r = _report("commerce-good")
     t = r.readiness.technical
-    assert t.model_id == model_id(technical_manifest(), PUBLIC_POLICY) == "R2.1@67df90af85b0"
+    assert t.model_id == model_id(technical_manifest(), PUBLIC_POLICY) == "R2.1@939b502f6bc2"
     assert t.label == "Technical Readiness" and t.scope == "CORE_PASSIVE"
     assert t.evidence_state in ("ESTIMATED", "NOT_MEASURED")
     assert t.badge in (None, "estimated")                 # never agent_ready
@@ -33,7 +33,7 @@ def test_commerce_good_has_a_technical_block():
                                  "trust", "ucp", "citability"}
     assert r.technical_outcomes and all(o.state for o in r.technical_outcomes)
     # 0.19.0: schema 2.0 removed the five-domain `score`/`categories`.
-    assert r.schema_version == "2.0"
+    assert r.schema_version == "2.1"
 
 
 def test_declared_mcp_endpoint_is_not_measured():
@@ -70,7 +70,7 @@ def test_site_type_flag_is_recorded():
 
 def test_json_renders_the_block():
     data = json.loads(render_json(_report("commerce-good")))
-    assert data["readiness"]["technical"]["model_id"] == "R2.1@67df90af85b0"
+    assert data["readiness"]["technical"]["model_id"] == "R2.1@939b502f6bc2"
 
 
 def test_technical_failure_does_not_abort_the_scan(monkeypatch):
@@ -163,3 +163,36 @@ def test_unknown_site_type_is_rejected_before_any_io():
         raise AssertionError("network used")
     with pytest.raises(ValueError):
         scan(URL, ScanOptions(site_type="nope"), transport=httpx.MockTransport(never))
+
+
+def test_report_carries_the_capability_block():
+    """schema 2.1: readiness.technical.capabilities (three tri-state flags)."""
+    d = json.loads(render_json(_report("commerce-good")))
+    caps = d["readiness"]["technical"]["capabilities"]
+    assert set(caps) == {"product_catalog", "physical_goods", "transactional_checkout"}
+    pc = caps["product_catalog"]
+    assert pc["value"] is True and pc["source"] in ("evidence", "type_default")
+    assert isinstance(pc["evidence"], list) and len(pc["evidence"]) <= 3
+    assert d["schema_version"] == "2.1"
+
+
+def test_capabilities_match_the_run_and_validate_against_the_schema():
+    from jsonschema import Draft202012Validator
+
+    from scovant_core.schema import report_schema
+    d = json.loads(render_json(_report("commerce-bad")))
+    Draft202012Validator(report_schema()).validate(d)
+    for c in d["readiness"]["technical"]["capabilities"].values():
+        assert set(c) == {"value", "source", "evidence"}
+
+
+def test_r2_doc_defaults_table_is_pinned_to_type_defaults():
+    from pathlib import Path
+
+    from scovant_core.capabilities import TYPE_DEFAULTS
+    doc = (Path(__file__).resolve().parents[1] / "docs" / "r2.md").read_text()
+    def cell(v):
+        return "null" if v is None else str(v).lower()
+    for t, flags in TYPE_DEFAULTS.items():
+        row = f"| `{t}` | " + " | ".join(cell(v) for v in flags) + " |"
+        assert row in doc, row

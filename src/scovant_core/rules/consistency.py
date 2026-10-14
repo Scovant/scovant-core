@@ -15,7 +15,7 @@ import json
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, register_rule
 from scovant_core.rules.products import (
-    commerce_gated,
+    _gated,
     extract_visible_price,
     find_products,
     get_offers,
@@ -101,8 +101,8 @@ class PriceMismatch(CoreRule):
         return []
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        if commerce_gated(self.code, ctx.site_category):
-            return NA
+        if (g := _gated(self.code, ctx)) is not None:
+            return g
         if "schema_org" not in page or "visible_text" not in page:
             return NM
         v = extract_visible_price(page.get("visible_text") or "")

@@ -190,7 +190,7 @@ def test_committed_goldens_are_schema_2_without_the_removed_score(site):
     """0.19.0 (schema 2.0): no `score`/`categories`, no per-check weight;
     Technical Readiness is the rating."""
     data = json.loads((EXPECTED_DIR / f"{site}.json").read_text())
-    assert data["schema_version"] == "2.0"
+    assert data["schema_version"] == "2.1"
     assert "score" not in data and "categories" not in data
     assert all("weight" not in f for f in data["findings"])
     assert data["readiness"]["technical"]["label"] == "Technical Readiness"

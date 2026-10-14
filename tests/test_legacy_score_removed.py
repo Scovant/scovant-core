@@ -46,7 +46,7 @@ def _scan(site: str = "commerce-good", **opts) -> Report:
 
 
 def test_schema_is_2_0():
-    assert REPORT_SCHEMA_VERSION == "2.0"
+    assert REPORT_SCHEMA_VERSION == "2.1"
 
 
 def test_the_scoring_module_is_gone():
@@ -57,7 +57,7 @@ def test_the_scoring_module_is_gone():
 def test_json_report_has_no_score_or_categories():
     data = json.loads(render_json(_scan()))
     assert "score" not in data and "categories" not in data
-    assert data["schema_version"] == "2.0"
+    assert data["schema_version"] == "2.1"
     assert data["readiness"]["technical"]["rating"] is not None
     assert all("weight" not in f for f in data["findings"])
     assert "evidence_min_coverage" not in data["provenance"]

@@ -14,7 +14,7 @@ from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, register_rule
 from scovant_core.rules.product_terms import mentions_add_to_cart
 from scovant_core.rules.products import (
-    commerce_gated,
+    _gated,
     find_products,
     get_offers,
     is_valid_price,
@@ -29,8 +29,8 @@ def _products_measured(code: str, page: dict, ctx: MeasureCtx, *,
                        need_offers: bool = False) -> OutcomeState | None:
     """Measured on a page with Product entities (and, when asked, an Offer);
     not applicable on a page without them."""
-    if commerce_gated(code, ctx.site_category):
-        return NA
+    if (g := _gated(code, ctx)) is not None:
+        return g
     if "schema_org" not in page:
         return NM
     products = find_products(page.get("schema_org") or [])
@@ -91,8 +91,8 @@ class MissingProductSchema(CoreRule):
         # Only a product page can lack Product schema. Without schema, an
         # add-to-cart control is the page-type signal: the extractor's flag,
         # or any of the add-to-cart wordings in the visible text.
-        if commerce_gated(self.code, ctx.site_category):
-            return NA
+        if (g := _gated(self.code, ctx)) is not None:
+            return g
         if "schema_org" not in page:
             return NM
         if find_products(page.get("schema_org") or []):
@@ -310,8 +310,8 @@ class VariantInfoMissing(CoreRule):
         return []
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        if commerce_gated(self.code, ctx.site_category):
-            return NA
+        if (g := _gated(self.code, ctx)) is not None:
+            return g
         if "schema_org" not in page or "visible_text" not in page:
             return NM
         return None if find_products(page.get("schema_org") or []) else NA

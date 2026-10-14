@@ -69,7 +69,7 @@ def test_get_core_score_shape(server):
     assert set(s) == {"technical", "pass", "warn", "fail", "error", "na", "scan_id"}
     assert s["technical"] == {
         "rating": 82, "grade": "B", "coverage": s["technical"]["coverage"], "status": "OK",
-        "model_id": "R2.1@67df90af85b0",
+        "model_id": "R2.1@939b502f6bc2",
         "not_measured": [{"rule": "MCP_DISCOVERY_INVALID", "reason": "handshake_not_performed"}],
     }
     assert 0.9 < s["technical"]["coverage"] <= 1
@@ -162,7 +162,7 @@ def test_scan_site_default_format_is_findings_without_pass_bodies(server):
         "findings", "security_findings", "security_disclaimer", "passed", "cta",
     }
     assert out["scan_scope"] == "CANONICAL"
-    assert out["technical"]["rating"] == 82 and out["technical"]["model_id"] == "R2.1@67df90af85b0"
+    assert out["technical"]["rating"] == 82 and out["technical"]["model_id"] == "R2.1@939b502f6bc2"
     assert all(f["status"] != "PASS" for f in out["findings"])
     assert all(f["category"] != "security" for f in out["findings"])
     assert all(isinstance(i, str) and i.startswith("CORE-") for i in out["passed"])
