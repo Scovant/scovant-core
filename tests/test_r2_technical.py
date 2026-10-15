@@ -27,8 +27,8 @@ S = OutcomeState
 
 def test_manifest_digest_and_model_id_are_the_published_ones():
     m = technical_manifest()
-    assert m.digest() == "37d0fdabe073"
-    assert model_id(m, PUBLIC_POLICY) == "R2.1@939b502f6bc2"
+    assert m.digest() == "da416265c4d9"
+    assert model_id(m, PUBLIC_POLICY) == "R2.1@7389c208c89e"
 
 
 def test_manifest_is_every_public_rule_plus_the_robots_gate():
@@ -45,7 +45,7 @@ def test_manifest_is_every_public_rule_plus_the_robots_gate():
 
 
 def test_versions_are_pinned():
-    assert (BUILDER_VERSION, DERIVATION_VERSION) == ("6", "2")
+    assert (BUILDER_VERSION, DERIVATION_VERSION) == ("7", "2")
     assert {"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"} == MARKER_CODES
     assert {"CITABILITY_WEAK", "PAGE_TOKEN_BLOAT"} == LOW_BAND_WARN_CODES
     assert "SITEMAP_MISSING_OR_INVALID" not in ABSENCE_CODES     # baseline hygiene, a defect

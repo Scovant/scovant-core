@@ -32,6 +32,10 @@ TYPE_DEFAULTS: dict[str, tuple[bool | None, bool | None, bool | None]] = {
                              "portfolio", "education", "real_estate")},
 }
 _EVIDENCE_CAP = 3
+# Site types where an add-to-cart / "buy now" control is not catalog evidence:
+# on a SaaS site it sells a licence or a subscription (SoftwareApplication, not
+# Product), so only Product/Offer data establishes a catalog there (0.20.1).
+CTA_NOT_CATALOG_TYPES: frozenset[str] = frozenset({"saas"})
 
 
 @dataclass(frozen=True)
@@ -93,6 +97,8 @@ def _page_evidence(pages: Sequence[dict]) -> dict[str, list[str]]:
 
 def derive_capabilities(site_type: str | None, pages: Sequence[dict], domain: dict | None) -> Capabilities:
     ev = _page_evidence(pages or [])
+    if (site_type or "") in CTA_NOT_CATALOG_TYPES:
+        ev["product_catalog"] = [e for e in ev["product_catalog"] if not e.startswith("add_to_cart:")]
     dom = domain if isinstance(domain, dict) else {}
     if (dom.get("ucp") or {}).get("has_checkout") is True:
         ev["transactional_checkout"].append("ucp:has_checkout")

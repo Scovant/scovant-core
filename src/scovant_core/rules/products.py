@@ -30,7 +30,7 @@ COMMERCE_GATED_CODES: frozenset[str] = frozenset({
 # (`capability_not_established:<flag>`). Policy id recorded on every scan's
 # profile provenance; bump it when this applicability rule changes.
 UNKNOWN_SITE_TYPE = "unknown"
-PROFILE_POLICY_ID = "applicability-2026.11.1"
+PROFILE_POLICY_ID = "applicability-2026.11.2"  # .2: a SaaS call-to-action is not catalog evidence
 # Words in a product page's visible text that suggest it offers variants.
 VARIANT_KEYWORDS: frozenset[str] = frozenset({"size", "color", "colour", "variant", "style", "material"})
 

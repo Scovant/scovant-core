@@ -48,7 +48,7 @@ def test_the_contract_rejects_a_workflow_without_trusted_target():
 
 def _healthy() -> dict:
     return {
-        "readiness": {"technical": {"status": "OK", "grade": "B", "rating": 86, "model_id": "R2.1@939b502f6bc2"}},
+        "readiness": {"technical": {"status": "OK", "grade": "B", "rating": 86, "model_id": "R2.1@7389c208c89e"}},
         "provenance": {"scan_scope": "CANONICAL"},
         "security": {"scored": False},
     }

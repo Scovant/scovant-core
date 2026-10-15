@@ -25,7 +25,7 @@ def _report(site: str, options: ScanOptions | None = None, transport=None):
 def test_commerce_good_has_a_technical_block():
     r = _report("commerce-good")
     t = r.readiness.technical
-    assert t.model_id == model_id(technical_manifest(), PUBLIC_POLICY) == "R2.1@939b502f6bc2"
+    assert t.model_id == model_id(technical_manifest(), PUBLIC_POLICY) == "R2.1@7389c208c89e"
     assert t.label == "Technical Readiness" and t.scope == "CORE_PASSIVE"
     assert t.evidence_state in ("ESTIMATED", "NOT_MEASURED")
     assert t.badge in (None, "estimated")                 # never agent_ready
@@ -70,7 +70,7 @@ def test_site_type_flag_is_recorded():
 
 def test_json_renders_the_block():
     data = json.loads(render_json(_report("commerce-good")))
-    assert data["readiness"]["technical"]["model_id"] == "R2.1@939b502f6bc2"
+    assert data["readiness"]["technical"]["model_id"] == "R2.1@7389c208c89e"
 
 
 def test_technical_failure_does_not_abort_the_scan(monkeypatch):

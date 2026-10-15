@@ -85,7 +85,7 @@ def test_commerce_gate():
 
 
 def test_profile_policy_id_is_pinned():
-    assert PROFILE_POLICY_ID == "applicability-2026.11.1"
+    assert PROFILE_POLICY_ID == "applicability-2026.11.2"
 
 
 def test_unknown_profile_measures_gated_rules_as_not_applicable():

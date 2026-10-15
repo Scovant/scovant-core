@@ -40,7 +40,9 @@ DERIVATION_VERSION = "2"
 #    is not measured for Technical Readiness
 # 6: gated rules follow capability flags (reasons `capability_absent:<flag>` /
 #    `capability_not_established:<flag>`)
-BUILDER_VERSION = "6"
+# 7: on a SaaS site an add-to-cart / "buy now" control is not catalog evidence
+#    (capabilities stored in each document change)
+BUILDER_VERSION = "7"
 # Public rules whose finding is an informational marker, not a defect.
 MARKER_CODES: frozenset[str] = frozenset({"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"})
 

@@ -58,7 +58,7 @@ def _headline(text: str) -> list[str]:
 
 def test_text_headline_ok(ok_report):
     assert _headline(render_text(ok_report)) == [
-        "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@939b502f6bc2",
+        "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7389c208c89e",
         "Not measured by Core: MCP_DISCOVERY_INVALID (handshake_not_performed)",
         "Diagnostics (50 readiness checks): 40 pass · 1 warn · 0 fail",
     ]
@@ -67,14 +67,14 @@ def test_text_headline_ok(ok_report):
 def test_text_headline_ok_without_not_measured(bad_report):
     """`not_measured` empty → no not-measured line at all."""
     head = _headline(render_text(bad_report))
-    assert head[0] == "Technical Readiness  57 / 100  D · coverage 100% · model R2.1@939b502f6bc2"
+    assert head[0] == "Technical Readiness  57 / 100  D · coverage 100% · model R2.1@7389c208c89e"
     assert head[1].startswith("Diagnostics (")
     assert not any(ln.startswith("Not measured by Core") for ln in head)
 
 
 def test_text_headline_degraded(degraded_report):
     head = _headline(render_text(degraded_report))
-    assert head[0] == "Technical Readiness  70 / 100 · DEGRADED · coverage 65% · model R2.1@939b502f6bc2"
+    assert head[0] == "Technical Readiness  70 / 100 · DEGRADED · coverage 65% · model R2.1@7389c208c89e"
     rules = [n.rule for n in degraded_report.readiness.technical.not_measured]
     expected = ", ".join(
         f"{n.rule} ({n.reason})"
@@ -117,7 +117,7 @@ def test_diagnostics_counts_readiness_checks_only(ok_report):
 
 
 def test_score_line_is_the_technical_headline(ok_report, insufficient_report, missing_report):
-    assert score_line(ok_report) == "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@939b502f6bc2"
+    assert score_line(ok_report) == "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7389c208c89e"
     assert score_line(insufficient_report) == "Technical Readiness  — · INSUFFICIENT_EVIDENCE · coverage 55%"
     assert score_line(missing_report) == "Technical Readiness  not computed"
 
@@ -134,7 +134,7 @@ def test_text_default_has_no_five_domain_block(ok_report):
 def test_markdown_leads_with_technical_and_hides_categories(ok_report):
     md = render_markdown(ok_report)
     assert "## Technical Readiness" in md
-    assert "**Technical Readiness:** 82 / 100 · grade B · coverage 97% · model R2.1@939b502f6bc2" in md
+    assert "**Technical Readiness:** 82 / 100 · grade B · coverage 97% · model R2.1@7389c208c89e" in md
     assert "**Not measured by Core:** MCP_DISCOVERY_INVALID (handshake_not_performed)" in md
     assert "**Diagnostics (50 readiness checks):** 40 pass · 1 warn · 0 fail" in md
     assert "## Categories" not in md and "Static Signal Score" not in md
@@ -153,7 +153,7 @@ def test_markdown_headline_by_status(degraded_report, insufficient_report, missi
 def test_html_leads_with_technical_and_hides_categories(ok_report):
     html = render_html(ok_report)
     assert "<h2>Technical Readiness</h2>" in html
-    assert "82 / 100" in html and "R2.1@939b502f6bc2" in html
+    assert "82 / 100" in html and "R2.1@7389c208c89e" in html
     assert "MCP_DISCOVERY_INVALID (handshake_not_performed)" in html
     assert 'id="categories"' not in html and "Static Signal Score" not in html
 
@@ -208,7 +208,7 @@ def test_cli_quiet_prints_the_technical_headline(capsys, monkeypatch):
     _use_fixture(monkeypatch, "commerce-good")
     assert cli.main(["scan", "https://example.com/", "--quiet"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@939b502f6bc2",
+        "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7389c208c89e",
     ]
 
 

@@ -44,6 +44,27 @@ def test_saas_seller_evidence_overrides_default():
 def test_add_to_cart_is_catalog_evidence():
     assert derive_capabilities("media", [page(CART_HTML)], {}).product_catalog.value is True
 
+BUY_NOW_HTML = '<a href="/pricing">Buy now</a>'
+
+
+def test_a_saas_call_to_action_alone_is_not_catalog_evidence():
+    # 0.20.1: on a SaaS site "Buy now" / "Add to cart" sells a licence or a
+    # subscription (SoftwareApplication, not Product); 57 SaaS homepages failed
+    # MISSING_PRODUCT_SCHEMA on that button alone after 0.20.0.
+    for html in (BUY_NOW_HTML, CART_HTML):
+        caps = derive_capabilities("saas", [page(html)], {})
+        assert caps.product_catalog.value is False and caps.product_catalog.source == "type_default"
+        assert gate("MISSING_PRODUCT_SCHEMA", caps) == (OutcomeState.NA, "capability_absent:product_catalog")
+    # real Product/Offer data still establishes it, button or not
+    caps = derive_capabilities("saas", [page(BUY_NOW_HTML + PRODUCT_HTML)], {})
+    assert caps.product_catalog.value is True and caps.product_catalog.evidence[0].startswith("product_offer:")
+
+
+def test_other_types_keep_the_call_to_action_as_catalog_evidence():
+    for t in ("media", "booking", "restaurant", "other", None):
+        assert derive_capabilities(t, [page(BUY_NOW_HTML)], {}).product_catalog.value is True, t
+
+
 def test_product_mention_without_offer_is_not_evidence():
     assert derive_capabilities("blog", [page(MENTION_HTML)], {}).product_catalog.value is False
 

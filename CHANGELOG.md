@@ -8,6 +8,19 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.20.1] - 2026-10-15
+
+`ruleset_version` UNCHANGED (`2026.10`). Technical model id changes once:
+`R2.1@7389c208c89e`. Report `schema_version` unchanged (`2.1`).
+
+Fixed: on a `saas` site an add-to-cart or "buy now" control is no longer
+evidence of a product catalog. Such a control sells a licence or a
+subscription (`SoftwareApplication`, not `Product`), so only Product/Offer
+data establishes a catalog there; every other site type keeps the control
+as evidence. Before this, a SaaS homepage with a "Buy now" button failed
+`MISSING_PRODUCT_SCHEMA`. `BUILDER_VERSION` is `7`, and the policy id is
+`applicability-2026.11.2`.
+
 ## [0.20.0] - 2026-10-14
 
 `ruleset_version` UNCHANGED (`2026.10`). Technical model id changes once:

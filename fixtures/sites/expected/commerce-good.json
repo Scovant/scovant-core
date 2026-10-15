@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.20.0",
+  "core_version": "0.20.1",
   "findings": [
     {
       "category": "access",
@@ -2126,7 +2126,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.20.0",
+    "core_version": "0.20.1",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2142,7 +2142,7 @@
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.20.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.20.1 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2202,7 +2202,7 @@
       "evidence_state": "ESTIMATED",
       "grade": "B",
       "label": "Technical Readiness",
-      "model_id": "R2.1@939b502f6bc2",
+      "model_id": "R2.1@7389c208c89e",
       "not_measured": [
         {
           "reason": "handshake_not_performed",
