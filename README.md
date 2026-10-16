@@ -54,7 +54,7 @@ named somewhere, never merely counted. No check affects Technical
 Readiness; pass `--experimental` to also run the experimental checks gated
 behind that flag (omit it and they're skipped entirely, not evaluated as
 N/A) and rank experimental findings with the rest — the scan's scope is then
-`CUSTOM`. The "Agentic Security & Trust" block below it is the 16 SECURITY
+`CUSTOM`. The "Agentic Security & Trust" block below it is the 18 SECURITY
 checks' own summary — see `docs/security.md` for the full boundary of what
 it does and does not test.
 
