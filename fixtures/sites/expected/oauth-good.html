@@ -59,7 +59,7 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> api (requested auto, confidence 55%)</p>
-<p><strong>Core version:</strong> 0.20.1</p>
+<p><strong>Core version:</strong> 0.20.2</p>
 <p>25 PASS, 10 WARN, 2 FAIL, 31 N/A, 0 ERROR (68 checks)</p>
 </section>
 <section id="score">
@@ -604,6 +604,7 @@ a { color: #0969da; }
 <h2>Core vs Cloud</h2>
 <table>
 <tr><th>Capability</th><th>Core</th><th>Cloud</th></tr>
+<tr><td>Public readiness rule taxonomy</td><td>✅</td><td>✅</td></tr>
 <tr><td>HTTP reachability</td><td>✅</td><td>✅</td></tr>
 <tr><td>robots.txt</td><td>✅</td><td>✅</td></tr>
 <tr><td>Sitemap</td><td>✅</td><td>✅</td></tr>
@@ -618,10 +619,11 @@ a { color: #0969da; }
 <tr><td>OAuth authorization-server / protected-resource metadata</td><td>✅</td><td>✅</td></tr>
 <tr><td>UCP profile validity</td><td>✅ (experimental)</td><td>✅</td></tr>
 <tr><td>Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills)</td><td>✅ (experimental)</td><td>✅</td></tr>
-<tr><td>Technical Readiness from Core&#x27;s own sampled evidence</td><td>✅</td><td>—</td></tr>
+<tr><td>Technical Readiness (open R2 formula; Cloud computes it on its own crawl)</td><td>✅</td><td>✅</td></tr>
 <tr><td><strong>Cloud = observed, reproducible, cross-provider, longitudinal</strong></td><td>—</td><td>—</td></tr>
-<tr><td>Cloud&#x27;s full compatibility score</td><td>❌</td><td>✅</td></tr>
-<tr><td>Cloud&#x27;s full production ruleset</td><td>❌</td><td>✅</td></tr>
+<tr><td>Estimated agent rating (passive evidence, no journey)</td><td>❌</td><td>✅</td></tr>
+<tr><td>Verified agent rating (executed agent journeys)</td><td>❌</td><td>✅</td></tr>
+<tr><td>Proprietary calibrated execution overlay</td><td>❌</td><td>✅</td></tr>
 <tr><td>Observed WAF/bot-firewall behavior</td><td>❌</td><td>✅</td></tr>
 <tr><td>Real crawler network access</td><td>❌</td><td>✅</td></tr>
 <tr><td>Browser-based agent simulation</td><td>❌</td><td>✅</td></tr>
@@ -652,13 +654,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>2.1</dd>
-<dt>core_version</dt><dd>0.20.1</dd>
+<dt>core_version</dt><dd>0.20.2</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
 <dt>ruleset_digest</dt><dd>e7426fb13abe</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.20.1 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.20.2 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

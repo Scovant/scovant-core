@@ -8,6 +8,19 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.20.2] - 2026-10-23
+
+`ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report
+`schema_version` unchanged (`2.1`). No check, rule or score change.
+
+Changed: the Core-vs-Cloud capability matrix (`docs/core-vs-cloud.md`, the
+HTML report footer and `/api/public/core/facts`) names the exact results
+instead of "Cloud's full compatibility score" and "full production
+ruleset": Technical Readiness (open R2 formula, ✅ in both — Cloud computes
+it on its own crawl), the estimated and the verified agent rating (Cloud
+only), and the proprietary calibrated execution overlay (Cloud only). A
+"Public readiness rule taxonomy" row (✅ both) leads the table.
+
 ## [0.20.1] - 2026-10-15
 
 `ruleset_version` UNCHANGED (`2026.10`). Technical model id changes once:

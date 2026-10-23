@@ -198,7 +198,7 @@ def test_cloud_matrix_row_names_technical_readiness():
     from scovant_core.report._cloud_matrix import CORE_VS_CLOUD
 
     caps = [row[0] for row in CORE_VS_CLOUD]
-    assert "Technical Readiness from Core's own sampled evidence" in caps
+    assert "Technical Readiness (open R2 formula; Cloud computes it on its own crawl)" in caps
     assert "Core Score" not in caps
 
 

@@ -78,6 +78,17 @@ def test_readme_never_uses_the_cloud_score_name():
     assert "Agent Readiness Score" not in readme
 
 
+def test_cloud_matrix_names_the_exact_results():
+    """0.20.2: the matrix names Technical Readiness and the estimated/verified agent ratings, never a 'full compatibility score'."""
+    doc = (PKG_ROOT / "docs" / "core-vs-cloud.md").read_text(encoding="utf-8")
+    low = doc.lower()
+    assert "full compatibility score" not in low and "production ruleset" not in low
+    for row in ("| Estimated agent rating (passive evidence, no journey) | ❌ | ✅ |",
+                "| Verified agent rating (executed agent journeys) | ❌ | ✅ |",
+                "| Technical Readiness (open R2 formula; Cloud computes it on its own crawl) | ✅ | ✅ |"):
+        assert row in doc, row
+
+
 def test_cloud_matrix_matches_core_vs_cloud_doc():
     from scovant_core.report._cloud_matrix import CORE_VS_CLOUD
 

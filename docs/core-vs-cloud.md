@@ -12,6 +12,7 @@ This is a technical comparison, not a marketing one: everything below traces to 
 
 | Capability | Core | Cloud |
 |---|:---:|:---:|
+| Public readiness rule taxonomy | ✅ | ✅ |
 | HTTP reachability | ✅ | ✅ |
 | robots.txt | ✅ | ✅ |
 | Sitemap | ✅ | ✅ |
@@ -26,10 +27,11 @@ This is a technical comparison, not a marketing one: everything below traces to 
 | OAuth authorization-server / protected-resource metadata | ✅ | ✅ |
 | UCP profile validity | ✅ (experimental) | ✅ |
 | Agent discovery surface (A2A cards, AI-plugin, agents.json, Agent Skills) | ✅ (experimental) | ✅ |
-| Technical Readiness from Core's own sampled evidence | ✅ | — |
+| Technical Readiness (open R2 formula; Cloud computes it on its own crawl) | ✅ | ✅ |
 | **Cloud = observed, reproducible, cross-provider, longitudinal** | — | — |
-| Cloud's full compatibility score | ❌ | ✅ |
-| Cloud's full production ruleset | ❌ | ✅ |
+| Estimated agent rating (passive evidence, no journey) | ❌ | ✅ |
+| Verified agent rating (executed agent journeys) | ❌ | ✅ |
+| Proprietary calibrated execution overlay | ❌ | ✅ |
 | Observed WAF/bot-firewall behavior | ❌ | ✅ |
 | Real crawler network access | ❌ | ✅ |
 | Browser-based agent simulation | ❌ | ✅ |

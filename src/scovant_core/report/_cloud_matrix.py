@@ -18,6 +18,7 @@ CORE_BOUNDARY = (
 )
 
 CORE_VS_CLOUD: tuple[tuple[str, str, str], ...] = (
+    ("Public readiness rule taxonomy", "✅", "✅"),
     ("HTTP reachability", "✅", "✅"),
     ("robots.txt", "✅", "✅"),
     ("Sitemap", "✅", "✅"),
@@ -36,13 +37,11 @@ CORE_VS_CLOUD: tuple[tuple[str, str, str], ...] = (
         "✅ (experimental)",
         "✅",
     ),
-    # Cloud rates Technical Readiness with the same public model, but on its
-    # own crawl — "—" means Cloud does not run Core's sampling, not that it
-    # lacks the rating.
-    ("Technical Readiness from Core's own sampled evidence", "✅", "—"),
+    ("Technical Readiness (open R2 formula; Cloud computes it on its own crawl)", "✅", "✅"),
     ("Cloud = observed, reproducible, cross-provider, longitudinal", "—", "—"),
-    ("Cloud's full compatibility score", "❌", "✅"),
-    ("Cloud's full production ruleset", "❌", "✅"),
+    ("Estimated agent rating (passive evidence, no journey)", "❌", "✅"),
+    ("Verified agent rating (executed agent journeys)", "❌", "✅"),
+    ("Proprietary calibrated execution overlay", "❌", "✅"),
     ("Observed WAF/bot-firewall behavior", "❌", "✅"),
     ("Real crawler network access", "❌", "✅"),
     ("Browser-based agent simulation", "❌", "✅"),
