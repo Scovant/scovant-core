@@ -223,3 +223,30 @@ def test_every_no_rule_row_has_a_reason():
     from scovant_core.crosswalk import CHECK_ROWS
     bad = [r.check_id for r in CHECK_ROWS if r.relationship == "no_rule" and not (r.note or "").strip()]
     assert bad == []
+
+
+def test_header_says_implemented_not_evaluated():
+    """A Core rule whose evidence the CLI does not gather is implemented, not
+    evaluated, by a plain scan — the header must not claim evaluation."""
+    text = crosswalk.render_markdown()
+    c = crosswalk.counts()
+    assert "evaluated by Core" not in text
+    assert f"{c['core_rules']} implemented in Core" in text
+
+
+def test_ungathered_evidence_list_is_derived_from_the_rules():
+    """The parenthetical naming the evidence a plain scan does not gather is
+    built from the rules that read it, never hand-typed."""
+    from scovant_core.r2.readiness import NOT_GATHERED_SOURCES, core_evidence
+
+    used = [label for key, label in NOT_GATHERED_SOURCES
+            if any(r.code == key or (key.endswith("-") and r.code.startswith(key)) for r in RULES)]
+    assert used, "no Core rule reads ungathered evidence — the sentence would be empty"
+    assert crosswalk.ungathered_evidence_phrase() in crosswalk.render_markdown()
+    for label in used:
+        assert label in crosswalk.ungathered_evidence_phrase()
+    # every not-gathered rule is covered by some source
+    for r in RULES:
+        if core_evidence(r.code) == "not_gathered":
+            assert any(r.code == k or (k.endswith("-") and r.code.startswith(k))
+                       for k, _ in NOT_GATHERED_SOURCES), r.code

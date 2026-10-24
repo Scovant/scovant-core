@@ -8,6 +8,11 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+Changed: `docs/crosswalk.md` says the Core rules are "implemented in Core" (a
+plain scan does not gather evidence for all of them), and names the evidence
+it does not gather from `scovant_core.r2.readiness.NOT_GATHERED_SOURCES`
+instead of a hand-typed list. No check, rule or score change.
+
 ## [0.21.0] - 2026-10-23
 
 `ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report

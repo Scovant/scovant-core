@@ -38,10 +38,16 @@ _PROBE_RULES: dict[str, frozenset[str]] = {
     "agent_payments": frozenset({"AGENT_PAYMENTS_ABSENT"}),
     "machine_rep": frozenset({"MACHINE-REP-004", "MACHINE-REP-005"}),
 }
-# Rules reading an evidence block Core does not gather in this release.
-_NOT_GATHERED_PREFIXES = ("WEBMCP-", "LLMS-SUPPLY-")
-_NOT_GATHERED_CODES = frozenset({
-    "AI-BOT-POLICY-001"})
+# Evidence blocks Core does not gather in this release: a rule code (or a
+# code prefix ending in "-") and the public name of the evidence it reads.
+# The crosswalk's prose is built from this table, never hand-typed.
+NOT_GATHERED_SOURCES: tuple[tuple[str, str], ...] = (
+    ("WEBMCP-", "the WebMCP browser probe"),
+    ("LLMS-SUPPLY-", "instruction-supply registry lookups"),
+    ("AI-BOT-POLICY-001", "the AI-bot policy block"),
+)
+_NOT_GATHERED_PREFIXES = tuple(k for k, _ in NOT_GATHERED_SOURCES if k.endswith("-"))
+_NOT_GATHERED_CODES = frozenset(k for k, _ in NOT_GATHERED_SOURCES if not k.endswith("-"))
 # Public names (Wave 4 catalog): the Cloud catalog reads these, never the
 # private aliases.
 MCP_HANDSHAKE_RULES = _MCP_HANDSHAKE_RULES

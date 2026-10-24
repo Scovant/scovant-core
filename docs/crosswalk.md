@@ -2,7 +2,7 @@
 
 # Checks ↔ readiness rules
 
-68 checks (50 readiness, 18 security) · 65 readiness rules (56 evaluated by Core, 9 need Scovant Cloud's agent execution).
+68 checks (50 readiness, 18 security) · 65 readiness rules (56 implemented in Core, 9 need Scovant Cloud's agent execution).
 
 Core implements 56 of the 65 rules; its CLI gathers evidence for 47 today (9 of them only when the site publishes no MCP file). The other 9 read evidence this release does not gather (the WebMCP browser probe, instruction-supply registry lookups and the AI-bot policy block).
 
