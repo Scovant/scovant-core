@@ -42,6 +42,30 @@ _PROBE_RULES: dict[str, frozenset[str]] = {
 _NOT_GATHERED_PREFIXES = ("WEBMCP-", "LLMS-SUPPLY-")
 _NOT_GATHERED_CODES = frozenset({
     "AI-BOT-POLICY-001"})
+# Public names (Wave 4 catalog): the Cloud catalog reads these, never the
+# private aliases.
+MCP_HANDSHAKE_RULES = _MCP_HANDSHAKE_RULES
+
+
+def core_evidence(code: str) -> str:
+    """How this release's CLI gathers the rule's evidence (the catalog's
+    `evidence_sources.core`): `passive`, `handshake_required` (needs an MCP
+    handshake the CLI does not perform), `tokenizer_optional` (needs the
+    `[tokens]` extra) or `not_gathered` (this release gathers no evidence)."""
+    if code in _NOT_GATHERED_CODES or code.startswith(_NOT_GATHERED_PREFIXES):
+        return "not_gathered"
+    if code in _MCP_HANDSHAKE_RULES:
+        return "handshake_required"
+    if code == "PAGE_TOKEN_BLOAT":
+        return "tokenizer_optional"
+    return "passive"
+
+
+def gathered_by_core(code: str) -> bool:
+    """True when a plain `scovant scan` can gather this rule's evidence (the
+    handshake rules and the optional tokenizer count: the CLI measures them
+    whenever the site and the install allow)."""
+    return core_evidence(code) != "not_gathered"
 
 
 def _reason(outcome, defaulted) -> str:
@@ -54,11 +78,12 @@ def _reason(outcome, defaulted) -> str:
     probes = sorted(p for p in defaulted if rule in _PROBE_RULES.get(p, ()))
     if probes:
         return f"probe_failed:{probes[0]}"
-    if rule in _MCP_HANDSHAKE_RULES:
+    evidence = core_evidence(rule)
+    if evidence == "handshake_required":
         return "handshake_not_performed"
-    if rule == "PAGE_TOKEN_BLOAT" and not tokenizer_available():
+    if evidence == "tokenizer_optional" and not tokenizer_available():
         return "tokenizer_unavailable"
-    if rule in _NOT_GATHERED_CODES or rule.startswith(_NOT_GATHERED_PREFIXES):
+    if evidence == "not_gathered":
         return "not_gathered_by_core"
     return "not_measured"
 

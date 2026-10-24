@@ -8,6 +8,28 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.21.0] - 2026-10-23
+
+`ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report
+`schema_version` unchanged (`2.1`). No check, rule or score change.
+
+Added: `scovant rules [--json]` and `scovant checks [--json]` print the
+catalog of every readiness rule and diagnostic check offline
+(`scovant_core.catalog.build_catalog()`: rule and check id lists, counts,
+how the CLI gathers each rule's evidence — `passive`, `handshake_required`,
+`tokenizer_optional`, `not_gathered` or `cloud_execution_only` — and whether
+the rule is scored in Technical Readiness). `crosswalk.counts()` gains
+`core_rules_gathered`, `core_rules_handshake`, the experimental check and rule counts and the rule
+category count; `docs/crosswalk.md` states both numbers: Core implements
+56 of the 65 rules, and its CLI gathers evidence for 47 today (9 of them, the
+MCP-handshake rules, only when the site publishes no MCP file — the CLI performs
+no handshake); `counts()` gains `core_rules_handshake` for that number.
+
+Fixed: the README said "16 more checks (`CORE-SECURITY-001..016`, 8 of them
+experimental)"; the registry has 18 security checks, 10 experimental. The
+README count paragraph is now generated (`python -m scovant_core.docs
+--readme`) and pinned by a test.
+
 ## [0.20.2] - 2026-10-23
 
 `ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report

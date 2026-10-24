@@ -14,6 +14,7 @@ never gates this, since `Report.security` is never scored; see
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import sys
 from collections.abc import Callable
@@ -194,6 +195,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
 
     sub.add_parser("mcp", help="run the stdio MCP server (needs scovant-core[mcp])")
+    for name, helptext in (("rules", "list every readiness rule (no network)"),
+                           ("checks", "list every diagnostic check (no network)")):
+        cat_p = sub.add_parser(name, help=helptext)
+        cat_p.add_argument("--json", action="store_true", help="print the machine-readable catalog")
     return parser
 
 
@@ -412,6 +417,15 @@ def main(argv: list[str] | None = None) -> int:
         from scovant_core import mcp_server  # noqa: PLC0415
 
         return mcp_server.run_stdio()
+
+    if args.command in ("rules", "checks"):
+        from scovant_core import catalog  # noqa: PLC0415
+
+        if args.json:
+            print(json.dumps(catalog.build_catalog(), indent=2))
+        else:
+            sys.stdout.write(catalog.render_text(args.command))
+        return _EXIT_OK
 
     try:
         return _run_scan(args)

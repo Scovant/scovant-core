@@ -264,3 +264,42 @@ def test_main_plugin_flag_writes_the_four_references(tmp_path, monkeypatch):
     assert sorted(p.name for p in (tmp_path / "refs").iterdir()) == [
         "agentready.md", "checks.md", "methodology.md", "report.schema.json",
     ]
+
+
+def test_readme_counts_block_is_generated():
+    from pathlib import Path
+
+    from scovant_core.docs import README_END, README_START, render_readme_counts
+
+    text = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+    assert README_START in text and README_END in text
+    block = text.split(README_START, 1)[1].split(README_END, 1)[0]
+    assert block.strip() == render_readme_counts().strip()
+
+
+def test_readme_has_no_stale_security_range():
+    from pathlib import Path
+
+    from scovant_core.crosswalk import counts
+
+    text = (Path(__file__).resolve().parents[1] / "README.md").read_text()
+    assert f"CORE-SECURITY-001..{counts()['security_checks']:03d}" in text
+    assert "CORE-SECURITY-001..016" not in text
+    assert "16 more checks" not in text
+
+
+def test_hand_written_check_counts_match_the_registry():
+    """Any other "<N> checks" / "<N> more checks" in the README and the
+    methodology must be one of the derived counts (the 16/8 drift class)."""
+    import re
+    from pathlib import Path
+
+    from scovant_core.crosswalk import counts
+
+    c = counts()
+    allowed = {c["checks"], c["readiness_checks"], c["security_checks"], c["experimental_checks"]}
+    root = Path(__file__).resolve().parents[1]
+    for rel in ("README.md", "docs/methodology.md", "docs/security.md"):
+        for m in re.finditer(r"\b(\d+) (?:more |readiness |security |passive security )?checks\b",
+                             (root / rel).read_text()):
+            assert int(m.group(1)) in allowed, (rel, m.group(0))

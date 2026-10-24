@@ -125,10 +125,15 @@ def test_counts_are_derived_from_the_registries():
         "core_rules": len(RULES),
         "cloud_only_rules": len(crosswalk.AGENT_ONLY_RULES),
     }
-    assert crosswalk.counts() == expected
-    # The published numbers this release describes.
-    assert expected == {"checks": 68, "readiness_checks": 50, "security_checks": 18,
-                        "rules": 65, "core_rules": 56, "cloud_only_rules": 9}
+    got = crosswalk.counts()
+    assert {k: got[k] for k in expected} == expected
+    # The published numbers this release describes (the Wave 4 keys are
+    # derived in test_counts_carry_gathered_and_experimental).
+    assert got == {"checks": 68, "readiness_checks": 50, "security_checks": 18,
+                   "rules": 65, "core_rules": 56, "cloud_only_rules": 9,
+                   "core_rules_gathered": 47, "core_rules_handshake": 9, "experimental_checks": 17,
+                   "experimental_readiness_checks": 7, "experimental_security_checks": 10,
+                   "experimental_core_rules": 24, "categories": 7}
 
 
 def test_render_lists_every_row_and_the_counts():
@@ -185,3 +190,36 @@ def test_access_003_note_names_the_rules_own_tokens():
 
     note = _row("CORE-ACCESS-003").note
     assert all(token in note for token in AI_CRAWLERS)
+
+
+def test_counts_carry_gathered_and_experimental():
+    from scovant_core.checks.registry import CHECKS
+    from scovant_core.crosswalk import counts
+    from scovant_core.models import Category
+    from scovant_core.r2.readiness import gathered_by_core
+
+    c = counts()
+    assert c["core_rules_gathered"] == sum(1 for r in RULES if gathered_by_core(r.code))
+    assert c["core_rules_gathered"] < c["core_rules"]          # some rules are never gathered by the CLI
+    from scovant_core.r2.readiness import MCP_HANDSHAKE_RULES
+    assert c["core_rules_handshake"] == sum(1 for r in RULES if r.code in MCP_HANDSHAKE_RULES)
+    assert c["experimental_checks"] == sum(1 for k in CHECKS if k.experimental)
+    assert c["experimental_security_checks"] == sum(
+        1 for k in CHECKS if k.experimental and k.category is Category.SECURITY)
+    assert c["experimental_checks"] == c["experimental_readiness_checks"] + c["experimental_security_checks"]
+    assert c["experimental_core_rules"] == sum(1 for r in RULES if r.maturity == "experimental")
+    assert c["categories"] == 7
+
+
+def test_core_evidence_values():
+    from scovant_core.r2.readiness import core_evidence
+    assert core_evidence("WEBMCP-001") == "not_gathered"
+    assert core_evidence("MCP_DISCOVERY_INVALID") == "handshake_required"
+    assert core_evidence("PAGE_TOKEN_BLOAT") == "tokenizer_optional"
+    assert core_evidence("SITEMAP_MISSING_OR_INVALID") == "passive"
+
+
+def test_every_no_rule_row_has_a_reason():
+    from scovant_core.crosswalk import CHECK_ROWS
+    bad = [r.check_id for r in CHECK_ROWS if r.relationship == "no_rule" and not (r.note or "").strip()]
+    assert bad == []

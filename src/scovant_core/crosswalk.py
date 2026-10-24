@@ -224,7 +224,13 @@ RULE_ROWS: tuple[RuleRow, ...] = tuple(
 
 def counts() -> dict[str, int]:
     """Counts derived from the registries, never typed."""
+    # Imported here: crosswalk is imported by docs/report modules that load
+    # before the R2 package is needed.
+    from scovant_core.r2.readiness import core_evidence, gathered_by_core
+
     security = sum(1 for c in CHECKS if c.category is Category.SECURITY)
+    experimental = [c for c in CHECKS if c.experimental]
+    experimental_security = sum(1 for c in experimental if c.category is Category.SECURITY)
     return {
         "checks": len(CHECKS),
         "readiness_checks": len(CHECKS) - security,
@@ -232,6 +238,17 @@ def counts() -> dict[str, int]:
         "rules": len(RULES) + len(AGENT_ONLY_RULES),
         "core_rules": len(RULES),
         "cloud_only_rules": len(AGENT_ONLY_RULES),
+        # Wave 4: what a plain CLI scan gathers evidence for, and the
+        # experimental / category counts every public sentence states.
+        "core_rules_gathered": sum(1 for r in RULES if gathered_by_core(r.code)),
+        # of those, the MCP-handshake rules: the CLI performs no handshake, so
+        # they resolve only on a site that publishes no MCP file (owner 2026-10-24)
+        "core_rules_handshake": sum(1 for r in RULES if core_evidence(r.code) == "handshake_required"),
+        "experimental_checks": len(experimental),
+        "experimental_readiness_checks": len(experimental) - experimental_security,
+        "experimental_security_checks": experimental_security,
+        "experimental_core_rules": sum(1 for r in RULES if r.maturity == "experimental"),
+        "categories": len({str(r.category) for r in RULES}),
     }
 
 
@@ -250,6 +267,12 @@ def render_markdown() -> str:
         (f"{c['checks']} checks ({c['readiness_checks']} readiness, {c['security_checks']} security) · "
          f"{c['rules']} readiness rules ({c['core_rules']} evaluated by Core, "
          f"{c['cloud_only_rules']} need Scovant Cloud's agent execution)."),
+        "",
+        (f"Core implements {c['core_rules']} of the {c['rules']} rules; its CLI gathers evidence "
+         f"for {c['core_rules_gathered']} today ({c['core_rules_handshake']} of them only when the site "
+         "publishes no MCP file). The other "
+         f"{c['core_rules'] - c['core_rules_gathered']} read evidence this release does not gather "
+         "(the WebMCP browser probe, instruction-supply registry lookups and the AI-bot policy block)."),
         "",
         ("Checks are diagnostics: each reports its own verdict and evidence and carries no weight "
          "in the Technical Readiness rating (the five-domain score that was computed from checks "
