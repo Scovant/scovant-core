@@ -8,6 +8,17 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.22.0] - 2026-10-24
+
+`ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report
+`schema_version` unchanged. Dependency ranges unchanged.
+
+Added: `scovant_core.envelope` — the evidence envelope (`EvidenceEnvelope`,
+`envelope_version` 1.0) for experimental evidence, its vocabulary tuples, the
+mapping from existing verification-mode names (`map_verification_mode`), and
+the generated `docs/evidence-envelope.schema.json` (`python -m
+scovant_core.envelope`). No check, rule or score change.
+
 ## [0.21.1] - 2026-10-24
 
 `ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report

@@ -1,0 +1,276 @@
+{
+  "$id": "https://raw.githubusercontent.com/Scovant/scovant-core/main/docs/evidence-envelope.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "scored": {
+            "const": true
+          }
+        },
+        "required": [
+          "scored"
+        ]
+      },
+      "then": {
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "rule_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "verification_mode": {
+            "const": "SYNTHETIC_AUTHORIZED"
+          }
+        },
+        "required": [
+          "verification_mode"
+        ]
+      },
+      "then": {
+        "properties": {
+          "environment": {
+            "const": "SANDBOX"
+          }
+        },
+        "required": [
+          "environment"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "enum": [
+              "WARN",
+              "FAIL"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "fix_owner": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fix_owner"
+        ]
+      }
+    }
+  ],
+  "description": "One record of experimental evidence. Changing any field mints a new envelope_version; unknown top-level keys are rejected.",
+  "properties": {
+    "capability": {
+      "minLength": 1,
+      "title": "Capability",
+      "type": "string"
+    },
+    "check_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Check Id"
+    },
+    "collector_version": {
+      "minLength": 1,
+      "title": "Collector Version",
+      "type": "string"
+    },
+    "envelope_version": {
+      "const": "1.0",
+      "type": "string"
+    },
+    "environment": {
+      "enum": [
+        "PUBLIC",
+        "PRODUCTION_READ_ONLY",
+        "SANDBOX"
+      ],
+      "title": "Environment",
+      "type": "string"
+    },
+    "evidence": {
+      "additionalProperties": true,
+      "title": "Evidence",
+      "type": "object"
+    },
+    "fix_owner": {
+      "anyOf": [
+        {
+          "enum": [
+            "frontend",
+            "backend",
+            "identity",
+            "mcp",
+            "edge_cdn",
+            "devops",
+            "content",
+            "commerce",
+            "security"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fix Owner"
+    },
+    "id": {
+      "format": "uuid",
+      "title": "Id",
+      "type": "string"
+    },
+    "intent": {
+      "additionalProperties": true,
+      "title": "Intent",
+      "type": "object"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "maturity": {
+      "enum": [
+        "EXPERIMENTAL",
+        "BETA",
+        "STABLE"
+      ],
+      "title": "Maturity",
+      "type": "string"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "policy_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Policy Id"
+    },
+    "principal": {
+      "additionalProperties": true,
+      "title": "Principal",
+      "type": "object"
+    },
+    "rule_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Rule Id"
+    },
+    "ruleset_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ruleset Version"
+    },
+    "scan_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scan Id"
+    },
+    "scored": {
+      "default": false,
+      "title": "Scored",
+      "type": "boolean"
+    },
+    "source": {
+      "enum": [
+        "CORE",
+        "CLOUD",
+        "IMPORT"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "WARN",
+        "FAIL",
+        "NA",
+        "ERROR",
+        "INCONCLUSIVE",
+        "NOT_MEASURED"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "verification_mode": {
+      "enum": [
+        "DECLARED",
+        "PASSIVE_OBSERVED",
+        "ACTIVE_SAFE",
+        "SYNTHETIC_AUTHORIZED"
+      ],
+      "title": "Verification Mode",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "source",
+    "verification_mode",
+    "status",
+    "maturity",
+    "capability",
+    "environment",
+    "observed_at",
+    "collector_version"
+  ],
+  "title": "Scovant evidence envelope",
+  "type": "object"
+}
