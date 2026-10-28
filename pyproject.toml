@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<9", "pytest-cov>=5,<7", "ruff==0.16.6", "jsonschema>=4.20,<5", "mypy==1.20.2", "twine>=5,<7", "pyyaml>=6,<7", "tiktoken>=0.7,<1"]
+dev = ["pytest>=8,<10", "pytest-cov>=5,<8", "ruff==0.17.0", "jsonschema>=4.20,<5", "mypy==2.4.0", "twine>=5,<8", "pyyaml>=6,<7", "tiktoken>=0.7,<1"]
 mcp = ["mcp>=2.2,<3"]
 # Counts tokens for PAGE_TOKEN_BLOAT with the bundled o200k_base vocabulary (never downloaded).
 tokens = ["tiktoken>=0.7,<1"]
@@ -45,8 +45,8 @@ Changelog = "https://github.com/Scovant/scovant-core/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scovant_core"]
-# Pinned below the hatchling default (2.5 as of 1.32) — twine<7 (pinned in the
-# dev extra) can't parse a 2.5 METADATA file yet (hatchling's own 1.30.0 was
+# Pinned below the hatchling default (2.5 as of 1.32) — the dev extra still
+# admits twine 5.x/6.x, which can't parse a 2.5 METADATA file (hatchling's own 1.30.0 was
 # yanked from PyPI for exactly this: "some major projects like twine do not
 # yet support it"). 2.4 is what every hatchling from 1.27 through today's
 # non-yanked releases already emits by default, so this is a floor, not a

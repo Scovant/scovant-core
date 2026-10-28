@@ -1,15 +1,21 @@
 version: 2
 updates:
+  # Python dependencies are updated in the upstream repository this tree is
+  # published from, where a pull request can actually be merged; on this
+  # mirror version-update PRs are switched off (security alerts are unaffected).
   - package-ecosystem: pip
     directory: /
     # constraints/constraints-<version>.txt are frozen release snapshots
     # (what a clean install resolved to on release day) — never bump them.
     exclude-paths: ["constraints/**"]
+    open-pull-requests-limit: 0
     schedule:
       interval: weekly
     groups:
       python-deps:
         patterns: ["*"]
+  # GitHub Actions pins are bumped here: the workflows below are live only in
+  # this repository. Such a PR is ported upstream, never merged here.
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -8,6 +8,8 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+Development only: the `dev` extra now admits pytest 9 (`<10`), pytest-cov 7 (`<8`) and twine 7 (`<8`), and pins ruff 0.17.0 and mypy 2.4.0. Runtime and optional (`mcp`, `tokens`) dependency ranges unchanged.
+
 ## [0.22.0] - 2026-10-24
 
 `ruleset_version` UNCHANGED (`2026.10`). Model ids unchanged. Report

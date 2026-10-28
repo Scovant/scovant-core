@@ -298,10 +298,12 @@ Three GitHub Actions workflows in this repository run continuously against
 the published tree — not against a scan target, against Core's own code and
 dependencies:
 
-- **Dependabot** (`.github/dependabot.yml`) opens a pull request weekly for
-  outdated `pip` dependencies and a separate one for outdated GitHub Actions
-  pins, each grouping every update of its kind into a single PR rather than
-  one PR per package.
+- **Dependabot** (`.github/dependabot.yml`) opens one grouped pull request
+  weekly for outdated GitHub Actions pins in this repository. Outdated `pip`
+  dependencies are tracked weekly in the upstream repository this tree is
+  published from, where a pull request can be merged, so the `pip` entry here
+  has version-update pull requests switched off; Dependabot security alerts
+  for this repository are unaffected.
 - **CodeQL** (`.github/workflows/codeql.yml`) runs static analysis over the
   Python source on every push to `main`, every pull request, and weekly on a
   schedule; findings land in this repository's Security tab as code
@@ -322,10 +324,11 @@ dependencies:
   see `docs/releasing.md` for how a release handles one.
 
 Because this repository is a snapshot mirror (see `docs/releasing.md`),
-Dependabot and CodeQL pull requests opened here are never merged here — they
-are ported into Scovant's private monorepo by hand, following the same
-"port a community PR" path any external contribution takes, and reach this
-repository again only in the next sync commit.
+pull requests opened here — the weekly GitHub Actions update, or a CodeQL
+fix — are never merged here: they are ported into Scovant's private monorepo
+by hand, following the same "port a community PR" path any external
+contribution takes, and reach this repository again only in the next sync
+commit.
 
 ## Agentic Security & Trust (passive checks)
 
