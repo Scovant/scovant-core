@@ -15,6 +15,7 @@ from scovant_core.gatherers import (  # noqa: F401
     pages,
     policy_pages,
     reference_integrity,
+    representations,
     robots_txt,
     security_txt,
     sitemap_urls,

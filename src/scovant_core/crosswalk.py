@@ -164,6 +164,8 @@ CHECK_ROWS: tuple[CheckRow, ...] = (
          "Image alt coverage; no readiness rule reads it."),
     _row("CORE-MACHINE-012", "partial", ("PRICE_MISMATCH",),
          "Both compare visible and structured price; their visible-price extraction and matching differ."),
+    _row("CORE-MACHINE-013", "no_rule", (),
+         "Representation parity; no readiness rule reads it (Cloud records it as unscored evidence)."),
     # --- Operability ---------------------------------------------------
     _row("CORE-OPERABILITY-001", "partial", ("JS_ONLY_CRITICAL_CONTENT",),
          "Both read static visible text; the rule also fires on a low share of labelled controls (see OPERABILITY-006) and missing product signals."),

@@ -89,7 +89,7 @@ def test_registry_has_sixty_eight():
         "CORE-ACCESS-011",
         "CORE-MACHINE-001", "CORE-MACHINE-002", "CORE-MACHINE-003", "CORE-MACHINE-004", "CORE-MACHINE-005",
         "CORE-MACHINE-006", "CORE-MACHINE-007", "CORE-MACHINE-008", "CORE-MACHINE-009", "CORE-MACHINE-010",
-        "CORE-MACHINE-011", "CORE-MACHINE-012",
+        "CORE-MACHINE-011", "CORE-MACHINE-012", "CORE-MACHINE-013",
         "CORE-INTERFACE-001", "CORE-INTERFACE-002", "CORE-INTERFACE-003", "CORE-INTERFACE-004",
         "CORE-INTERFACE-005", "CORE-INTERFACE-006", "CORE-INTERFACE-007", "CORE-INTERFACE-008",
         "CORE-INTERFACE-009",
@@ -101,9 +101,9 @@ def test_registry_has_sixty_eight():
     }
     security_expected = {f"CORE-SECURITY-{n:03d}" for n in range(1, 19)}
     assert ids == readiness_expected | security_expected
-    assert len(readiness_expected) == 50
+    assert len(readiness_expected) == 51
     assert len(security_expected) == 18
-    assert len(CHECKS) == 68
+    assert len(CHECKS) == 69
     assert RULESET_VERSION == "2026.10"
     validate_registry()
 
@@ -122,7 +122,7 @@ def test_experimental_set_is_exact():
     # score unless `--experimental`.
     expected = {
         "CORE-INTERFACE-004", "CORE-INTERFACE-008", "CORE-INTERFACE-009",
-        "CORE-MACHINE-012", "CORE-OPERABILITY-007",
+        "CORE-MACHINE-012", "CORE-MACHINE-013", "CORE-OPERABILITY-007",
         "CORE-ACCESS-011", "CORE-OPERABILITY-011",
         "CORE-SECURITY-009", "CORE-SECURITY-010",
         "CORE-SECURITY-011", "CORE-SECURITY-012", "CORE-SECURITY-013",

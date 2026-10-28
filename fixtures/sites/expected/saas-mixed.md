@@ -3,13 +3,13 @@
 ## Technical Readiness
 
 **Technical Readiness:** 73 / 100 · grade C · coverage 100% · model R2.1@7389c208c89e
-**Diagnostics (50 readiness checks):** 22 pass · 8 warn · 0 fail
+**Diagnostics (51 readiness checks):** 22 pass · 8 warn · 0 fail
 **Profile:** saas (requested auto, confidence 80%)
 
 **Capabilities detected** (descriptive, not scored): mcp: absent · webmcp: absent · ucp: not_checked · llms_txt: absent · openapi: absent · oauth: invalid · content_signal: absent · security_txt: present
 **Standards:** AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 pass, 2 warn · SHOULD 4/12 measured — 4 warn · MAY none measured (0/3) — Mapping: docs/standards/agentready.md
 
-68 checks: 29 PASS, 12 WARN, 2 FAIL, 25 N/A, 0 ERROR
+69 checks: 29 PASS, 12 WARN, 2 FAIL, 26 N/A, 0 ERROR
 
 ## Top findings
 
@@ -671,7 +671,7 @@
 - **CORE-SECURITY-017** (WARN) — `authorization_servers` is missing, empty or not a list of URLs.
 - **CORE-SECURITY-018** (WARN) — `authorization_endpoint` is not declared. `token_endpoint` is not declared. PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).
 
-N/A: `CORE-ACCESS-011`, `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`, `CORE-OPERABILITY-011`, `CORE-SECURITY-009`, `CORE-SECURITY-010`, `CORE-SECURITY-015`, `CORE-SECURITY-016`
+N/A: `CORE-ACCESS-011`, `CORE-INTERFACE-004`, `CORE-INTERFACE-008`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-MACHINE-013`, `CORE-OPERABILITY-007`, `CORE-OPERABILITY-011`, `CORE-SECURITY-009`, `CORE-SECURITY-010`, `CORE-SECURITY-015`, `CORE-SECURITY-016`
 
 ## Agentic Security & Trust
 
@@ -860,7 +860,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.22.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.23.0 · ruleset 2026.10 (digest `064828c79279`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

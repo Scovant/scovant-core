@@ -33,7 +33,7 @@ GATHERERS = package_source_root() / "scovant_core" / "gatherers"
 BODY_READING = {
     "agent_discovery", "agent_payments", "_http", "http", "llms", "machine_rep", "markdown",
     "mcp_discovery", "mcp_metadata", "oauth_metadata", "oauth", "openapi", "pages",
-    "policy_pages", "reference_integrity", "robots_txt", "security_txt", "sitemap",
+    "policy_pages", "reference_integrity", "representations", "robots_txt", "security_txt", "sitemap",
     "sitemap_urls", "soft_404", "ucp",
 }
 

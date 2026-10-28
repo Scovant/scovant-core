@@ -3,13 +3,13 @@
 ## Technical Readiness
 
 **Technical Readiness:** 57 / 100 · grade D · coverage 100% · model R2.1@7389c208c89e
-**Diagnostics (50 readiness checks):** 4 pass · 24 warn · 8 fail
+**Diagnostics (51 readiness checks):** 4 pass · 24 warn · 8 fail
 **Profile:** commerce (requested auto, confidence 85%)
 
 **Capabilities detected** (descriptive, not scored): mcp: absent · webmcp: absent · ucp: invalid · llms_txt: invalid · openapi: not_checked · oauth: not_checked · content_signal: invalid · security_txt: invalid
 **Standards:** AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 warn, 2 fail · SHOULD 4/12 measured — 3 warn, 1 fail · MAY none measured (0/3) — Mapping: docs/standards/agentready.md
 
-68 checks: 12 PASS, 26 WARN, 10 FAIL, 20 N/A, 0 ERROR
+69 checks: 12 PASS, 26 WARN, 10 FAIL, 21 N/A, 0 ERROR
 
 ## Top findings
 
@@ -713,7 +713,7 @@
 - **CORE-SECURITY-014** (PASS) — No indicators found.
 - **CORE-SECURITY-015** (PASS) — No indicators found.
 
-N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-OPERABILITY-007`, `CORE-SECURITY-009`, `CORE-SECURITY-010`, `CORE-SECURITY-016`, `CORE-SECURITY-017`, `CORE-SECURITY-018`
+N/A: `CORE-INTERFACE-004`, `CORE-INTERFACE-009`, `CORE-MACHINE-012`, `CORE-MACHINE-013`, `CORE-OPERABILITY-007`, `CORE-SECURITY-009`, `CORE-SECURITY-010`, `CORE-SECURITY-016`, `CORE-SECURITY-017`, `CORE-SECURITY-018`
 
 ## Agentic Security & Trust
 
@@ -839,7 +839,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.22.0 · ruleset 2026.10 (digest `e7426fb13abe`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.23.0 · ruleset 2026.10 (digest `064828c79279`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

@@ -1,4 +1,4 @@
-"""CORE-MACHINE-001..012: Machine Understanding checks."""
+"""CORE-MACHINE-001..013: Machine Understanding checks."""
 from __future__ import annotations
 
 from scovant_core.checks.machine.core_machine_001 import JsonLdParseability
@@ -13,6 +13,7 @@ from scovant_core.checks.machine.core_machine_009 import HeadingStructure
 from scovant_core.checks.machine.core_machine_010 import LanguageDeclaration
 from scovant_core.checks.machine.core_machine_011 import ImageAltCoverage
 from scovant_core.checks.machine.core_machine_012 import VisibleVsStructuredPrice
+from scovant_core.checks.machine.core_machine_013 import RepresentationParity
 
 MACHINE_CHECKS = [
     JsonLdParseability(),
@@ -27,6 +28,7 @@ MACHINE_CHECKS = [
     LanguageDeclaration(),
     ImageAltCoverage(),
     VisibleVsStructuredPrice(),
+    RepresentationParity(),
 ]
 
 __all__ = ["MACHINE_CHECKS"]

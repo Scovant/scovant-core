@@ -50,7 +50,7 @@ def test_list_and_explain(server):
     """Checks carry no weight, so neither list_checks nor explain_check
     carries one."""
     checks = json.loads(_call(server, "list_checks")[0].text)
-    assert len(checks) == 68
+    assert len(checks) == 69
     assert all(set(c) == {"id", "title", "category", "profiles", "experimental"} for c in checks)
     ex = json.loads(_call(server, "explain_check", check_id="CORE-MACHINE-007")[0].text)
     assert ex["id"] == "CORE-MACHINE-007" and ex["why_it_matters"] and ex["limitations"]

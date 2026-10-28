@@ -174,6 +174,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "--exclude", action="append", default=[], metavar="ID|CATEGORY",
         help="skip checks matching this id or category (repeatable)",
     )
+    scan_p.add_argument("--page", action="append", default=[], metavar="URL",
+                        help="with --experimental: also compare this page's Markdown/consolidated versions (repeatable)")
     scan_p.add_argument("--experimental", action="store_true", help="run the experimental checks too (scope CUSTOM; never contributed)")
     scan_p.add_argument(
         "--token-chars-ratio", type=_positive_token_chars_ratio, default=4, dest="token_chars_ratio",
@@ -332,6 +334,7 @@ def _run_scan(args: argparse.Namespace) -> int:
         token_chars_ratio=args.token_chars_ratio,
         allow_private_networks=args.allow_private_networks,
         site_type=args.site_type,
+        representation_pages=tuple(args.page),
     )
 
     # Validated up front, before any network I/O — `scan()` itself validates

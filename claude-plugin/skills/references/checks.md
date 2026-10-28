@@ -182,6 +182,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 | CORE-MACHINE-010 | Language declaration | all | low | no |
 | CORE-MACHINE-011 | Image alt coverage | commerce, content | medium | no |
 | CORE-MACHINE-012 | Visible vs. structured price | commerce | medium | yes |
+| CORE-MACHINE-013 | Agent representations match the HTML page | all | medium | yes |
 
 ### CORE-MACHINE-001 — JSON-LD parseability
 
@@ -335,6 +336,20 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 **References:**
 
 - <https://schema.org/price>
+
+### CORE-MACHINE-013 — Agent representations match the HTML page
+
+**Why it matters:** An agent that reads a site's Markdown or consolidated representation trusts it; a version that drops prices or links misleads the agent more than no version at all.
+
+**Status:** experimental · scored: no · reason: An agent that reads a site's Markdown or consolidated representation trusts it; a version that drops prices or links misleads the agent more than no version at all. · promotion: ≥ 300 canonical scans with at least one offered representation; a false-positive review of link and entity extraction on Markdown; stable FAIL/WARN rates across two consecutive corpus snapshots; then promotion out of experimental and a RULESET_VERSION bump.
+
+**Limitations:** Compares the homepage (and pages given with --page) only. Prices are recognised only with the symbols $ € £ ¥ or a short list of ISO codes; token figures are estimates.
+
+**Cloud extension:** Scovant Cloud compares the homepage and the site's most important page on every scan.
+
+**References:**
+
+- <https://www.rfc-editor.org/rfc/rfc7240>
 
 ## Agent Interfaces
 

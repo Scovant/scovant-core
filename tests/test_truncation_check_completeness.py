@@ -113,6 +113,14 @@ EXEMPT_CHECKS: dict[str, str] = {
         "what -009 already covers, so double-declaring the same cut here "
         "would be redundant rather than a real omission."
     ),
+    "CORE-MACHINE-013": (
+        "Representation parity. Reads only the per-variant statuses the "
+        "`representations` gatherer already decided; a variant whose HTML or "
+        "alternate body was cut off at the fetch cap is INCONCLUSIVE "
+        "(reason `truncated`) and never reaches a PASS/WARN/FAIL, so the "
+        "check cannot publish a verdict drawn from a partial read — it "
+        "reports ERROR instead."
+    ),
     "CORE-OPERABILITY-011": (
         "Discovery linkage. Reads only surface presence flags (from already-"
         "gathered records) and internal-link/reference URL lists — URLs, "

@@ -168,7 +168,7 @@ on its own.
 
 ## Check catalog
 
-Ruleset 2026.10 ships 68 checks: 50 readiness checks (7 of them
+Ruleset 2026.10 ships 69 checks: 51 readiness checks (8 of them
 `experimental`; see `docs/checks.md`) and 18 security checks (10
 experimental) that are never rated — see `docs/security.md`. The
 readiness checks fall into five themes:

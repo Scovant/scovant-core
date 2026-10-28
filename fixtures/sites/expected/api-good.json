@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.22.0",
+  "core_version": "0.23.0",
   "findings": [
     {
       "category": "access",
@@ -873,6 +873,30 @@
       "title": "Visible vs. structured price",
       "verification_mode": "PASSIVE_OBSERVED",
       "why_it_matters": "An agent that reads the structured price but a human-visible price disagrees will either quote the wrong number or abandon the page as untrustworthy."
+    },
+    {
+      "category": "machine",
+      "check_version": "1.0",
+      "cloud_extension": "Scovant Cloud compares the homepage and the site's most important page on every scan.",
+      "confidence": "high",
+      "evidence": {
+        "reason": "experimental_off"
+      },
+      "experimental": true,
+      "family_id": "",
+      "fix_owner": "",
+      "id": "CORE-MACHINE-013",
+      "limitations": "Compares the homepage (and pages given with --page) only. Prices are recognised only with the symbols $ € £ ¥ or a short list of ISO codes; token figures are estimates.",
+      "owasp_agentic": [],
+      "remediation": "",
+      "security_domain": "",
+      "security_tags": [],
+      "severity": "info",
+      "status": "N/A",
+      "summary": "Representation parity runs only with --experimental.",
+      "title": "Agent representations match the HTML page",
+      "verification_mode": "PASSIVE_OBSERVED",
+      "why_it_matters": "An agent that reads a site's Markdown or consolidated representation trusts it; a version that drops prices or links misleads the agent more than no version at all."
     },
     {
       "category": "operability",
@@ -2063,7 +2087,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.22.0",
+    "core_version": "0.23.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2075,11 +2099,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "e7426fb13abe",
+    "ruleset_digest": "064828c79279",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.22.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.23.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {

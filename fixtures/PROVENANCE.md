@@ -204,3 +204,5 @@ reporting it as a broken link.
 | sites/security-bad/terms.html | synthetic |
 | sites/security-bad/.well-known/ucp | synthetic (valid UCP profile, unrelated to the security checks) |
 | sites/security-bad/security.txt | synthetic (legacy `/security.txt` path, Expires in the past — CORE-SECURITY-006 FAIL) |
+| representations/scovant-home.html | recorded 2026-10-28 from https://scovant.com/ (the project's own site, published content), then sanitized: scripts other than JSON-LD, styles, noscript, stylesheet/preload links and iframes removed, HTML comments and the site-verification meta tag removed; the project's crawler name replaced with 'ExampleBot' |
+| representations/scovant-home.md | recorded 2026-10-28 from https://scovant.com/index.md (the same page's Markdown mirror), then sanitized: scripts other than JSON-LD, styles, noscript, stylesheet/preload links and iframes removed; the project's crawler name replaced with 'ExampleBot' |

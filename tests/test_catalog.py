@@ -59,7 +59,7 @@ def test_cli_checks_text_lists_every_check(capsys):
     assert main(["checks"]) == 0
     out = capsys.readouterr().out
     assert all(c.id in out for c in CHECKS)
-    assert "68 checks" in out
+    assert "69 checks" in out
 
 
 @pytest.mark.parametrize("argv", [["rules"], ["rules", "--json"], ["checks"], ["checks", "--json"]])

@@ -2,7 +2,7 @@
 
 # Checks ↔ readiness rules
 
-68 checks (50 readiness, 18 security) · 65 readiness rules (56 implemented in Core, 9 need Scovant Cloud's agent execution).
+69 checks (51 readiness, 18 security) · 65 readiness rules (56 implemented in Core, 9 need Scovant Cloud's agent execution).
 
 Core implements 56 of the 65 rules; its CLI gathers evidence for 47 today (9 of them only when the site publishes no MCP file). The other 9 read evidence this release does not gather (the WebMCP browser probe, instruction-supply registry lookups and the AI-bot policy block).
 
@@ -19,7 +19,7 @@ Checks are diagnostics: each reports its own verdict and evidence and carries no
 
 Experimental rules are reported but do not count toward the rating.
 
-Tally: 2 same_signal, 25 partial, 2 diagnostic_only, 39 no_rule.
+Tally: 2 same_signal, 25 partial, 2 diagnostic_only, 40 no_rule.
 
 ## Checks
 
@@ -57,6 +57,7 @@ Tally: 2 same_signal, 25 partial, 2 diagnostic_only, 39 no_rule.
 | CORE-MACHINE-010 | — | no_rule | lang attribute; no readiness rule reads it. |
 | CORE-MACHINE-011 | — | no_rule | Image alt coverage; no readiness rule reads it. |
 | CORE-MACHINE-012 | PRICE_MISMATCH | partial | Both compare visible and structured price; their visible-price extraction and matching differ. |
+| CORE-MACHINE-013 | — | no_rule | Representation parity; no readiness rule reads it (Cloud records it as unscored evidence). |
 | CORE-OPERABILITY-001 | JS_ONLY_CRITICAL_CONTENT | partial | Both read static visible text; the rule also fires on a low share of labelled controls (see OPERABILITY-006) and missing product signals. |
 | CORE-OPERABILITY-002 | — | no_rule | Redirect chain length; no readiness rule reads it. |
 | CORE-OPERABILITY-003 | — | no_rule | ETag/Last-Modified; no readiness rule reads them. |

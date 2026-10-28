@@ -8,7 +8,22 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
-Development only: the `dev` extra now admits pytest 9 (`<10`), pytest-cov 7 (`<8`) and twine 7 (`<8`), and pins ruff 0.17.0 and mypy 2.4.0. Runtime and optional (`mcp`, `tokens`) dependency ranges unchanged.
+## [0.23.0] - 2026-10-28
+
+`ruleset_version` UNCHANGED (`2026.10`); the ruleset digest changed with the new
+experimental check.
+
+Added: `scovant_core.representations` — a pure comparator (`html_facts`, `markdown_facts`,
+`compare`, `classify`) and a fetch-agnostic gatherer (`fetch_representations`,
+`variant_verdict`) for representation parity: does the `Accept: text/markdown` answer,
+the `.md` mirror or the `Prefer: return=consolidated` answer carry the HTML page's
+prices, in-content links and entities? Experimental check CORE-MACHINE-013 (runs only
+with `--experimental`; `--page URL` adds pages). The experimental part of the ruleset
+changed (new check); scored checks, model ids and the report `schema_version` are unchanged.
+
+Development only: the `dev` extra now admits pytest 9 (`<10`), pytest-cov 7 (`<8`) and
+twine 7 (`<8`), and pins ruff 0.17.0 and mypy 2.4.0. Runtime and optional (`mcp`,
+`tokens`) dependency ranges unchanged.
 
 ## [0.22.0] - 2026-10-24
 

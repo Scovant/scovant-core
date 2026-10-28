@@ -20,7 +20,7 @@ def test_checks_md_has_security_section_with_family_ids():
 
 def test_docs_state_counts_and_boundary():
     meth = (ROOT / "docs/methodology.md").read_text(encoding="utf-8")
-    assert "68 checks" in meth and "18 security checks" in meth and "are never rated" in meth
+    assert "69 checks" in meth and "18 security checks" in meth and "are never rated" in meth
     sec = (ROOT / "docs/security.md").read_text(encoding="utf-8")
     for must in ("PASSIVE SIGNALS ONLY", "Core MUST NOT", "MACHINE-DATA-005", "RFC 9116", "RFC 9728", "No failures were observed"):
         assert must in sec

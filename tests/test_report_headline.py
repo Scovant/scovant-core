@@ -60,7 +60,7 @@ def test_text_headline_ok(ok_report):
     assert _headline(render_text(ok_report)) == [
         "Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7389c208c89e",
         "Not measured by Core: MCP_DISCOVERY_INVALID (handshake_not_performed)",
-        "Diagnostics (50 readiness checks): 40 pass · 1 warn · 0 fail",
+        "Diagnostics (51 readiness checks): 40 pass · 1 warn · 0 fail",
     ]
 
 
@@ -136,7 +136,7 @@ def test_markdown_leads_with_technical_and_hides_categories(ok_report):
     assert "## Technical Readiness" in md
     assert "**Technical Readiness:** 82 / 100 · grade B · coverage 97% · model R2.1@7389c208c89e" in md
     assert "**Not measured by Core:** MCP_DISCOVERY_INVALID (handshake_not_performed)" in md
-    assert "**Diagnostics (50 readiness checks):** 40 pass · 1 warn · 0 fail" in md
+    assert "**Diagnostics (51 readiness checks):** 40 pass · 1 warn · 0 fail" in md
     assert "## Categories" not in md and "Static Signal Score" not in md
 
 
@@ -165,7 +165,7 @@ def _score_section(html: str) -> str:
 def test_html_headline_by_status(ok_report, degraded_report, insufficient_report, missing_report):
     ok = _score_section(render_html(ok_report))
     assert "<strong>Grade:</strong> B" in ok and "<strong>Status:</strong> OK" in ok
-    assert "<strong>Diagnostics (50 readiness checks):</strong> 40 pass · 1 warn · 0 fail" in ok
+    assert "<strong>Diagnostics (51 readiness checks):</strong> 40 pass · 1 warn · 0 fail" in ok
     degraded = _score_section(render_html(degraded_report))
     assert ">70 / 100</p>" in degraded
     assert "<strong>Status:</strong> DEGRADED" in degraded

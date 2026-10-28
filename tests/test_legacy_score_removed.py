@@ -36,7 +36,8 @@ SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed", "security-go
          "oauth-good", "oauth-bad")
 # The one value this release mints: the digest no longer folds in the
 # five-domain scoring constants. 0.18.0 published 7f440d6205c3.
-RULESET_DIGEST_0_19 = "e7426fb13abe"
+# PR-19 added CORE-MACHINE-013 (experimental), which re-mints it: e7426fb13abe -> 064828c79279.
+RULESET_DIGEST_0_19 = "064828c79279"
 BANNED = ("Static Signal", "Legacy", "five-domain", "Core Score", "weight", "25/25/20/15/15")
 
 

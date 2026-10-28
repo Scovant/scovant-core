@@ -59,14 +59,14 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> saas (requested auto, confidence 80%)</p>
-<p><strong>Core version:</strong> 0.22.0</p>
-<p>29 PASS, 12 WARN, 2 FAIL, 25 N/A, 0 ERROR (68 checks)</p>
+<p><strong>Core version:</strong> 0.23.0</p>
+<p>29 PASS, 12 WARN, 2 FAIL, 26 N/A, 0 ERROR (69 checks)</p>
 </section>
 <section id="score">
 <h2>Technical Readiness</h2>
 <p style="font-size:2.5rem;font-weight:700;">73 / 100</p>
 <p><strong>Grade:</strong> C &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 100% &middot; <strong>Model:</strong> <code>R2.1@7389c208c89e</code></p>
-<p><strong>Diagnostics (50 readiness checks):</strong> 22 pass · 8 warn · 0 fail</p>
+<p><strong>Diagnostics (51 readiness checks):</strong> 22 pass · 8 warn · 0 fail</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: absent · webmcp: absent · ucp: not_checked · llms_txt: absent · openapi: absent · oauth: invalid · content_signal: absent · security_txt: present</p>
 <p><strong>Standards:</strong> AgentReady v1.0 (descriptive, not scored): MUST 3/3 measured — 1 pass, 2 warn · SHOULD 4/12 measured — 4 warn · MAY none measured (0/3) — Mapping: docs/standards/agentready.md</p>
 </section>
@@ -134,7 +134,7 @@ a { color: #0969da; }
 <li><code>CORE-SECURITY-017</code> (WARN) — `authorization_servers` is missing, empty or not a list of URLs.</li>
 <li><code>CORE-SECURITY-018</code> (WARN) — `authorization_endpoint` is not declared. `token_endpoint` is not declared. PKCE with S256 is not advertised in `code_challenge_methods_supported` (the server may still enforce it; agents cannot discover that it does). The RFC 9207 `iss` authorization-response parameter is not advertised (the server may still enforce it; agents cannot discover that it does).</li>
 </ul>
-<p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-INTERFACE-009</code>, <code>CORE-MACHINE-012</code>, <code>CORE-OPERABILITY-007</code>, <code>CORE-OPERABILITY-011</code>, <code>CORE-SECURITY-009</code>, <code>CORE-SECURITY-010</code>, <code>CORE-SECURITY-015</code>, <code>CORE-SECURITY-016</code></p>
+<p>N/A: <code>CORE-ACCESS-011</code>, <code>CORE-INTERFACE-004</code>, <code>CORE-INTERFACE-008</code>, <code>CORE-INTERFACE-009</code>, <code>CORE-MACHINE-012</code>, <code>CORE-MACHINE-013</code>, <code>CORE-OPERABILITY-007</code>, <code>CORE-OPERABILITY-011</code>, <code>CORE-SECURITY-009</code>, <code>CORE-SECURITY-010</code>, <code>CORE-SECURITY-015</code>, <code>CORE-SECURITY-016</code></p>
 </section>
 <section id="evidence">
 <h2>Evidence</h2>
@@ -735,13 +735,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>2.1</dd>
-<dt>core_version</dt><dd>0.22.0</dd>
+<dt>core_version</dt><dd>0.23.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>e7426fb13abe</dd>
+<dt>ruleset_digest</dt><dd>064828c79279</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.22.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.23.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

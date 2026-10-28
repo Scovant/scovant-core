@@ -20,6 +20,8 @@ class ScanOptions:
     site_type: str | None = None
     # False skips the Technical Readiness pass (hosts that only need the checks).
     technical: bool = True
+    # CORE-MACHINE-013 (experimental): extra pages for representation parity.
+    representation_pages: tuple[str, ...] = ()
 
 
 @dataclass

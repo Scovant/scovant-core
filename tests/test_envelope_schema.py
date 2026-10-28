@@ -19,7 +19,7 @@ def good(**kw) -> dict:
          "verification_mode": "DECLARED", "status": "PASS", "maturity": "EXPERIMENTAL",
          "scored": False, "rule_id": None, "check_id": "CORE-ACCESS-001",
          "capability": "access.robots", "principal": {}, "intent": {}, "environment": "PUBLIC",
-         "observed_at": "2026-10-24T12:00:00+00:00", "collector_version": "0.22.0",
+         "observed_at": "2026-10-24T12:00:00+00:00", "collector_version": "0.23.0",
          "ruleset_version": None, "policy_id": None, "evidence": {}, "limitations": [],
          "fix_owner": None}
     d.update(kw)
