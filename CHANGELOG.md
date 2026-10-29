@@ -8,6 +8,12 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+MCP evidence gains the dual-era probe of the 2026-07-28 protocol: an optional
+`mcp.discover` block (`server/discover`: era, supported versions, capability keys,
+declared extensions) and `interface.probe_era` / `interface.protocol_version`.
+MCP-OBS-001 is not applicable to a server probed in the modern era, which carries the
+protocol version on every request; its result on every earlier input is unchanged.
+
 ## [0.23.0] - 2026-10-29
 
 `ruleset_version` UNCHANGED (`2026.10`); the ruleset digest changed with the new

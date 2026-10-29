@@ -594,6 +594,10 @@ class McpObservabilityMissingProtocolVersionHeader(CoreRule):
         interface = _interface(domain)
         if interface is None or not interface.get("ok"):
             return []
+        if interface.get("probe_era") == "modern":
+            # MCP 2026-07-28 carries the version on every request; a modern
+            # server is not required to echo the header.
+            return []
         if "response_headers" not in interface:
             # Evidence recorded before response headers were captured: never
             # guess on missing data.
@@ -633,7 +637,10 @@ class McpObservabilityMissingProtocolVersionHeader(CoreRule):
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        return _interface_measured(domain, ctx, need_ok=True, need_headers=True)
+        verdict = _interface_measured(domain, ctx, need_ok=True, need_headers=True)
+        if verdict is None and (_interface(domain) or {}).get("probe_era") == "modern":
+            return NA
+        return verdict
 
 
 @register_rule

@@ -150,12 +150,31 @@ class McpToolEvidence(TypedDict, total=False):
     deprecation: dict[str, Any] | None
 
 
+class McpDiscoverEvidence(TypedDict, total=False):
+    """`server/discover` (MCP 2026-07-28) sent before the legacy initialize.
+    `era`: `modern` (answered, or a recognised modern error), `legacy` (fell
+    back to initialize), `unknown` (authorization demanded). Extension
+    settings keep scalar values only; nested values read `"<nested>"`."""
+    attempted: bool
+    ok: bool
+    status: int | None
+    error: str | None
+    era: str
+    requested_version: str | None
+    supported_versions: list[str]
+    capabilities_keys: list[str]
+    extensions: dict[str, dict[str, Any]]
+    extensions_truncated: bool
+    instructions_present: bool
+
+
 class McpInterfaceEvidence(TypedDict, total=False):
     """The tool inventory (`tools/list`) read after a successful handshake —
     no tool is ever called. `server_info`, `response_headers` and
     `init_status` describe the initialize answer; evidence recorded before
     headers were captured has no `response_headers` key. `tool_count` is the
-    server's real count, `tools` the capped list."""
+    server's real count, `tools` the capped list. `probe_era` /
+    `protocol_version` exist only when the dual-era probe ran."""
     attempted: bool
     ok: bool
     server_info: dict[str, str | None] | None
@@ -168,6 +187,8 @@ class McpInterfaceEvidence(TypedDict, total=False):
     auth_required: bool
     transport: str
     mode: str
+    probe_era: str
+    protocol_version: str | None
 
 
 class McpOAuthEvidence(TypedDict, total=False):
@@ -191,6 +212,7 @@ class McpEvidence(TypedDict, total=False):
     server_card: bool | None           # /.well-known/mcp/server-card(s).json; None = read cut off
     server_card_truncated: bool
     handshake: McpHandshakeEvidence
+    discover: McpDiscoverEvidence
     interface: McpInterfaceEvidence
     oauth: McpOAuthEvidence
 
