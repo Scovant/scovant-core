@@ -101,8 +101,30 @@ def test_public_meta_drops_the_body():
     assert "body" not in meta and meta["bytes"] == len(MD)
 
 
-def test_body_cap_is_512_kib():
-    assert REPR_BODY_CAP == 512 * 1024
+def test_body_cap_is_2_mib():
+    # Real documentation HTML runs 0.55-1.4 MB uncompressed; at 512 KiB a
+    # fifth of all comparisons came back INCONCLUSIVE/truncated.
+    assert REPR_BODY_CAP == 2 * 1024 * 1024
+
+
+def test_cli_fetch_reads_up_to_the_body_cap():
+    # The CLI gatherer's SecureClient applies its own per-kind read limit
+    # first; a kind smaller than REPR_BODY_CAP would truncate before Cloud does.
+    from types import SimpleNamespace
+
+    from scovant_core.gatherers.representations import _fetcher
+    from scovant_core.security.policy import SecurityPolicy
+
+    kinds = []
+
+    class _Client:
+        def fetch(self, url, *, kind, headers=None):
+            kinds.append(kind)
+            return SimpleNamespace(text="x", status=200, content_type="text/html", headers={},
+                                   bytes_len=1, elapsed_ms=1, truncated=False, final_url=url)
+
+    _fetcher(_Client())(PAGE, {})
+    assert kinds and SecurityPolicy().limit_for(kinds[0]) >= REPR_BODY_CAP
 
 
 def test_markdown_mirror_with_leading_html_comment_is_compared():

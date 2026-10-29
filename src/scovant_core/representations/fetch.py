@@ -29,7 +29,7 @@ VARIANT_HEADERS: dict[str, dict[str, str]] = {
     "consolidated": {"Accept": "text/markdown;q=0.9, text/html;q=0.8",
                      "Prefer": "return=consolidated"},
 }
-REPR_BODY_CAP = 512 * 1024
+REPR_BODY_CAP = 2 * 1024 * 1024
 
 _EMPTY = {"status": None, "content_type": "", "vary": None, "preference_applied": None,
           "bytes": 0, "latency_ms": 0, "truncated": False, "final_url": None, "body": None,

@@ -20,6 +20,9 @@ the `.md` mirror or the `Prefer: return=consolidated` answer carry the HTML page
 prices, in-content links and entities? Experimental check CORE-MACHINE-013 (runs only
 with `--experimental`; `--page URL` adds pages). The experimental part of the ruleset
 changed (new check); scored checks, model ids and the report `schema_version` are unchanged.
+Links compare by page, so a Markdown answer's link to another page's Markdown twin
+(`/x.md`, `/x/index.md`) covers the HTML link to `/x`. Bodies are read up to 2 MiB
+(`REPR_BODY_CAP`); the CLI reads representations with the `html` size limit.
 
 Development only: the `dev` extra now admits pytest 9 (`<10`), pytest-cov 7 (`<8`) and
 twine 7 (`<8`), and pins ruff 0.17.0 and mypy 2.4.0. Runtime and optional (`mcp`,

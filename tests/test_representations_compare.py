@@ -155,3 +155,28 @@ def test_price_scan_hitting_the_cap_is_not_applicable(monkeypatch):
 def test_missing_prices_list_stays_capped():
     c = compare(html_facts(_many_prices_html(30), PAGE), markdown_facts("# Catalog\n", PAGE))
     assert len(c["prices"]["missing"]) == 5
+
+
+# Markdown representations link to the Markdown representation of other pages
+# (`/docs/x.md`, `/index.md`), the shape real documentation sites' Markdown
+# answers use; the HTML links to `/docs/x`. Both are the same page.
+DOCS_PAGE = "https://docs.example.test/"
+DOCS_HTML = """<!doctype html><html><body><main><h1>Docs</h1>
+<a href="/get-started/installation">Install</a>
+<a href="/deploy/web">Deploy to the web</a>
+<a href="/guides/">Guides</a>
+<a href="/">Home</a></main></body></html>"""
+DOCS_MD = """# Docs
+
+- [Install](https://docs.example.test/get-started/installation.md)
+- [Deploy to the web](https://docs.example.test/deploy/web.md#export-your-web-project)
+- [Guides](/guides/index.md)
+- [Home](/index.md)
+"""
+
+
+def test_links_to_markdown_twins_cover_the_html_links():
+    c = compare(html_facts(DOCS_HTML, DOCS_PAGE), markdown_facts(DOCS_MD, DOCS_PAGE))
+    assert c["links"]["covered_pct"] == 100.0
+    assert c["links"]["missing_examples"] == []
+

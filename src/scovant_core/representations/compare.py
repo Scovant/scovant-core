@@ -51,7 +51,14 @@ def _norm_url(href: str | None, base: str) -> str | None:
     parts = urlsplit(urljoin(base, h))
     if parts.scheme not in ("http", "https") or not parts.netloc:
         return None
-    path = parts.path.rstrip("/") or "/"
+    path = parts.path
+    # A Markdown answer links to other pages' Markdown twins (`/x.md`,
+    # `/x/index.md`, `/index.md`); the HTML links to `/x`. Same page.
+    if path.endswith("/index.md"):
+        path = path[: -len("index.md")]
+    elif path.endswith(".md") and not path.endswith("/.md"):
+        path = path[: -len(".md")]
+    path = path.rstrip("/") or "/"
     return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, parts.query, ""))
 
 

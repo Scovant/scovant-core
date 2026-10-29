@@ -21,7 +21,7 @@ def _fetcher(client: SecureClient):
     def fetch(url: str, headers: dict) -> dict:
         t0 = time.monotonic()
         try:
-            res = client.fetch(url, kind="text", headers=headers or None)
+            res = client.fetch(url, kind="html", headers=headers or None)  # 5 MiB read limit ≥ REPR_BODY_CAP
         except FetchError as exc:
             return {"error": exc.kind}
         body = res.text or ""
