@@ -40,6 +40,8 @@ _CHROME_TAGS = ("nav", "header", "footer", "aside")
 _MD_LINK = re.compile(r"\[[^\]]*\]\(\s*<?([^)\s>]+)")
 _MD_AUTOLINK = re.compile(r"<(https?://[^>\s]+)>|(?<![(\[<])\bhttps?://[^\s)\]>]+")
 _MD_HEADING = re.compile(r"^#{1,3}[ \t]+(.+?)[ \t]*#*[ \t]*$", re.MULTILINE)
+# Fenced blocks and inline code spans: `$1` in a code sample is not a price.
+_MD_CODE = re.compile(r"^(```|~~~).*?^\1[^\n]*$|`[^`\n]+`", re.M | re.S)
 
 
 def _norm_url(href: str | None, base: str) -> str | None:
@@ -150,6 +152,8 @@ def html_facts(html: str, page_url: str) -> dict:
     headings = {_norm_text(h.get_text(" ")) for h in soup.find_all(["h1", "h2", "h3"])}
     mentions = {u for a in soup.find_all("a", href=True) if (u := _norm_url(_attr(a, "href"), page_url))}
     text = _norm_text(soup.get_text(" "))
+    for tag in soup.find_all(["code", "pre", "kbd", "samp"]):
+        tag.decompose()  # `$1` in a code sample is not a price
     visible, capped = _visible_prices(soup.get_text(" "))
     return {
         "links": {u for u in mentions if _content_link(u, page_url)},
@@ -168,7 +172,7 @@ def markdown_facts(md: str, page_url: str) -> dict:
     raw_links += [m.group(1) or m.group(0) for m in _MD_AUTOLINK.finditer(md)]
     mentions = {u for u in (_norm_url(h, page_url) for h in raw_links) if u}
     headings = {_norm_text(h) for h in _MD_HEADING.findall(md)}
-    prices, capped = _visible_prices(md)
+    prices, capped = _visible_prices(_MD_CODE.sub(" ", md))
     return {
         "links": {u for u in mentions if _content_link(u, page_url)},
         "entities": {h for h in headings if h},

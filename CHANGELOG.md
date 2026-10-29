@@ -8,7 +8,7 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
-## [0.23.0] - 2026-10-28
+## [0.23.0] - 2026-10-29
 
 `ruleset_version` UNCHANGED (`2026.10`); the ruleset digest changed with the new
 experimental check.
@@ -26,6 +26,10 @@ Links compare by page, so a Markdown answer's link to another page's Markdown tw
 Link coverage leaves out the page itself, the site root, account pages (login,
 register, sign-up) and ask-an-AI buttons (a prompt link to an AI assistant); they
 still count for attribution.
+A variant that redirects to another host of the same registrable domain
+(`example.com` → `app.example.com`) is compared, not set aside as a cross-site
+redirect. Dollar signs inside code (Markdown code spans and fenced blocks, HTML
+`code`/`pre`) are not read as prices.
 
 Development only: the `dev` extra now admits pytest 9 (`<10`), pytest-cov 7 (`<8`) and
 twine 7 (`<8`), and pins ruff 0.17.0 and mypy 2.4.0. Runtime and optional (`mcp`,

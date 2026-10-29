@@ -20,6 +20,7 @@ from scovant_core.representations.compare import (
     html_facts,
     markdown_facts,
 )
+from scovant_core.security.tld import tld_extractor
 
 VARIANTS = ("markdown", "mirror", "consolidated")
 VARIANT_HEADERS: dict[str, dict[str, str]] = {
@@ -61,8 +62,14 @@ def public_fetch_meta(f: dict) -> dict:
     return {k: v for k, v in f.items() if k != "body"}
 
 
-def _host(url: str | None) -> str:
+def _site(url: str | None) -> str:
+    """The registrable domain (eTLD+1), so a hop to a subdomain of the same site
+    (`example.com` → `app.example.com`) is not a cross-site redirect. A host
+    without a public suffix falls back to the hostname minus `www.`."""
     h = (urlsplit(url or "").hostname or "").lower()
+    ext = tld_extractor(h)
+    if ext.suffix and ext.domain:
+        return f"{ext.domain}.{ext.suffix}"
     return h[4:] if h.startswith("www.") else h
 
 
@@ -96,7 +103,7 @@ def variant_verdict(html: dict, alt: dict, *, variant: str, page_url: str) -> di
         return v("INCONCLUSIVE" if alt["error"] == "undecodable" else "NOT_MEASURED", alt["error"])
     if not _ok(alt.get("status")):
         return v("NA", "not_offered")
-    if _host(alt.get("final_url") or page_url) != _host(page_url):
+    if _site(alt.get("final_url") or page_url) != _site(page_url):
         return v("NA", "cross_site_redirect")
     # The alternate's not-applicable checks read only its status, headers and
     # the START of its body, so they come before truncation: a large (often

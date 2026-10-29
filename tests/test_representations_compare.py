@@ -225,3 +225,18 @@ def test_the_canonical_self_link_still_counts_as_attribution():
     c = compare(html_facts(html, SCOPE_PAGE),
                 markdown_facts("# TV\n\n[source](https://docs.example.test/guides/tv/)", SCOPE_PAGE))
     assert c["attribution"] is True
+
+
+def test_dollar_in_code_is_not_a_price():
+    md = ("# Notes\n\nReplace with `[@$1](https://github.test/$1)`.\n\n"
+          "```sh\nsed 's/x/$2/'\necho $1\n```\n")
+    assert markdown_facts(md, PAGE)["prices"] == set()
+    html = "<html><body><main><p>Use <code>$1</code></p><pre>echo $2</pre></main></body></html>"
+    assert html_facts(html, PAGE)["prices"] == set()
+
+
+def test_price_outside_code_still_counts():
+    md = "# Widget\n\nOnly $89.99 today. Run `echo $1`.\n"
+    assert markdown_facts(md, PAGE)["prices"] == {89.99}
+    html = "<html><body><main><p>Only $89.99</p><code>$1</code></main></body></html>"
+    assert html_facts(html, PAGE)["prices"] == {89.99}

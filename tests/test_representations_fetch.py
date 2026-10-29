@@ -194,3 +194,19 @@ def test_other_fetcher_exceptions_are_still_fetch_failed():
         raise RuntimeError("boom")
     out = fetch_representations(fetch, PAGE)
     assert {v["error"] for v in out.values()} == {"fetch_failed"}
+
+
+def test_subdomain_of_the_same_site_is_not_cross_site():
+    page = "https://example.com/"
+    md = "# Blue Widget\n\n$89.99\n\n[r](https://example.com/p/widget/reviews)\n"
+    html = _f(HTML.replace("https://shop.test/p/widget", page), ctype="text/html", final=page)
+    v = variant_verdict(html, _f(md, final="https://app.example.com/index.md"), variant="mirror", page_url=page)
+    assert v["reason"] != "cross_site_redirect"
+
+
+def test_another_registrable_domain_is_cross_site():
+    page = "https://example.co.uk/"
+    html = _f(HTML, ctype="text/html", final=page)
+    for final in ("https://example.org/index.md", "https://example.net/index.md"):
+        v = variant_verdict(html, _f(MD, final=final), variant="mirror", page_url=page)
+        assert (v["status"], v["reason"]) == ("NA", "cross_site_redirect"), final
