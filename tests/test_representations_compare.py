@@ -180,3 +180,48 @@ def test_links_to_markdown_twins_cover_the_html_links():
     assert c["links"]["covered_pct"] == 100.0
     assert c["links"]["missing_examples"] == []
 
+
+
+# Links that are not content a Markdown answer is expected to carry: the page
+# itself, the site root, account pages, and "ask an AI about this page" buttons.
+SCOPE_PAGE = "https://docs.example.test/guides/tv/"
+# Ask-an-AI links are built from the module's own table, so the test names no
+# third-party host and still covers every entry.
+from scovant_core.representations import compare as _cmp_mod  # noqa: E402
+
+_ASK_AI_LINKS = "".join(
+    f'<a href="https://{host}{prefix.rstrip("/")}/x?q=Read%20this">ask</a>\n'
+    for host, prefix in _cmp_mod._ASK_AI.items())
+SCOPE_HTML = f"""<!doctype html><html><body><main><h1>TV</h1>
+<a href="/">Docs home</a>
+<a href="/guides/tv/">This page</a>
+<a href="https://dashboard.example.test/login?redirect=x">Log in</a>
+<a href="https://dashboard.example.test/register/billing">Sign up</a>
+{_ASK_AI_LINKS}<a href="/guides/tv/remote">Remote control</a></main></body></html>"""
+
+
+def test_self_root_account_and_ask_ai_links_are_out_of_scope():
+    c = compare(html_facts(SCOPE_HTML, SCOPE_PAGE), markdown_facts("[Remote](/guides/tv/remote)", SCOPE_PAGE))
+    assert c["links"]["base_n"] == 1
+    assert c["links"]["covered_pct"] == 100.0
+
+
+def test_a_content_link_is_still_required():
+    c = compare(html_facts(SCOPE_HTML, SCOPE_PAGE), markdown_facts("# TV\n", SCOPE_PAGE))
+    assert c["links"]["covered_pct"] == 0.0
+    assert c["links"]["missing_examples"] == ["https://docs.example.test/guides/tv/remote"]
+
+
+def test_ask_ai_host_without_a_prompt_is_an_ordinary_link():
+    host = next(h for h, prefix in _cmp_mod._ASK_AI.items() if prefix == "/")
+    html = f'<main><h1>x</h1><a href="https://{host}/">assistant</a></main>'
+    c = compare(html_facts(html, SCOPE_PAGE), markdown_facts("# x\n", SCOPE_PAGE))
+    assert c["links"]["base_n"] == 1
+
+
+def test_the_canonical_self_link_still_counts_as_attribution():
+    html = ('<html><head><link rel="canonical" href="https://docs.example.test/guides/tv/"></head>'
+            '<body><main><h1>TV</h1></main></body></html>')
+    c = compare(html_facts(html, SCOPE_PAGE),
+                markdown_facts("# TV\n\n[source](https://docs.example.test/guides/tv/)", SCOPE_PAGE))
+    assert c["attribution"] is True

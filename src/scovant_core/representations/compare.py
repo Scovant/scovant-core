@@ -62,6 +62,28 @@ def _norm_url(href: str | None, base: str) -> str | None:
     return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, parts.query, ""))
 
 
+# Links a Markdown answer is not expected to carry: account pages and
+# "ask an AI about this page" buttons (a prompt in the query string).
+_ACCOUNT_SEGMENTS = frozenset({"login", "log-in", "signin", "sign-in", "logout", "register",
+                               "signup", "sign-up"})
+_ASK_AI = {"chatgpt.com": "/", "chat.openai.com": "/", "claude.ai": "/", "v0.app": "/",
+           "v0.dev": "/", "perplexity.ai": "/", "www.perplexity.ai": "/",
+           "cursor.com": "/link/prompt"}
+
+
+def _content_link(url: str, page_url: str) -> bool:
+    """False for the page itself, its site root, account pages and ask-an-AI
+    buttons; those stay in `mentions` (attribution) but leave link coverage."""
+    page = _norm_url(page_url, page_url)
+    p = urlsplit(url)
+    if url == page or (p.path == "/" and not p.query and p.netloc == urlsplit(page or "").netloc):
+        return False
+    if any(seg.lower() in _ACCOUNT_SEGMENTS for seg in p.path.split("/")):
+        return False
+    prefix = _ASK_AI.get(p.netloc)
+    return not (prefix is not None and p.query and p.path.startswith(prefix))
+
+
 def _norm_text(s: str) -> str:
     return " ".join(re.sub(r"[^\w\s]", " ", s.lower()).split())
 
@@ -126,36 +148,36 @@ def html_facts(html: str, page_url: str) -> dict:
     for tag in soup.find_all(["script", "style", "noscript", "template"]):
         tag.decompose()
     headings = {_norm_text(h.get_text(" ")) for h in soup.find_all(["h1", "h2", "h3"])}
-    links = {u for a in soup.find_all("a", href=True) if (u := _norm_url(_attr(a, "href"), page_url))}
+    mentions = {u for a in soup.find_all("a", href=True) if (u := _norm_url(_attr(a, "href"), page_url))}
     text = _norm_text(soup.get_text(" "))
     visible, capped = _visible_prices(soup.get_text(" "))
     return {
-        "links": links,
+        "links": {u for u in mentions if _content_link(u, page_url)},
         "entities": {e for e in names | headings if e},
         "prices": visible | struct_prices,
         "prices_capped": capped,
         "text": text,
         "bytes": len(html.encode("utf-8", errors="replace")),
         "canonical": canonical,
-        "mentions": links,
+        "mentions": mentions,
     }
 
 
 def markdown_facts(md: str, page_url: str) -> dict:
     raw_links = [m.group(1) for m in _MD_LINK.finditer(md)]
     raw_links += [m.group(1) or m.group(0) for m in _MD_AUTOLINK.finditer(md)]
-    links = {u for u in (_norm_url(h, page_url) for h in raw_links) if u}
+    mentions = {u for u in (_norm_url(h, page_url) for h in raw_links) if u}
     headings = {_norm_text(h) for h in _MD_HEADING.findall(md)}
     prices, capped = _visible_prices(md)
     return {
-        "links": links,
+        "links": {u for u in mentions if _content_link(u, page_url)},
         "entities": {h for h in headings if h},
         "prices": prices,
         "prices_capped": capped,
         "text": _norm_text(md),
         "bytes": len(md.encode("utf-8", errors="replace")),
         "canonical": None,
-        "mentions": links,
+        "mentions": mentions,
     }
 
 
