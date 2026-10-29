@@ -8,6 +8,11 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.24.0] - 2026-10-29
+
+`ruleset_version` UNCHANGED (`2026.10`); scored checks, model ids and the report
+`schema_version` are unchanged.
+
 MCP evidence gains the dual-era probe of the 2026-07-28 protocol: an optional
 `mcp.discover` block (`server/discover`: era, supported versions, capability keys,
 declared extensions) and `interface.probe_era` / `interface.protocol_version`.

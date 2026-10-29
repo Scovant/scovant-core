@@ -29,7 +29,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.23.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.23.0/constraints/constraints-0.23.0.txt
+    pip install "scovant-core==0.24.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.24.0/constraints/constraints-0.24.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -64,7 +64,7 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.23.0
+Core version: 0.24.0
 
 Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7389c208c89e
 Not measured by Core: MCP_DISCOVERY_INVALID (handshake_not_performed)
@@ -295,7 +295,7 @@ Which readiness rules read the same signal as each check:
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.23.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.24.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
