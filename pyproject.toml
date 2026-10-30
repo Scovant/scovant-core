@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10", "pytest-cov>=5,<8", "ruff==0.17.0", "jsonschema>=4.20,<5", "mypy==2.4.0", "twine>=5,<8", "pyyaml>=6,<7", "tiktoken>=0.7,<1"]
+dev = ["pytest>=8,<10", "pytest-cov>=5,<8", "ruff==0.17.2", "jsonschema>=4.20,<5", "mypy==2.4.0", "twine>=5,<8", "pyyaml>=6,<7", "tiktoken>=0.7,<1"]
 mcp = ["mcp>=2.2,<3"]
 # Counts tokens for PAGE_TOKEN_BLOAT with the bundled o200k_base vocabulary (never downloaded).
 tokens = ["tiktoken>=0.7,<1"]
