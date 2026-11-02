@@ -8,6 +8,17 @@ out explicitly because scores are only comparable within one ruleset version.
 
 `ruleset_version` UNCHANGED.
 
+## [0.24.1] - 2026-11-02
+
+`ruleset_version` UNCHANGED (`2026.10`); checks, scores and the report
+`schema_version` are unchanged.
+
+Listing metadata for the official MCP Registry: a `server.json` at the package
+root (`io.github.Scovant/scovant-core`, run with `uvx scovant-core mcp`) and the
+`mcp-name` marker in the README that the registry checks on PyPI. A second
+console script, `scovant-core`, is the same command as `scovant`, so
+`uvx scovant-core scan <url>` works without `--from`.
+
 ## [0.24.0] - 2026-10-29
 
 `ruleset_version` UNCHANGED (`2026.10`); scored checks, model ids and the report

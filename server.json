@@ -1,0 +1,27 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Scovant/scovant-core",
+  "title": "Scovant Core",
+  "description": "Passive AI-agent readiness scan of a website: robots, llms.txt, JSON-LD, MCP discovery, security.",
+  "repository": {
+    "url": "https://github.com/Scovant/scovant-core",
+    "source": "github"
+  },
+  "websiteUrl": "https://scovant.com/open-source",
+  "version": "0.24.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "scovant-core",
+      "version": "0.24.1",
+      "runtimeHint": "uvx",
+      "runtimeArguments": [
+        {"type": "named", "name": "--with", "value": "mcp>=2.2,<3"}
+      ],
+      "packageArguments": [
+        {"type": "positional", "value": "mcp"}
+      ],
+      "transport": {"type": "stdio"}
+    }
+  ]
+}

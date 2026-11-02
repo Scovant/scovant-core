@@ -39,9 +39,13 @@ def test_plugin_version_is_the_package_version():
 
 
 def test_plugin_json_uses_only_stable_fields():
-    allowed = {"name", "version", "description", "author", "repository", "license", "keywords", "skills", "mcpServers"}
+    # privacyPolicyUrl: Anthropic's directory flags a plugin that connects to a
+    # remote MCP server without one (claude plugin validate --strict, 2026-11-02).
+    allowed = {"name", "version", "description", "author", "repository", "license", "keywords", "skills",
+               "mcpServers", "privacyPolicyUrl"}
     pj = _plugin_json()
     assert set(pj) <= allowed, set(pj) - allowed
+    assert pj["privacyPolicyUrl"] == "https://scovant.com/privacy"
     assert pj["name"] == "scovant" and pj["skills"] == "./skills/" and pj["mcpServers"] == "./.mcp.json"
 
 
