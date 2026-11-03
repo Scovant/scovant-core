@@ -99,3 +99,16 @@ def test_no_skill_tells_the_agent_to_report_or_sort_by_weight():
     for p in PLUGIN.glob("skills/*/SKILL.md"):
         text = p.read_text(encoding="utf-8")
         assert not re.search(r"\bweight\b", text, re.IGNORECASE), f"{p} still mentions weight"
+
+
+def test_plugin_ships_a_directory_icon():
+    """Anthropic's directory takes the listing icon ONCE, at the first save or
+    submission: a square PNG, 512–2048 px a side, under 2 MB (claude plugin
+    validate --strict, 2026-11-02). Owner chose variant C of the stack mark."""
+    import struct
+    icon = PLUGIN / ".claude-plugin" / "icon.png"
+    data = icon.read_bytes()
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    width, height = struct.unpack(">II", data[16:24])
+    assert width == height and 512 <= width <= 2048
+    assert len(data) < 2 * 1024 * 1024
