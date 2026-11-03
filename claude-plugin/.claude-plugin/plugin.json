@@ -3,9 +3,13 @@
   "version": "0.24.1",
   "description": "Scan a website for passive AI-agent readiness signals with Scovant Core, explain any check offline, gate CI, and (with your own API key) trigger Scovant Cloud scans and read regressions.",
   "author": { "name": "Scovant", "email": "bot@scovant.com" },
+  "homepage": "https://scovant.com/open-source",
   "repository": "https://github.com/Scovant/scovant-core",
   "license": "Apache-2.0",
+  "documentationUrl": "https://github.com/Scovant/scovant-core/tree/main/claude-plugin#readme",
+  "supportUrl": "https://scovant.com/contact",
   "privacyPolicyUrl": "https://scovant.com/privacy",
+  "termsOfServiceUrl": "https://scovant.com/terms",
   "keywords": ["ai-agents", "agent-readiness", "llms-txt", "robots-txt", "mcp", "structured-data"],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"

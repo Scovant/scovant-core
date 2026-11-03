@@ -41,11 +41,21 @@ def test_plugin_version_is_the_package_version():
 def test_plugin_json_uses_only_stable_fields():
     # privacyPolicyUrl: Anthropic's directory flags a plugin that connects to a
     # remote MCP server without one (claude plugin validate --strict, 2026-11-02).
+    # homepage + the other three *Url fields fill the directory listing's links
+    # (manifest reference "Directory listing fields", 2026-11-03).
+    listing = {
+        "homepage": "https://scovant.com/open-source",
+        "documentationUrl": "https://github.com/Scovant/scovant-core/tree/main/claude-plugin#readme",
+        "supportUrl": "https://scovant.com/contact",
+        "privacyPolicyUrl": "https://scovant.com/privacy",
+        "termsOfServiceUrl": "https://scovant.com/terms",
+    }
     allowed = {"name", "version", "description", "author", "repository", "license", "keywords", "skills",
-               "mcpServers", "privacyPolicyUrl"}
+               "mcpServers", *listing}
     pj = _plugin_json()
     assert set(pj) <= allowed, set(pj) - allowed
-    assert pj["privacyPolicyUrl"] == "https://scovant.com/privacy"
+    for key, url in listing.items():
+        assert pj[key] == url, key
     assert pj["name"] == "scovant" and pj["skills"] == "./skills/" and pj["mcpServers"] == "./.mcp.json"
 
 
