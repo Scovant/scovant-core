@@ -2,17 +2,26 @@
 Cloud: the /.well-known/ucp profile, its checkout capability and signing
 keys, and agent payment protocols beyond UCP.
 
-The findings' text and metadata are the ones Scovant Cloud has always
-reported for these codes; `measure` says when silence is a pass. UCP is
+Since rule version 2.0 (Core 0.25.0) every rule reads the profile as a UCP
+v2026-08-25 business profile — the parser's `v2026` block, validated against
+the vendored official schemas (`parsers/ucp_schemas/v2026-08-25`, facts in
+its FACTS.md) — and no longer the parser's older legacy keys. A profile is
+*usable* when it is schema-valid AND declares the current release or an
+earlier announced one; a profile declaring a later release than we vendor is
+never judged (NOT_MEASURED). `measure` says when silence is a pass. UCP is
 scored only for the site types that transact or sell access
-(`UCP_APPLICABLE_SITE_TYPES`); the checkout and payment rules only for the
-types that check out (`UCP_CHECKOUT_SITE_TYPES`).
+(`UCP_APPLICABLE_SITE_TYPES`); the checkout and payment rules only where the
+transactional_checkout capability is established — by default the types that
+check out (`UCP_CHECKOUT_SITE_TYPES`), or any site whose usable profile declares
+checkout or that offers another agent payment rail. `evaluate` and `measure`
+share that one predicate (`_checkout_gate`), so a rule is never measured but
+silent. A body over our read bound is never judged either.
 """
 from __future__ import annotations
 
+from scovant_core.parsers.ucp import UCP_USABLE_VERSION_STATES, ucp_profile_state
 from scovant_core.r2 import OutcomeState
 from scovant_core.rules.base import CoreRule, Finding, MeasureCtx, probe_measured, register_rule
-from scovant_core.rules.products import _gated
 
 # Site types for which a UCP profile is relevant. For every other type the
 # ucp category is not scored at all (the R2 public policy's ucp profile is
@@ -24,24 +33,81 @@ UCP_CHECKOUT_SITE_TYPES: frozenset[str] = frozenset({"commerce", "booking", "res
 _UCP_REMEDIATION_BASE = (
     "The Universal Commerce Protocol (UCP) is an open Apache-2.0 standard at "
     "ucp.dev for agentic commerce. It lets AI agents autonomously discover "
-    "your capabilities (Checkout, Order, Identity Linking, Payment Token "
-    "Exchange) and transact securely on behalf of users."
+    "your capabilities (Checkout, Cart, Order, Identity Linking) and transact "
+    "securely on behalf of users."
 )
 
+# A minimal current business profile (UCP v2026-08-25): `ucp.version`,
+# `ucp.services` and `ucp.payment_handlers` are required; transports are
+# lowercase; `keys` is optional and public-only. It validates as a usable
+# profile with the checkout capability (pinned by the rule tests).
+_CURRENT_PROFILE_EXAMPLE = (
+    "{\n"
+    '  "ucp": {\n'
+    '    "version": "2026-08-25",\n'
+    '    "services": {\n'
+    '      "dev.ucp.shopping": [\n'
+    '        {"version": "2026-08-25", "transport": "rest", "endpoint": "https://example.com/ucp/v1"}\n'
+    "      ]\n"
+    "    },\n"
+    '    "capabilities": {\n'
+    '      "dev.ucp.shopping.checkout": [\n'
+    '        {"version": "2026-08-25", "schema": "https://ucp.dev/2026-08-25/schemas/shopping/checkout.json"}\n'
+    "      ]\n"
+    "    },\n"
+    '    "payment_handlers": {}\n'
+    "  },\n"
+    '  "keys": [\n'
+    '    {"kid": "2026-k1", "kty": "EC", "crv": "P-256", "alg": "ES256", "x": "...", "y": "..."}\n'
+    "  ]\n"
+    "}"
+)
 
-def _published(domain: dict | None, ctx: MeasureCtx, *, types: frozenset[str] | None,
-               need_valid: bool) -> OutcomeState | None:
-    """Measured when the site published a profile (a valid one, if asked)."""
-    if types is not None and ctx.site_category not in types:
-        return OutcomeState.NA
-    verdict = probe_measured(domain, ctx, "ucp")
+_USABLE_VERSION_STATES = UCP_USABLE_VERSION_STATES
+# Served, but never judged: a later release, a pre-v2026 snapshot, a body over our read bound.
+_NOT_JUDGED = frozenset({"future", "unread", "oversized"})
+_VERSION_SHOWN = 32
+
+
+def _checkout_gate(code: str, domain: dict | None, ctx: MeasureCtx | None = None) -> OutcomeState | None:
+    """N/A when the checkout rules do not apply, else None — the ONE predicate
+    `evaluate` and `measure` share: the transactional_checkout capability flag.
+    `measure` uses the host's flags when it derived them; otherwise (and always
+    in `evaluate`, which has no context) the flag is derived the same way from
+    the site type and this domain evidence (`derive_capabilities`; the flag
+    reads no page evidence)."""
+    from scovant_core.capabilities import (  # noqa: PLC0415 (capabilities import r2)
+        derive_capabilities,
+        gate,
+    )
+
+    caps = getattr(ctx, "capabilities", None) if ctx is not None else None
+    if caps is None:
+        site_type = ctx.site_category if ctx is not None else (domain or {}).get("site_type")
+        caps = derive_capabilities(site_type, [], domain)
+    hit = gate(code, caps)
+    return hit[0] if hit else None
+
+
+def _profile(domain: dict | None) -> tuple[str, dict]:
+    """`ucp_profile_state` over the domain's `ucp` block (states documented there)."""
+    return ucp_profile_state((domain or {}).get("ucp"))
+
+
+def _content_measured(domain: dict | None, ctx: MeasureCtx, *keys: str,
+                      judged: frozenset[str] = frozenset({"usable"})) -> OutcomeState | None:
+    """Measured when the profile is in one of the `judged` states; N/A when
+    there is no profile to judge; NOT_MEASURED when our probe failed or the
+    content could not be read (a future release, a pre-v2026 snapshot)."""
+    verdict = probe_measured(domain, ctx, *keys)
     if verdict:
         return verdict
-    assert domain is not None
-    ucp = (domain.get("ucp") or {})
-    if not ucp.get("exists") or (need_valid and not ucp.get("valid")):
-        return OutcomeState.NA
-    return None
+    state, _ = _profile(domain)
+    if state in judged:
+        return None
+    if state in _NOT_JUDGED:
+        return OutcomeState.NOT_MEASURED
+    return OutcomeState.NA
 
 
 @register_rule
@@ -49,7 +115,7 @@ class UcpProfileAbsent(CoreRule):
     code = "UCP_PROFILE_ABSENT"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "ucp"
     # medium: an applicable site with no /.well-known/ucp profile has zero
@@ -63,42 +129,40 @@ class UcpProfileAbsent(CoreRule):
         site_type: str = domain.get("site_type", "")
         if site_type not in UCP_APPLICABLE_SITE_TYPES:
             return []
-        ucp = domain.get("ucp") or {}
-        if ucp.get("exists"):
+        state, _ = _profile(domain)
+        if state not in ("absent", "html"):
             return []
+        served_html = state == "html"
         return [
             Finding(
                 title="Universal Commerce Protocol profile absent",
                 description=(
-                    "No /.well-known/ucp profile found on this domain. AI agents "
-                    "that follow the UCP standard cannot autonomously discover "
-                    "this site's commerce capabilities."
+                    ("/.well-known/ucp answered with an HTML page, not a profile. "
+                     if served_html else "No /.well-known/ucp profile found on this domain. ")
+                    + "AI agents that follow the UCP standard cannot autonomously "
+                    "discover this site's commerce capabilities."
                 ),
                 example=(
-                    "# /.well-known/ucp.json — publish a Universal Commerce Protocol profile\n"
-                    "{\n"
-                    '  "ucp_version": "0.1",\n'
-                    '  "merchant": {"name": "Acme", "url": "https://example.com"},\n'
-                    '  "checkout": {"endpoint": "https://example.com/ucp/checkout"},\n'
-                    '  "signing_keys": [\n'
-                    '    {"kid": "2026-k1", "kty": "EC", "crv": "P-256", "x": "...", "y": "...", "use": "sig"}\n'
-                    "  ]\n"
-                    "}"
+                    "# /.well-known/ucp — a minimal UCP v2026-08-25 business profile\n"
+                    + _CURRENT_PROFILE_EXAMPLE
                 ),
                 remediation_hint=(
                     f"{_UCP_REMEDIATION_BASE} "
-                    "Publish a JSON profile at /.well-known/ucp declaring the "
-                    "capabilities you support. A minimal profile lists your "
-                    "Checkout service, the supported transport (REST, MCP, A2A, "
-                    "or embedded), and your signing keys. See ucp.dev/specification/"
-                    "overview for the full schema and "
-                    "github.com/Universal-Commerce-Protocol/samples for working "
-                    "implementations. UCP support signals to agentic-commerce "
-                    "platforms that your site is ready for autonomous purchase "
-                    "flows — adoption today is small, so being early is a "
-                    "differentiator."
+                    "Publish a JSON business profile at /.well-known/ucp (over "
+                    "HTTPS, no redirects). It requires ucp.version (the release "
+                    "date, currently \"2026-08-25\"), ucp.services (each binding "
+                    "names a lowercase transport — rest, mcp, a2a or embedded — "
+                    "and, except for embedded, an endpoint) and "
+                    "ucp.payment_handlers (present even when empty). Declare "
+                    "dev.ucp.shopping.checkout under ucp.capabilities so agents "
+                    "can transact; a top-level `keys` JWK Set of PUBLIC signing "
+                    "keys is optional. See ucp.dev/specification/overview for the "
+                    "full schema and github.com/Universal-Commerce-Protocol/samples "
+                    "for working implementations. If a catch-all route serves "
+                    "your HTML app at this path, make it return 404 until a "
+                    "profile is published."
                 ),
-                metadata={"site_type": site_type},
+                metadata={"site_type": site_type, "served_html": served_html},
             )
         ]
 
@@ -113,7 +177,7 @@ class UcpProfileInvalid(CoreRule):
     code = "UCP_PROFILE_INVALID"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "ucp"
     severity = "medium"
@@ -122,42 +186,49 @@ class UcpProfileInvalid(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        ucp = domain.get("ucp") or {}
-        if not ucp.get("exists") or ucp.get("valid"):
+        state, v = _profile(domain)
+        if state != "unusable":
             return []
-        errors = [e for e in (ucp.get("validation_errors") or []) if isinstance(e, str)][:5]
+        shown = [e for e in (v.get("validation_errors") or []) if isinstance(e, str)][:5]
+        if not shown and v.get("version_state") == "INVALID":
+            declared = v.get("profile_version")
+            shown = [f"declares version {str(declared)[:_VERSION_SHOWN]}, which is not a released UCP version"
+                     if isinstance(declared, str) else "declares no ucp.version"]
         return [
             Finding(
                 title="Universal Commerce Protocol profile invalid",
                 description=(
-                    "/.well-known/ucp returned 200 but the profile failed schema "
-                    f"validation. First errors: {'; '.join(errors) or 'none reported'}."
+                    "/.well-known/ucp returned 200 but the profile is not a "
+                    "usable UCP v2026-08-25 business profile. First errors: "
+                    f"{'; '.join(shown) or 'none reported'}."
                 ),
                 example=(
-                    "# Fill in the required top-level fields\n"
-                    "{\n"
-                    '  "ucp_version": "0.1",\n'
-                    '  "merchant": {"name": "Acme", "url": "https://example.com"},\n'
-                    '  "checkout": {"endpoint": "https://example.com/ucp/checkout"}\n'
-                    "}"
+                    "# Required: ucp.version (YYYY-MM-DD), ucp.services, ucp.payment_handlers\n"
+                    + _CURRENT_PROFILE_EXAMPLE
                 ),
                 remediation_hint=(
                     f"{_UCP_REMEDIATION_BASE} "
-                    "Your profile is served but does not conform to the schema. "
-                    "Required top-level keys are ucp.version, ucp.services, "
-                    "ucp.capabilities, and signing_keys. Each service entry must "
-                    "include version, spec, transport, and (for non-A2A) endpoint "
-                    "and schema URLs. Each capability entry must include version, "
-                    "spec, and schema. Run the official conformance suite at "
-                    "github.com/Universal-Commerce-Protocol/conformance against "
-                    "your profile to confirm the fix."
+                    "Your profile is served but does not validate against the "
+                    "official UCP v2026-08-25 business-profile schema, or declares "
+                    "a version that is not a released one. Required: ucp.version "
+                    "as a release date (\"2026-08-25\" or an earlier announced "
+                    "release), ucp.services and ucp.payment_handlers (both "
+                    "present even when empty). Every service binding needs "
+                    "version and a lowercase transport (rest, mcp, a2a or "
+                    "embedded); rest, mcp and a2a also need an endpoint. A "
+                    "capability entry needs version and schema. Optional `keys` "
+                    "must hold only public JWKs (kid and kty; crv/x/y for EC, "
+                    "crv/x for OKP; no private members such as d). Check the "
+                    "profile against the schemas at ucp.dev and the conformance "
+                    "suite at github.com/Universal-Commerce-Protocol/conformance."
                 ),
-                metadata={"validation_errors": ucp.get("validation_errors", [])},
+                metadata={"validation_errors": list(v.get("validation_errors") or []),
+                          "version_state": v.get("version_state")},
             )
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        return _published(domain, ctx, types=None, need_valid=False)
+        return _content_measured(domain, ctx, "ucp", judged=frozenset({"usable", "unusable"}))
 
 
 @register_rule
@@ -165,7 +236,7 @@ class UcpCheckoutMissing(CoreRule):
     code = "UCP_CHECKOUT_MISSING"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "ucp"
     severity = "low"
@@ -175,50 +246,50 @@ class UcpCheckoutMissing(CoreRule):
         if not domain:
             return []
         site_type: str = domain.get("site_type", "")
-        if site_type not in UCP_CHECKOUT_SITE_TYPES:
+        if _checkout_gate(self.code, domain) is not None:
             return []
-        ucp = domain.get("ucp") or {}
-        if not ucp.get("exists") or not ucp.get("valid"):
-            return []
-        if ucp.get("has_checkout"):
+        state, v = _profile(domain)
+        if state != "usable" or v.get("has_checkout"):
             return []
         return [
             Finding(
                 title="Universal Commerce Protocol: Checkout capability missing",
                 description=(
                     "Site publishes a valid UCP profile but does not declare the "
-                    "dev.ucp.commerce.checkout capability — AI agents cannot "
+                    "dev.ucp.shopping.checkout capability — AI agents cannot "
                     "initiate transactions via the protocol."
                 ),
                 example=(
-                    "# Declare a checkout capability so agents know they can transact\n"
-                    '"checkout": {\n'
-                    '  "endpoint": "https://example.com/ucp/checkout",\n'
-                    '  "methods": ["card", "wallet"]\n'
+                    "# Declare the checkout capability under ucp.capabilities\n"
+                    '"capabilities": {\n'
+                    '  "dev.ucp.shopping.checkout": [\n'
+                    '    {"version": "2026-08-25", "schema": "https://ucp.dev/2026-08-25/schemas/shopping/checkout.json"}\n'
+                    "  ]\n"
                     "}"
                 ),
                 remediation_hint=(
                     f"{_UCP_REMEDIATION_BASE} "
                     "Your profile is valid but is missing the Checkout capability. "
-                    "Add an entry under ucp.capabilities with key "
-                    "'dev.ucp.commerce.checkout' that points to your checkout "
-                    "session creation, cart management, and tax calculation "
-                    "endpoints. See ucp.dev/specification/checkout for the full "
-                    "capability definition and request/response schemas. Sites "
-                    "with declared Checkout are the ones agentic-commerce "
-                    "platforms will route purchase intents to."
+                    "Add an entry under ucp.capabilities with the key "
+                    "'dev.ucp.shopping.checkout' (version and schema), served by "
+                    "a binding of your dev.ucp.shopping service. See "
+                    "ucp.dev/specification/checkout for the full capability "
+                    "definition and request/response schemas. Sites with "
+                    "declared Checkout are the ones agentic-commerce platforms "
+                    "will route purchase intents to."
                 ),
                 metadata={
                     "site_type": site_type,
-                    "declared_capabilities": ucp.get("capabilities", []),
+                    "declared_capabilities": list(v.get("capabilities_standard") or [])
+                    + list(v.get("capabilities_custom") or []),
                 },
             )
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        if (g := _gated(self.code, ctx)) is not None:
+        if (g := _checkout_gate(self.code, domain, ctx)) is not None:
             return g
-        return _published(domain, ctx, types=None, need_valid=True)
+        return _content_measured(domain, ctx, "ucp")
 
 
 @register_rule
@@ -226,7 +297,7 @@ class UcpSigningKeysInvalid(CoreRule):
     code = "UCP_SIGNING_KEYS_INVALID"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "ucp"
     severity = "medium"
@@ -235,45 +306,53 @@ class UcpSigningKeysInvalid(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        ucp = domain.get("ucp") or {}
-        # Only fires when profile is structurally valid — a broken profile is
-        # reported via UCP_PROFILE_INVALID instead, to avoid cascading noise.
-        if not ucp.get("exists") or not ucp.get("valid"):
+        state, v = _profile(domain)
+        # `keys` is optional: only keys that are published and malformed are
+        # a finding. A malformed key also fails the schema, so
+        # UCP_PROFILE_INVALID reports the profile; this rule names the keys.
+        if state not in ("usable", "unusable") or v.get("version_state") not in _USABLE_VERSION_STATES:
             return []
-        if ucp.get("signing_keys_valid"):
+        if v.get("keys_state") != "INVALID":
             return []
+        key_errors = [e for e in (v.get("validation_errors") or [])
+                      if isinstance(e, str) and e.startswith("keys")]
         return [
             Finding(
                 title="Universal Commerce Protocol: signing keys invalid",
                 description=(
-                    "Site publishes a valid UCP profile but the signing_keys "
-                    "array is empty or its entries are not valid JWKs (kid / kty "
-                    "/ use=sig). AI agents cannot verify PSP or Credential "
-                    "Provider exchanges against this profile."
+                    "Site publishes a UCP profile whose `keys` are not a valid "
+                    "set of public JWKs (a JWK needs kid and kty, crv/x/y for EC "
+                    "and crv/x for OKP, and must carry no private member). AI "
+                    "agents cannot verify signatures against this profile."
                 ),
                 example=(
-                    "# Each signing key needs kid, kty and use=\"sig\"\n"
-                    '"signing_keys": [\n'
-                    '  {"kid": "2026-k1", "kty": "EC", "crv": "P-256", "x": "f83...", "y": "x_F...", "use": "sig"}\n'
+                    "# `keys` (optional) is a top-level JWK Set of PUBLIC keys\n"
+                    '"keys": [\n'
+                    '  {"kid": "2026-k1", "kty": "EC", "crv": "P-256", "alg": "ES256", "x": "f83...", "y": "x_F..."}\n'
                     "]"
                 ),
                 remediation_hint=(
                     f"{_UCP_REMEDIATION_BASE} "
-                    "Each entry in signing_keys must be a JWK with three string "
-                    "fields: 'kid' (key identifier), 'kty' (key type — EC, RSA, "
-                    "or oct), and 'use' set to 'sig'. Generate the keys server-"
-                    "side (do not commit private keys), publish only the public "
-                    "half. Rotate by appending a new entry with a fresh 'kid' "
-                    "and removing the old one after rollout. The full JWK spec "
-                    "is at RFC 7517 § 4; UCP's use of signing keys is described "
-                    "at ucp.dev/specification/security."
+                    "`keys` is optional; when you publish it, every entry must be "
+                    "a public JWK (RFC 7517) with 'kid' and 'kty' — plus 'crv', "
+                    "'x' and 'y' for EC keys, 'crv' and 'x' for OKP keys — and "
+                    "none of the private members (d, p, q, dp, dq, qi, oth, k). "
+                    "Generate the keys server-side and publish only the public "
+                    "half; if a private member was ever published, rotate that "
+                    "key. The older `signing_keys` field is not part of the "
+                    "v2026-08-25 schema and is ignored. UCP's use of signing keys "
+                    "is described at ucp.dev/specification/overview."
                 ),
-                metadata={},
+                metadata={"key_errors": key_errors},
             )
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        return _published(domain, ctx, types=None, need_valid=True)
+        verdict = _content_measured(domain, ctx, "ucp", judged=frozenset({"usable", "unusable"}))
+        if verdict:
+            return verdict
+        _, v = _profile(domain)
+        return None if v.get("version_state") in _USABLE_VERSION_STATES else OutcomeState.NA
 
 
 @register_rule
@@ -281,7 +360,7 @@ class AgentPaymentsAbsent(CoreRule):
     code = "AGENT_PAYMENTS_ABSENT"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "ucp"
     # info: agent payment protocol adoption is near zero — absence informs,
@@ -292,11 +371,11 @@ class AgentPaymentsAbsent(CoreRule):
     def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
         if not domain:
             return []
-        if domain.get("site_type", "") not in UCP_CHECKOUT_SITE_TYPES:
+        if _checkout_gate(self.code, domain) is not None:
             return []
-        # Non-overlap invariant: if UCP itself is absent, UCP_PROFILE_ABSENT
-        # already reports "no agent commerce at all" — stay silent.
-        if not (domain.get("ucp") or {}).get("exists"):
+        # Non-overlap invariant: without a usable UCP profile, UCP_PROFILE_ABSENT
+        # or UCP_PROFILE_INVALID already reports it — stay silent.
+        if _profile(domain)[0] != "usable":
             return []
         payments = domain.get("agent_payments") or {}
         if payments.get("any_non_ucp"):
@@ -324,10 +403,6 @@ class AgentPaymentsAbsent(CoreRule):
         ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        if (g := _gated(self.code, ctx)) is not None:
+        if (g := _checkout_gate(self.code, domain, ctx)) is not None:
             return g
-        verdict = probe_measured(domain, ctx, "agent_payments", "ucp")
-        if verdict:
-            return verdict
-        assert domain is not None
-        return None if (domain.get("ucp") or {}).get("exists") else OutcomeState.NA
+        return _content_measured(domain, ctx, "agent_payments", "ucp")

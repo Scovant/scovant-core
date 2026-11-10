@@ -117,6 +117,9 @@ class AiBotPolicyEvidence(TypedDict, total=False):
     "observed"; no Core rule reads that.)"""
     declared: dict[str, DeclaredToken]
     declared_any: bool
+    # The AIPREF draft's `__usage_ai-training` robots group, a separate declared
+    # intent (`parsers.robots.parse_ai_training_usage`): {"declared", "allowed", "draft"}.
+    ai_training_usage: dict[str, Any]
 
 
 class TokenBloatSettingsEvidence(TypedDict, total=False):
@@ -246,8 +249,43 @@ class WebMcpEvidence(TypedDict, total=False):
     consumed: bool                     # marks a result that has been accounted for
 
 
+UcpVersionState = Literal["CURRENT", "SUPPORTED_LEGACY", "FUTURE_UNSUPPORTED", "INVALID"]
+UcpKeysState = Literal["VALID", "INVALID", "MISSING", "LEGACY_FIELD"]
+
+
+class UcpV2026(TypedDict, total=False):
+    """The profile read as a UCP v2026-08-25 business profile, against the
+    vendored schemas (`parsers/ucp_schemas/v2026-08-25`). The five UCP rules
+    read it (rule version 2.0, Core 0.25.0). `valid` is the schema verdict for this release, also for a
+    profile that declares another version (then a `validated_against_*`
+    warning says so). `valid` is the JSON-Schema verdict only and does not
+    consider `version_state`. `keys_state` MISSING is not invalid — `keys` is
+    optional. Messages never carry key material."""
+    valid: bool
+    profile_version: str | None
+    version_state: UcpVersionState
+    transports: list[str]              # lowercase, canonical values only
+    transports_raw: list[str]          # as declared
+    capabilities_standard: list[str]
+    capabilities_custom: list[str]
+    has_checkout: bool                 # dev.ucp.shopping.checkout declared
+    has_cart: bool                     # dev.ucp.shopping.cart declared
+    has_permalink: bool                # dev.ucp.shopping.permalink declared
+    keys_state: UcpKeysState
+    media_type_ok: bool | None         # None = no Content-Type was handed in
+    validation_errors: list[str]
+    validation_warnings: list[str]
+    schema_release: str
+    schema_digest: str
+
+
 class UcpEvidence(TypedDict, total=False):
-    """/.well-known/ucp (`parsers.ucp.check_ucp_profile`)."""
+    """/.well-known/ucp (`parsers.ucp.check_ucp_profile`).
+    The legacy keys are an older model of the protocol that no verdict reads
+    any more; the UCP rules, the transactional-checkout capability flag and
+    CORE-INTERFACE-008 read `v2026` (via `parsers.ucp.ucp_profile_state`), which is
+    None when no profile was fetched (and absent from evidence written before it
+    existed)."""
     exists: bool
     valid: bool
     validation_errors: list[str]
@@ -257,6 +295,7 @@ class UcpEvidence(TypedDict, total=False):
     has_checkout: bool
     transports: list[str]
     signing_keys_valid: bool
+    v2026: UcpV2026 | None
 
 
 class AgentPaymentProtocolEvidence(TypedDict, total=False):

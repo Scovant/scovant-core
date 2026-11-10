@@ -27,8 +27,8 @@ S = OutcomeState
 
 def test_manifest_digest_and_model_id_are_the_published_ones():
     m = technical_manifest()
-    assert m.digest() == "da416265c4d9"
-    assert model_id(m, PUBLIC_POLICY) == "R2.1@7389c208c89e"
+    assert m.digest() == "dfde2f3360c6"
+    assert model_id(m, PUBLIC_POLICY) == "R2.1@b0fe0dbf407b"
 
 
 def test_manifest_is_every_public_rule_plus_the_robots_gate():

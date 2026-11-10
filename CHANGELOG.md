@@ -4,9 +4,92 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
-## [Unreleased]
+## [0.25.0] - 2026-11-09
 
-`ruleset_version` UNCHANGED.
+`ruleset_version` UNCHANGED (`2026.10`); **`ruleset_digest` changes**
+(`064828c79279` → `dbbf2269443f`): CORE-INTERFACE-008 moves to check version 2.0.
+The **Technical Readiness model changes** (`R2.1@7389c208c89e` →
+`R2.1@b0fe0dbf407b`): the five UCP rules move to rule version 2.0, and the new
+experimental rule `AI-BOT-POLICY-006` joins the manifest (it scores nothing).
+
+Unscored intents:
+
+- `parsers.robots.parse_ai_training_usage`: the IETF AIPREF draft's
+  `__usage_ai-training` group, read with ordinary robots grammar, gives
+  `{declared, allowed, draft: true}`. It is a separate declared intent and never
+  changes a vendor token's own verdict (a vendor-specific group wins).
+- `AI-BOT-POLICY-006` (experimental, info, domain, discoverability): fires only
+  when that group contradicts an explicit `Google-Extended` group or the
+  `Content-Signal` `ai-train` value; the finding names both sources. Informational
+  — the vocabulary is a draft.
+- `OAI-AdsBot` joins the AI-bot registry with intent and purpose
+  `commercial_validation`, a fourth class outside the search / agent / training
+  groups (no existing group-based check includes it).
+
+UCP evidence gains a `v2026` block: the `/.well-known/ucp` profile read as a
+UCP v2026-08-25 business profile against the vendored schemas (version state,
+lowercase transports, standard vs custom capabilities, checkout/cart/permalink,
+key state, media type, errors and warnings, schema release and digest).
+`check_ucp_profile` takes an optional `content_type`; the UCP gatherer records it.
+The legacy keys are kept unchanged in the evidence, but no verdict reads them
+any more: `parsers.ucp.ucp_profile_state` is the one UCP verdict (absent / html /
+unread / future / usable / unusable), read by the rules, the capability flag and
+CORE-INTERFACE-008.
+
+- The `transactional_checkout` capability flag takes UCP evidence only from a
+  usable v2026-08-25 profile declaring `dev.ucp.shopping.checkout` (it used to
+  read the legacy `has_checkout`, which looked for `dev.ucp.commerce.checkout`,
+  so a real current profile never set it).
+- CORE-INTERFACE-008 (check version 2.0, experimental): PASS on a usable profile,
+  WARN on any other served profile (with the v2026 errors; evidence gains
+  `version_state`), ERROR (not judged) on a profile declaring a later release.
+
+UCP rules read the official v2026-08-25 profile (rule version 2.0). A profile is
+usable when it is schema-valid and declares `2026-08-25` or an earlier announced
+release:
+
+- `UCP_PROFILE_ABSENT` also fires when `/.well-known/ucp` answers with an HTML
+  page (a catch-all route); its metadata gains `served_html`.
+- `UCP_PROFILE_INVALID` fires on any served profile that is not usable (invalid
+  JSON, a non-object root, a schema violation, a malformed or unannounced
+  version) and reports the v2026 errors and `version_state`. A profile that
+  declares a later release than the vendored one is NOT_MEASURED for the four
+  content rules, never a failure.
+- `UCP_CHECKOUT_MISSING` looks for `dev.ucp.shopping.checkout` (the older
+  `dev.ucp.commerce.checkout` name is not the protocol's checkout capability).
+- `UCP_SIGNING_KEYS_INVALID`: `keys` is optional, so it fires only on published
+  keys that are not public JWKs (missing `kid`/`kty` or curve members, or a
+  private member); a profile without keys, or with only the older
+  `signing_keys` field, passes. Its metadata is now `key_errors`.
+- `AGENT_PAYMENTS_ABSENT` keeps its meaning and needs a usable profile.
+- `UCP_CHECKOUT_MISSING` and `AGENT_PAYMENTS_ABSENT` gate `evaluate` on the same
+  predicate as `measure` — the `transactional_checkout` capability flag — so a
+  rule is never measured but silent (e.g. a SaaS site whose usable profile
+  declares checkout and offers no other rail is now judged, not a silent PASS).
+- `UCP_PROFILE_INVALID` on a schema-valid profile whose version is not a
+  released one names the cause ("declares version …, which is not a released
+  UCP version") instead of "none reported".
+- A profile body over our read bound (`UCP_MAX_BODY_BYTES`, a deployment guard —
+  FACTS (f)) is never judged: NOT_MEASURED for the content rules, ERROR for
+  CORE-INTERFACE-008.
+- Evidence written before the `v2026` block existed (a profile was served, but
+  its content was never read this way) is NOT_MEASURED for the four content
+  rules instead of judged by the older model.
+- Examples and remediation show the current profile shape (version
+  `"2026-08-25"`, lowercase transports, `payment_handlers`, optional `keys`).
+- The legacy UCP reading catches a body nested too deeply for `json.loads`
+  (`RecursionError`) itself and reports it with the same `invalid JSON` message,
+  so no caller of it can see the exception.
+
+Goldens: only UCP rows changed. The three site fixtures that publish a UCP
+profile (`commerce-good`, `security-good`, `security-bad`) now carry a
+v2026-08-25 business profile, so their ratings and CORE-INTERFACE-008 PASS are
+unchanged; the expected reports change in the UCP evidence (`services`,
+`capabilities`, `version_state`), CORE-INTERFACE-008's `check_version` and
+`commerce-bad`'s WARN text/errors, the `ruleset_digest`, bytes fetched, the
+version and the Technical model id, and `commerce-bad`'s `AGENT_PAYMENTS_ABSENT`
+N/A reason (`capability_absent` → `predicate`: its malformed profile is no
+longer a usable one).
 
 ## [0.24.1] - 2026-11-02
 

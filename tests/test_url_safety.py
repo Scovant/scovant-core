@@ -63,7 +63,8 @@ def test_empty_host_raises():
 
 
 def test_public_hostname_ok():
-    """example.com resolves to public IPs — must pass (uses real DNS)."""
+    """example.com resolves to a public IP — must pass (offline: the conftest
+    resolver answers documentation names deterministically)."""
     result = assert_safe_public_url("https://example.com")
     assert result == "https://example.com"
 

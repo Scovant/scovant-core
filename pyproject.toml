@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scovant-core"
-version = "0.24.1"
+version = "0.25.0"
 description = "Open-source, evidence-first scanner for passive AI-agent readiness signals."
 readme = "README.md"
 license = "Apache-2.0"
@@ -66,6 +66,7 @@ markers = [
   "security: SSRF / redirect / size-cap / rebinding regressions (run as the CI 'security' job)",
   "golden: byte-compared fixture reports",
   "mcp: needs the optional [mcp] extra",
+  "network: may reach the network (excluded from the default and CI runs)",
 ]
 
 [tool.coverage.run]

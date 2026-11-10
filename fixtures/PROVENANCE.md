@@ -27,7 +27,7 @@ reporting it as a broken link.
 | sites/commerce-good/returns.html | synthetic |
 | sites/commerce-good/privacy.html | synthetic |
 | sites/commerce-good/terms.html | synthetic |
-| sites/commerce-good/.well-known/ucp | synthetic (valid UCP profile so CORE-INTERFACE-008 PASSes on this fixture) |
+| sites/commerce-good/.well-known/ucp | synthetic (valid UCP profile so CORE-INTERFACE-008 PASSes on this fixture; since 0.25.0 a UCP v2026-08-25 business profile — the rules, the transactional-checkout capability flag and CORE-INTERFACE-008 all read that reading, so its results are unchanged) |
 | sites/commerce-good/.well-known/security.txt | synthetic (Contact + a 2030 Expires so CORE-TRUST-006 PASSes on this fixture) |
 | sites/commerce-bad/index.html.redirect | synthetic |
 | sites/commerce-bad/step1.redirect | synthetic |
@@ -187,7 +187,7 @@ reporting it as a broken link.
 | sites/security-good/returns.html | synthetic |
 | sites/security-good/privacy.html | synthetic |
 | sites/security-good/terms.html | synthetic |
-| sites/security-good/.well-known/ucp | synthetic (valid UCP profile, unrelated to the security checks) |
+| sites/security-good/.well-known/ucp | synthetic (valid UCP profile, unrelated to the security checks; copied from sites/commerce-good) |
 | sites/security-good/.well-known/security.txt | synthetic (RFC 9116 file at the canonical location, Contact + Canonical + a 2030 Expires — CORE-SECURITY-006 PASS) |
 | sites/security-bad/index.html | synthetic |
 | sites/security-bad/http-200.txt | synthetic (declares the fixture's http:// origin answers 200 without redirecting to https — combined with the weak `max-age=0` HSTS header below, this WARNs CORE-SECURITY-001) |
@@ -202,7 +202,7 @@ reporting it as a broken link.
 | sites/security-bad/returns.html | synthetic |
 | sites/security-bad/privacy.html | synthetic |
 | sites/security-bad/terms.html | synthetic |
-| sites/security-bad/.well-known/ucp | synthetic (valid UCP profile, unrelated to the security checks) |
+| sites/security-bad/.well-known/ucp | synthetic (valid UCP profile, unrelated to the security checks; copied from sites/commerce-good) |
 | sites/security-bad/security.txt | synthetic (legacy `/security.txt` path, Expires in the past — CORE-SECURITY-006 FAIL) |
 | representations/scovant-home.html | recorded 2026-10-28 from https://scovant.com/ (the project's own site, published content), then sanitized: scripts other than JSON-LD, styles, noscript, stylesheet/preload links and iframes removed, HTML comments and the site-verification meta tag removed; the project's crawler name replaced with 'ExampleBot' |
 | representations/scovant-home.md | recorded 2026-10-28 from https://scovant.com/index.md (the same page's Markdown mirror), then sanitized: scripts other than JSON-LD, styles, noscript, stylesheet/preload links and iframes removed; the project's crawler name replaced with 'ExampleBot' |

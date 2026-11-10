@@ -27,7 +27,7 @@ $PY -m ruff check src tests; ok lint
 
 $PY -m mypy src; ok typecheck
 
-$PY -m pytest -q -m "not security and not golden and not mcp" --cov=scovant_core --cov-report=term-missing --cov-fail-under=90; ok tests
+$PY -m pytest -q -m "not security and not golden and not mcp and not network" --cov=scovant_core --cov-report=term-missing --cov-fail-under=90; ok tests
 
 $PY -m pytest -q -m security; ok security
 

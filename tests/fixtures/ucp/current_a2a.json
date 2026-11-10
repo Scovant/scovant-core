@@ -1,0 +1,16 @@
+{
+  "ucp": {
+    "version": "2026-08-25",
+    "services": {
+      "dev.ucp.shopping": [
+        {
+          "version": "2026-08-25",
+          "spec": "https://ucp.dev/2026-08-25/specification/overview",
+          "transport": "a2a",
+          "endpoint": "https://business.example.com/.well-known/agent-card.json"
+        }
+      ]
+    },
+    "payment_handlers": {}
+  }
+}

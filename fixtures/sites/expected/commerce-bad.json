@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.24.1",
+  "core_version": "0.25.0",
   "findings": [
     {
       "category": "access",
@@ -512,7 +512,7 @@
     },
     {
       "category": "interfaces",
-      "check_version": "1.0",
+      "check_version": "2.0",
       "cloud_extension": "Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow.",
       "confidence": "high",
       "evidence": {
@@ -522,8 +522,9 @@
         "served_as_html": false,
         "valid": false,
         "validation_errors": [
-          "invalid JSON"
-        ]
+          "invalid_json"
+        ],
+        "version_state": "INVALID"
       },
       "experimental": true,
       "family_id": "",
@@ -531,12 +532,12 @@
       "id": "CORE-INTERFACE-008",
       "limitations": "Only /.well-known/ucp is probed; a profile published at a non-conventional path is not found.",
       "owasp_agentic": [],
-      "remediation": "Publish a valid UCP profile at /.well-known/ucp per the UCP specification.",
+      "remediation": "Publish a valid UCP business profile at /.well-known/ucp per the UCP specification (ucp.version \"2026-08-25\", lowercase transports, ucp.services and ucp.payment_handlers present).",
       "security_domain": "",
       "security_tags": [],
       "severity": "medium",
       "status": "WARN",
-      "summary": "A UCP profile is published but fails validation.",
+      "summary": "A UCP profile is published but is not a valid UCP v2026-08-25 business profile.",
       "title": "UCP profile validity",
       "verification_mode": "DECLARED",
       "why_it_matters": "An agent completing a purchase needs a machine-readable Universal Commerce Protocol profile naming this site's own services and capabilities, not just checkout copy."
@@ -2111,7 +2112,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.24.1",
+    "core_version": "0.25.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2123,11 +2124,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "064828c79279",
+    "ruleset_digest": "dbbf2269443f",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.24.1 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.25.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2183,7 +2184,7 @@
       "evidence_state": "ESTIMATED",
       "grade": "D",
       "label": "Technical Readiness",
-      "model_id": "R2.1@7389c208c89e",
+      "model_id": "R2.1@b0fe0dbf407b",
       "not_measured": [],
       "rating": 57,
       "scope": "CORE_PASSIVE",
@@ -2284,7 +2285,7 @@
       "state": "N/A"
     },
     {
-      "reason": "capability_absent",
+      "reason": "predicate",
       "rule": "AGENT_PAYMENTS_ABSENT",
       "scope": "domain",
       "state": "N/A"
@@ -2292,6 +2293,12 @@
     {
       "reason": "not_gathered_by_core",
       "rule": "AI-BOT-POLICY-001",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_measured",
+      "rule": "AI-BOT-POLICY-006",
       "scope": "domain",
       "state": "NOT_MEASURED"
     },

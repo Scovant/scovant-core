@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import httpx
 
@@ -520,8 +521,53 @@ _VALID_UCP_PROFILE = {
 }
 
 
+def _run_008(profile_text: str):
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/":
+            return httpx.Response(200, content=_DEFAULT_INDEX.encode(), headers={"content-type": "text/html"})
+        if request.url.path == "/.well-known/ucp":
+            return httpx.Response(200, text=profile_text, headers={"content-type": "application/json"})
+        return httpx.Response(404, text="not found")
+
+    store, ctx = _scan(make_client(handler), options=ScanOptions(profile="commerce"))
+    return UcpProfilePresence().run(store, ctx)
+
+
+def _ucp_fixture_text(name: str) -> str:
+    return (Path(__file__).parent / "fixtures" / "ucp" / f"{name}.json").read_text()
+
+
+def test_008_judges_the_v2026_profile():
+    """Check version 2.0 (Core 0.25.0): validity is the UCP v2026-08-25 reading."""
+    result = _run_008(_ucp_fixture_text("current_rest"))
+    assert result.status == CheckStatus.PASS
+    assert result.evidence["valid"] is True and result.evidence["version_state"] == "CURRENT"
+    assert _run_008(_ucp_fixture_text("protocol_version_2026_01_23")).status == CheckStatus.PASS
+    for bad in ("uppercase_rest", "version_0_1", "missing_endpoint"):
+        result = _run_008(_ucp_fixture_text(bad))
+        assert result.status == CheckStatus.WARN, bad
+        assert result.evidence["validation_errors"], bad
+    # the pre-0.25.0 "valid" shape (uppercase transport, no payment_handlers) is not
+    assert _run_008(json.dumps(_VALID_UCP_PROFILE)).status == CheckStatus.WARN
+
+
+def test_008_a_later_release_is_not_judged():
+    result = _run_008(_ucp_fixture_text("future_version"))
+    assert result.status == CheckStatus.ERROR
+    assert result.evidence["version_state"] == "FUTURE_UNSUPPORTED"
+    assert result.check_version == "2.0"
+
+
+def test_008_a_body_over_our_read_bound_is_not_judged():
+    from scovant_core.parsers.ucp import UCP_MAX_BODY_BYTES
+    body = _ucp_fixture_text("current_rest").rstrip()[:-1] + ', "pad": "' + "a" * UCP_MAX_BODY_BYTES + '"}'
+    result = _run_008(body)
+    assert result.status in (CheckStatus.ERROR, CheckStatus.NA), result.status
+    assert result.status != CheckStatus.WARN
+
+
 def test_008_pass_when_valid():
-    profile = json.dumps(_VALID_UCP_PROFILE)
+    profile = _ucp_fixture_text("current_rest")
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/":

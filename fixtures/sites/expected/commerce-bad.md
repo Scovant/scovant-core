@@ -2,7 +2,7 @@
 
 ## Technical Readiness
 
-**Technical Readiness:** 57 / 100 · grade D · coverage 100% · model R2.1@7389c208c89e
+**Technical Readiness:** 57 / 100 · grade D · coverage 100% · model R2.1@b0fe0dbf407b
 **Diagnostics (51 readiness checks):** 4 pass · 24 warn · 8 fail
 **Profile:** commerce (requested auto, confidence 85%)
 
@@ -705,7 +705,7 @@
 ## Experimental (not scored)
 
 - **CORE-ACCESS-011** (PASS) — llms.txt links useful same-origin pages and carries no misplaced policy or template text.
-- **CORE-INTERFACE-008** (WARN) — A UCP profile is published but fails validation.
+- **CORE-INTERFACE-008** (WARN) — A UCP profile is published but is not a valid UCP v2026-08-25 business profile.
 - **CORE-OPERABILITY-011** (WARN) — 2 of 2 machine surface(s) are not linked from anything an agent reads: llms_txt, ucp.
 - **CORE-SECURITY-011** (PASS) — No indicators found.
 - **CORE-SECURITY-012** (PASS) — No indicators found.
@@ -839,7 +839,7 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.24.1 · ruleset 2026.10 (digest `064828c79279`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.25.0 · ruleset 2026.10 (digest `dbbf2269443f`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=cli&utm_campaign=oss)
 

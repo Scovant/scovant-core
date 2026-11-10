@@ -23,14 +23,16 @@ def gather_ucp(client: SecureClient, ctx: ScanContext, store: EvidenceStore) -> 
     res = client.try_fetch(f"{origin}{_PATH}", kind="json")
     if isinstance(res, FetchError):
         return {**check_ucp_profile(None, 0), "status": None, "served_as_html": False,
-                "truncated": False, "text": ""}
+                "truncated": False, "text": "", "content_type": None}
 
     status = res.status
     served_as_html = is_soft_200_html(status, res.content_type, res.text, document="openapi")
     text = res.text if status == 200 and not served_as_html else None
     truncated = bool(res.truncated) and bool(text)
-    out = {**check_ucp_profile(text, status), "status": status, "served_as_html": served_as_html,
-           "truncated": truncated, "text": (text or "")[:_TEXT_CAP]}
+    content_type = res.content_type or None
+    out = {**check_ucp_profile(text, status, content_type), "status": status,
+           "served_as_html": served_as_html, "truncated": truncated,
+           "text": (text or "")[:_TEXT_CAP], "content_type": content_type}
     if status == 429:
         out["retry_after"] = res.headers.get("retry-after")
     return out

@@ -11,6 +11,10 @@ from scovant_core.context import ScanContext, ScanOptions
 from scovant_core.evidence import GATHERERS, EvidenceStore
 from scovant_core.security.client import SecureClient
 from scovant_core.security.policy import SecurityPolicy
+from tests.conftest_offline import (  # noqa: F401  (autouse fixture + collection hook)
+    _offline_network_guard,
+    pytest_collection_modifyitems,
+)
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures"
 

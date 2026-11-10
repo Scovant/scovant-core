@@ -14,12 +14,12 @@ SRC = Path(__file__).resolve().parents[1] / "src" / "scovant_core"
 def test_registry_axes_and_version():
     assert reg.REGISTRY_VERSION == "2026.09.13"
     purposes = {b.purpose for b in reg.ALL_CRAWLERS}
-    assert purposes == {"search", "user_fetch", "training", "content_use_control"}
+    assert purposes == {"search", "user_fetch", "training", "content_use_control", "commercial_validation"}
     for b in reg.ALL_CRAWLERS:
         assert b.identity_type in ("user_agent", "robots_token")
         assert b.official_source.startswith("https://") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", b.last_reviewed)
     assert {b.token for b in reg.SEARCH_ENGINE_CRAWLERS} == {"Googlebot", "Bingbot"}
-    assert len(reg.AI_USER_AGENTS) == 13                      # Cloud pins this to robots.txt
+    assert len(reg.AI_USER_AGENTS) == 14                      # Cloud pins this to robots.txt
 
 
 def test_specific_purposes():

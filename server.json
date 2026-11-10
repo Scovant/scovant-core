@@ -8,12 +8,12 @@
     "source": "github"
   },
   "websiteUrl": "https://scovant.com/open-source",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "scovant-core",
-      "version": "0.24.1",
+      "version": "0.25.0",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {"type": "named", "name": "--with", "value": "mcp>=2.2,<3"}

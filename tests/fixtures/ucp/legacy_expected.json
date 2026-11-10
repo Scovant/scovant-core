@@ -1,0 +1,372 @@
+{
+ "checkout_and_cart.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout",
+   "dev.ucp.shopping.cart"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "current_a2a.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "ucp.capabilities is missing or not an object",
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [],
+  "has_checkout": false,
+  "transports": [
+   "a2a"
+  ],
+  "signing_keys_valid": false
+ },
+ "current_embedded.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "ucp.capabilities is missing or not an object",
+   "signing_keys is missing or not a list",
+   "services.dev.ucp.shopping entry missing 'spec'",
+   "services.dev.ucp.shopping entry with transport=embedded missing 'endpoint'"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [],
+  "has_checkout": false,
+  "transports": [
+   "embedded"
+  ],
+  "signing_keys_valid": false
+ },
+ "current_mcp.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout",
+   "dev.ucp.shopping.fulfillment"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "mcp"
+  ],
+  "signing_keys_valid": false
+ },
+ "current_rest.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "custom_capability.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list",
+   "capabilities.com.example.loyalty entry missing 'spec'"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout",
+   "com.example.loyalty"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "future_version.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2027-03-01",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "html_catchall.html": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "invalid JSON"
+  ],
+  "version": null,
+  "services": [],
+  "capabilities": [],
+  "has_checkout": false,
+  "transports": [],
+  "signing_keys_valid": false
+ },
+ "json_array_root.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "root must be a JSON object"
+  ],
+  "version": null,
+  "services": [],
+  "capabilities": [],
+  "has_checkout": false,
+  "transports": [],
+  "signing_keys_valid": false
+ },
+ "legacy_commerce_checkout.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.commerce.checkout"
+  ],
+  "has_checkout": true,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "legacy_signing_keys.json": {
+  "exists": true,
+  "valid": true,
+  "validation_errors": [],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": true
+ },
+ "missing_endpoint.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list",
+   "services.dev.ucp.shopping entry with transport=rest missing 'endpoint'"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "missing_schema.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list",
+   "capabilities.dev.ucp.shopping.checkout entry missing 'schema'"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "overview_business.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list",
+   "services.dev.ucp.shopping entry with transport=embedded missing 'endpoint'"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout",
+   "dev.ucp.shopping.fulfillment",
+   "dev.ucp.shopping.discount",
+   "dev.ucp.common.identity_linking"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "a2a",
+   "embedded",
+   "mcp",
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "permalink.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [],
+  "capabilities": [
+   "dev.ucp.shopping.permalink"
+  ],
+  "has_checkout": false,
+  "transports": [],
+  "signing_keys_valid": false
+ },
+ "private_ip_schema_url.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "private_jwk.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ },
+ "protocol_version_2026_01_23.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "ucp.capabilities is missing or not an object",
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-01-23",
+  "services": [],
+  "capabilities": [],
+  "has_checkout": false,
+  "transports": [],
+  "signing_keys_valid": false
+ },
+ "uppercase_rest.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "2026-08-25",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "REST"
+  ],
+  "signing_keys_valid": false
+ },
+ "version_0_1.json": {
+  "exists": true,
+  "valid": false,
+  "validation_errors": [
+   "signing_keys is missing or not a list"
+  ],
+  "version": "0.1",
+  "services": [
+   "dev.ucp.shopping"
+  ],
+  "capabilities": [
+   "dev.ucp.shopping.checkout"
+  ],
+  "has_checkout": false,
+  "transports": [
+   "rest"
+  ],
+  "signing_keys_valid": false
+ }
+}

@@ -40,3 +40,10 @@
   part of the tiktoken repository and OpenAI publishes no separate licence statement
   for it; no licence is claimed for this file here. It is read from the package only;
   nothing is downloaded at runtime.
+- Vendored JSON Schemas `src/scovant_core/parsers/ucp_schemas/v2026-08-25/*.json`:
+  the Universal Commerce Protocol specification schemas at release `v2026-08-25`
+  (https://github.com/Universal-Commerce-Protocol/ucp, commit
+  `1c225995e9db9808c23fc6440fc70f38b27d914a`), licensed under the Apache License
+  2.0 and redistributed unchanged. Provenance and a sha256 per file are in
+  `SOURCE.md` beside them. They are read from the package only; nothing is
+  fetched at runtime.

@@ -19,10 +19,12 @@ Resolver = Callable[..., list[tuple]]
 
 
 class PinnedTransport(httpx.BaseTransport):
-    def __init__(self, policy: SecurityPolicy, *, resolver: Resolver = socket.getaddrinfo,
+    def __init__(self, policy: SecurityPolicy, *, resolver: Resolver | None = None,
                  inner: httpx.BaseTransport | None = None, **transport_kwargs):
         self.policy = policy
-        self._resolve = resolver
+        # None = the system resolver, looked up at call time (not bound at
+        # import), so anything that replaces `socket.getaddrinfo` applies here too.
+        self._resolver = resolver
         self._inner = inner or httpx.HTTPTransport(**transport_kwargs)
         self._cache: dict[tuple[str, int], str] = {}
 
@@ -43,7 +45,8 @@ class PinnedTransport(httpx.BaseTransport):
         if key in self._cache:
             return self._cache[key]
         try:
-            infos = self._resolve(host, port, 0, socket.SOCK_STREAM)
+            resolve = self._resolver or socket.getaddrinfo
+            infos = resolve(host, port, 0, socket.SOCK_STREAM)
         except OSError as exc:
             raise httpx.ConnectError(f"could not resolve {host}") from exc
         addresses = [str(i[4][0]) for i in infos]

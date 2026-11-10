@@ -27,11 +27,11 @@ class AiBot:
     token: str      # UA substring (or robots.txt-only token — see identity_type)
     engine: str     # openai|anthropic|google|perplexity|apple|commoncrawl|duckduckgo|microsoft
     kind: str       # retrieval|training — inbound-telemetry axis (has a DB column + history)
-    intent: str     # search|agent|training — the policy axis (search-index
+    intent: str     # search|agent|training|commercial_validation — the policy axis (search-index
                     # crawler vs live user-triggered fetch vs model-training). A token can be
                     # kind=retrieval AND intent=agent (e.g. ChatGPT-User) — the two axes
                     # answer different questions and must not be conflated.
-    purpose: str = "search"                 # search|user_fetch|training|content_use_control
+    purpose: str = "search"                 # search|user_fetch|training|content_use_control|commercial_validation
     identity_type: str = "user_agent"       # user_agent|robots_token (no UA of its own)
     official_source: str = ""
     last_reviewed: str = "2026-09-13"
@@ -56,6 +56,8 @@ AI_USER_AGENTS: tuple[AiBot, ...] = (
           "https://docs.perplexity.ai/guides/bots", "2026-09-13"),
     AiBot("DuckAssistBot", "duckduckgo", "retrieval", "agent", "user_fetch", "user_agent",
           "https://duckduckgo.com/duckduckgo-help-pages/results/duckassistbot", "2026-09-13"),
+    AiBot("OAI-AdsBot", "openai", "retrieval", "commercial_validation", "commercial_validation", "user_agent",
+          "https://platform.openai.com/docs/bots", "2026-11-09"),
     AiBot("Applebot", "apple", "retrieval", "search", "search", "user_agent",
           "https://support.apple.com/en-us/119829", "2026-09-13"),
     AiBot("Applebot-Extended", "apple", "training", "training", "training", "robots_token",

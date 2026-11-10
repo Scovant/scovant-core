@@ -3,6 +3,7 @@ de-duplication across gatherers, bytes-over-bytes `script_ratio`, and the
 integrity probe routed through an injectable fetcher."""
 from __future__ import annotations
 
+import socket
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -21,6 +22,7 @@ from scovant_core.models import CheckStatus
 from scovant_core.profiles import apply_profile
 
 from .conftest import FixtureTransport, make_client
+from .conftest_offline import DOCUMENTATION_ADDRESS
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
 
@@ -420,7 +422,19 @@ def test_integrity_probe_default_uses_bare_client_unchanged(monkeypatch):
 # reference_integrity gatherer: SecureClient-backed fetch, cross-host refused
 # ---------------------------------------------------------------------------
 
-def test_core_gatherer_passes_secure_fetch_and_refuses_cross_host_redirect():
+def test_core_gatherer_passes_secure_fetch_and_refuses_cross_host_redirect(monkeypatch):
+    # The SSRF guard resolves the registry host before the request reaches the
+    # MockTransport; answer it deterministically instead of asking real DNS.
+    offline_getaddrinfo = socket.getaddrinfo
+
+    def resolver(host, port=None, *args, **kwargs):
+        if host == _PYPI_HOST:
+            return [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, "",
+                     (DOCUMENTATION_ADDRESS, 443))]
+        return offline_getaddrinfo(host, port, *args, **kwargs)
+
+    monkeypatch.setattr(socket, "getaddrinfo", resolver)
+
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.host == "example.com":
             return httpx.Response(200, content=b"<html><body>hi</body></html>", headers={"content-type": "text/html"})

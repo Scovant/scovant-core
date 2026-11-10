@@ -160,3 +160,90 @@ class AiBotPolicyDeclared(CoreRule):
         if not isinstance(declared, dict) or not declared:
             return OutcomeState.NOT_MEASURED
         return None if (domain.get("ai_bot_policy") or {}).get("declared_any") else OutcomeState.NA
+
+
+def _declared_verdict(domain: dict, token: str) -> bool | None:
+    """The robots verdict at "/" for `token`, only when robots.txt names it
+    with a group of its own (a token that merely inherits `*` is not a
+    declaration)."""
+    group = (domain.get("robots") or {}).get(token)
+    if not isinstance(group, dict) or not (group.get("allow") or group.get("disallow")):
+        return None
+    declared = ((domain.get("ai_bot_policy") or {}).get("declared") or {}).get(token)
+    if not isinstance(declared, dict) or not isinstance(declared.get("allowed"), bool):
+        return None
+    return declared["allowed"]
+
+
+def _usage(domain: dict | None) -> dict | None:
+    if not domain:
+        return None
+    usage = (domain.get("ai_bot_policy") or {}).get("ai_training_usage")
+    return usage if isinstance(usage, dict) and usage.get("declared") else None
+
+
+@register_rule
+class AiTrainingUsageConflict(CoreRule):
+    """AI-BOT-POLICY-006 — the draft `__usage_ai-training` group contradicts the
+    site's other training declarations. Unscored: it names the two sources and
+    judges neither (the usage vocabulary is an unfinished draft)."""
+
+    code = "AI-BOT-POLICY-006"
+    since = "0.25.0"
+    maturity = "experimental"
+    rule_version = "1.0"
+    scope = "domain"
+    category = "discoverability"
+    severity = "info"
+    title = "AI-training usage group conflicts with another declaration"
+
+    def evaluate(self, page: dict, domain: dict | None) -> list[Finding]:
+        usage = _usage(domain)
+        if domain is None or usage is None or not isinstance(usage.get("allowed"), bool):
+            return []
+        allowed = usage["allowed"]
+        conflicts: list[dict] = []
+        ge = _declared_verdict(domain, "Google-Extended")
+        if ge is not None and ge != allowed:
+            conflicts.append({"source": "Google-Extended robots group", "allowed": ge})
+        sig = ((domain.get("content_signals") or {}).get("dimensions") or {}).get("ai-train")
+        if sig in ("yes", "no") and (sig == "yes") != allowed:
+            conflicts.append({"source": "Content-Signal ai-train", "allowed": sig == "yes"})
+        if not conflicts:
+            return []
+        word = {True: "allows", False: "disallows"}
+        return [
+            Finding(
+                title="AI-training usage group conflicts with another declaration",
+                description=(
+                    f"robots.txt's draft __usage_ai-training group {word[allowed]} AI training, "
+                    "but "
+                    + "; ".join(f"{c['source']} {word[c['allowed']]} it" for c in conflicts)
+                    + ". Two declarations of the same preference disagree, so a crawler "
+                    "may follow either. Informational: the usage vocabulary is a draft."
+                ),
+                remediation_hint=(
+                    "Make the declarations agree: state the AI-training preference the same "
+                    "way in the __usage_ai-training group, the Google-Extended group and the "
+                    "Content-Signal ai-train value, or drop the one you do not mean."
+                ),
+                example=(
+                    "User-agent: __usage_ai-training\nDisallow: /\n\n"
+                    "User-agent: Google-Extended\nDisallow: /"
+                ),
+                metadata={
+                    "usage_allowed": allowed,
+                    "conflicting_sources": [c["source"] for c in conflicts],
+                    "conflicts": conflicts,
+                    "draft": True,
+                },
+            )
+        ]
+
+    def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
+        verdict = probe_measured(domain, ctx, "robots")
+        if verdict is not None:
+            return verdict
+        if not domain or not isinstance(domain.get("ai_bot_policy"), dict):
+            return OutcomeState.NOT_MEASURED
+        return None if _usage(domain) is not None else OutcomeState.NA

@@ -92,3 +92,43 @@ def parse_robots_txt(robots_content: str) -> dict[str, Any]:
                 result["sitemaps"].append(url)
 
     return result
+
+
+USAGE_AI_TRAINING_TOKEN = "__usage_ai-training"
+
+
+def parse_ai_training_usage(robots_txt: str) -> dict[str, Any]:
+    """The IETF AIPREF draft's ``ai-training`` usage group, read with ordinary
+    robots grammar: groups whose user-agent is exactly ``__usage_ai-training``.
+
+    ``declared`` is true iff such a group carries at least one Allow/Disallow
+    directive; ``allowed`` is its verdict for "/" (None when not declared).
+    ``draft`` is always true — the vocabulary is an unfinished draft. It is a
+    separate declared intent: it never changes a vendor token's own verdict
+    (a vendor-specific group wins over a usage group for that vendor).
+    """
+    out: dict[str, Any] = {"declared": False, "allowed": None, "draft": True}
+    if not (robots_txt or "").strip():
+        return out
+    agents: list[str] = []
+    in_rules = False
+    found = False
+    for raw in robots_txt.splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            agents, in_rules = [], False
+            continue
+        low = line.lower()
+        if low.startswith("user-agent:"):
+            if in_rules:
+                agents, in_rules = [], False
+            agents.append(low[len("user-agent:"):].strip())
+        elif low.startswith(("allow:", "disallow:")):
+            in_rules = True
+            if USAGE_AI_TRAINING_TOKEN in agents:
+                found = True
+    if not found:
+        return out
+    out["declared"] = True
+    out["allowed"] = bool(_parser(robots_txt).can_fetch(USAGE_AI_TRAINING_TOKEN, "/"))
+    return out

@@ -1,11 +1,17 @@
 """CORE-INTERFACE-008 (EXPERIMENTAL): UCP profile validity, read from the
-`/.well-known/ucp` document (`gatherers/ucp.py` / `parsers/ucp.py`)."""
+`/.well-known/ucp` document (`gatherers/ucp.py` / `parsers/ucp.py`).
+
+Check version 2.0 (Core 0.25.0): validity is the UCP v2026-08-25 reading
+(`ucp_profile_state`, the verdict the UCP rules read) — schema-valid AND a
+current or earlier announced release. A profile declaring a later release, or
+one over our read bound, is ERROR (not judged), never a WARN."""
 from __future__ import annotations
 
 from scovant_core.checks._document import document_status
 from scovant_core.checks._truncation import record_truncation, truncated_confidence
 from scovant_core.checks.base import CoreCheck
 from scovant_core.models import Category, CheckStatus, Severity
+from scovant_core.parsers.ucp import UCP_CURRENT_VERSION, ucp_profile_state
 
 
 class UcpProfilePresence(CoreCheck):
@@ -15,6 +21,7 @@ class UcpProfilePresence(CoreCheck):
     verification_mode = "DECLARED"
     profiles = frozenset({"commerce"})
     experimental = True
+    check_version = "2.0"
     severity_on_fail = Severity.MEDIUM
     references = ("https://ucp.dev/",)
     why_it_matters = (
@@ -60,15 +67,29 @@ class UcpProfilePresence(CoreCheck):
         note, truncated = record_truncation(ucp, ev, document="UCP profile")
         conf = truncated_confidence(truncated)
 
-        if ucp["valid"]:
+        state, v2026 = ucp_profile_state(ucp)
+        ev["valid"] = state == "usable"
+        ev["version_state"] = v2026.get("version_state")
+        if state == "oversized":
+            return self.error(
+                "the UCP profile is larger than this Core's read bound — not judged "
+                "(a deployment guard, not a defect of the profile).", ev)
+        if state == "future":
+            return self.error(
+                f"The UCP profile declares release {v2026.get('profile_version')}, later than the "
+                f"{UCP_CURRENT_VERSION} schemas this Core validates against — not judged.", ev)
+        if state == "usable":
             ev["services"] = ucp["services"]
             ev["capabilities"] = ucp["capabilities"]
             return self.result(CheckStatus.PASS, "A UCP profile is published and valid." + note, evidence=ev, confidence=conf)
 
-        ev["validation_errors"] = ucp["validation_errors"]
+        ev["validation_errors"] = list(v2026.get("validation_errors") or ucp.get("validation_errors") or [])
         return self.result(
             CheckStatus.WARN,
-            "A UCP profile is published but fails validation." + note,
+            "A UCP profile is published but is not a valid UCP v2026-08-25 business profile." + note,
             evidence=ev, confidence=conf,
-            remediation="Publish a valid UCP profile at /.well-known/ucp per the UCP specification.",
+            remediation=(
+                "Publish a valid UCP business profile at /.well-known/ucp per the UCP specification "
+                f"(ucp.version \"{UCP_CURRENT_VERSION}\", lowercase transports, ucp.services and "
+                "ucp.payment_handlers present)."),
         )

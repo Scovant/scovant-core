@@ -1,0 +1,15 @@
+{
+  "ucp": {
+    "version": "2026-08-25",
+    "services": {
+      "dev.ucp.shopping": [
+        {
+          "version": "2026-08-25",
+          "transport": "embedded",
+          "schema": "https://ucp.dev/2026-08-25/services/shopping/embedded.openrpc.json"
+        }
+      ]
+    },
+    "payment_handlers": {}
+  }
+}

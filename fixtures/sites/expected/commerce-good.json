@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.24.1",
+  "core_version": "0.25.0",
   "findings": [
     {
       "category": "access",
@@ -503,21 +503,22 @@
     },
     {
       "category": "interfaces",
-      "check_version": "1.0",
+      "check_version": "2.0",
       "cloud_extension": "Scovant Cloud exercises the UCP profile's declared services and capabilities against a live checkout flow.",
       "confidence": "high",
       "evidence": {
         "capabilities": [
-          "dev.ucp.commerce.checkout"
+          "dev.ucp.shopping.checkout"
         ],
         "exists": true,
         "http_status": 200,
         "resource": "https://example.com/.well-known/ucp",
         "served_as_html": false,
         "services": [
-          "checkout"
+          "dev.ucp.shopping"
         ],
-        "valid": true
+        "valid": true,
+        "version_state": "CURRENT"
       },
       "experimental": true,
       "family_id": "",
@@ -2072,7 +2073,7 @@
         "verdict": "allowed"
       }
     },
-    "bytes_fetched": 17978,
+    "bytes_fetched": 18097,
     "entry_error": null,
     "error_count": 0,
     "gather_error_details": [],
@@ -2150,7 +2151,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.24.1",
+    "core_version": "0.25.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2162,11 +2163,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "064828c79279",
+    "ruleset_digest": "dbbf2269443f",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.24.1 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.25.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2226,7 +2227,7 @@
       "evidence_state": "ESTIMATED",
       "grade": "B",
       "label": "Technical Readiness",
-      "model_id": "R2.1@7389c208c89e",
+      "model_id": "R2.1@b0fe0dbf407b",
       "not_measured": [
         {
           "reason": "handshake_not_performed",
@@ -2340,6 +2341,12 @@
     {
       "reason": "not_gathered_by_core",
       "rule": "AI-BOT-POLICY-001",
+      "scope": "domain",
+      "state": "NOT_MEASURED"
+    },
+    {
+      "reason": "not_measured",
+      "rule": "AI-BOT-POLICY-006",
       "scope": "domain",
       "state": "NOT_MEASURED"
     },

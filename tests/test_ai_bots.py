@@ -20,10 +20,11 @@ def test_classify_ua_plain_browser_and_none():
 
 
 def test_every_bot_has_a_valid_intent():
-    # The 3-way policy axis, distinct from `kind` (retrieval|training, which
+    # The policy axis (search|agent|training, plus the commercial_validation
+    # class OAI-AdsBot carries), distinct from `kind` (retrieval|training, which
     # drives inbound telemetry and has a DB column downstream).
     for bot in AI_USER_AGENTS:
-        assert bot.intent in {"search", "agent", "training"}, bot.token
+        assert bot.intent in {"search", "agent", "training", "commercial_validation"}, bot.token
 
 
 def test_intent_axis_specific_mappings():

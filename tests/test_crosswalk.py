@@ -130,10 +130,10 @@ def test_counts_are_derived_from_the_registries():
     # The published numbers this release describes (the Wave 4 keys are
     # derived in test_counts_carry_gathered_and_experimental).
     assert got == {"checks": 69, "readiness_checks": 51, "security_checks": 18,
-                   "rules": 65, "core_rules": 56, "cloud_only_rules": 9,
-                   "core_rules_gathered": 47, "core_rules_handshake": 9, "experimental_checks": 18,
+                   "rules": 66, "core_rules": 57, "cloud_only_rules": 9,
+                   "core_rules_gathered": 48, "core_rules_handshake": 9, "experimental_checks": 18,
                    "experimental_readiness_checks": 8, "experimental_security_checks": 10,
-                   "experimental_core_rules": 24, "categories": 7}
+                   "experimental_core_rules": 25, "categories": 7}
 
 
 def test_render_lists_every_row_and_the_counts():

@@ -86,11 +86,33 @@ def test_absence_never_sets_false_on_unknown():
     caps = derive_capabilities("unknown", [page("<p>nothing to sell</p>")] * 5, {})
     assert caps.physical_goods.value is None
 
+def _ucp_fixture(name: str) -> dict:
+    from pathlib import Path
+
+    from scovant_core.parsers.ucp import check_ucp_profile
+    path, = (Path(__file__).parent / "fixtures" / "ucp").glob(f"{name}.*")
+    return check_ucp_profile(path.read_text(), 200, "application/json")
+
+
 def test_checkout_evidence_from_domain():
-    caps = derive_capabilities("saas", [], {"ucp": {"exists": True, "valid": True, "has_checkout": True}})
+    # A usable UCP v2026-08-25 profile declaring dev.ucp.shopping.checkout (Core 0.25.0).
+    caps = derive_capabilities("saas", [], {"ucp": _ucp_fixture("current_rest")})
     assert caps.transactional_checkout.value is True
+    assert caps.transactional_checkout.evidence == ("ucp:has_checkout",)
     caps = derive_capabilities("saas", [], {"agent_payments": {"any_non_ucp": True, "protocols": {}}})
     assert caps.transactional_checkout.value is True
+
+def test_checkout_evidence_needs_a_usable_current_profile():
+    """The legacy keys never set the flag; neither does a profile the UCP rules
+    would not judge usable (schema-invalid, a later release, the old capability
+    name, a pre-v2026 snapshot)."""
+    legacy_only = {"exists": True, "valid": True, "has_checkout": True}   # pre-v2026 snapshot shape
+    for ucp in (legacy_only, _ucp_fixture("uppercase_rest"), _ucp_fixture("future_version"),
+                _ucp_fixture("legacy_commerce_checkout"), _ucp_fixture("current_a2a")):
+        assert derive_capabilities("saas", [], {"ucp": ucp}).transactional_checkout.value is not True
+    legacy_release = _ucp_fixture("protocol_version_2026_01_23")
+    assert legacy_release["v2026"]["version_state"] == "SUPPORTED_LEGACY"
+
 
 def test_unlisted_type_and_none_are_unknown():
     for st in ("spaceship", None):

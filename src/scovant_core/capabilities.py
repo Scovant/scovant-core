@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from scovant_core.parsers.ucp import ucp_declares_checkout
 from scovant_core.r2.outcome import OutcomeState
 
 FLAGS: tuple[str, ...] = ("product_catalog", "physical_goods", "transactional_checkout")
@@ -100,7 +101,9 @@ def derive_capabilities(site_type: str | None, pages: Sequence[dict], domain: di
     if (site_type or "") in CTA_NOT_CATALOG_TYPES:
         ev["product_catalog"] = [e for e in ev["product_catalog"] if not e.startswith("add_to_cart:")]
     dom = domain if isinstance(domain, dict) else {}
-    if (dom.get("ucp") or {}).get("has_checkout") is True:
+    # A usable UCP v2026-08-25 profile declaring dev.ucp.shopping.checkout
+    # (Core 0.25.0; the same verdict the UCP rules read — never the legacy keys).
+    if ucp_declares_checkout(dom.get("ucp")):
         ev["transactional_checkout"].append("ucp:has_checkout")
     if (dom.get("agent_payments") or {}).get("any_non_ucp") is True:
         ev["transactional_checkout"].append("agent_payments:any_non_ucp")
