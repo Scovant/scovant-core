@@ -10,7 +10,7 @@ from typing import Any
 
 from scovant_core.context import ScanContext
 from scovant_core.evidence import EvidenceStore, register_gatherer
-from scovant_core.gatherers.mcp_metadata import probe_mcp_server_card
+from scovant_core.gatherers.mcp_metadata import probe_ai_catalog, probe_mcp_server_card
 from scovant_core.parsers.mcp import check_mcp_discovery
 from scovant_core.security.client import FetchError, SecureClient
 
@@ -108,13 +108,15 @@ def gather_mcp_discovery(client: SecureClient, ctx: ScanContext, store: Evidence
     # the server card's presence undetermined.
     card = probe_mcp_server_card(client.probe_adapter("json"), ctx.origin or "")
     discovery["server_card"] = card["exists"]
+    catalog = probe_ai_catalog(client.probe_adapter("json"), ctx.origin or "")
+    discovery["ai_catalog"] = catalog
     discovery["servers"] = _parse_servers(content)
 
     # Two documents contribute: `/.well-known/mcp.json` (`res`, above) and
     # the server-card probe (`card`, which may itself have read up to two
     # candidate URLs) — true when EITHER was cut off at its own cap.
     out = {"discovery": discovery, "server_card": discovery["server_card"], "status": status,
-           "truncated": truncated or card["truncated"]}
+           "truncated": truncated or card["truncated"] or catalog["truncated"]}
     if status == 429:
         out["retry_after"] = retry_after
     return out

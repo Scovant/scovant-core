@@ -106,6 +106,11 @@ not be read, which is a data-quality gap, not a confirmed absence. A clean
 own product semantics treat confirmed absence as a meaningful, non-`N/A`
 finding (e.g. a missing sitemap on a commerce site) apply only this rule's
 `ERROR` verdict and keep their own absence handling.
+MCP discovery is another: a `/.well-known/mcp.json` that answers `200`
+with something other than a discovery document (a catch-all page included)
+stays `WARN` in CORE-INTERFACE-001 even when an MCP server card is found
+through the AI Catalog, because the check judges the file it names, while
+the readiness rule `MCP_ENDPOINT_ABSENT` passes on that card.
 
 ## Confidence
 

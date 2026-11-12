@@ -70,7 +70,7 @@ def test_outputs_carry_technical_readiness_on_commerce_good(tmp_path):
     assert out["grade"] == "B"
     assert out["score_status"] == "OK"
     assert out["coverage"] == str(t.coverage)
-    assert out["model_id"] == "R2.1@b0fe0dbf407b"
+    assert out["model_id"] == "R2.1@7b46d2ed7f8b"
     assert "legacy_score" not in out
     assert out["scan_scope"] == "CANONICAL"
 
@@ -201,7 +201,7 @@ def _summary(report, **kw) -> str:
 def test_summary_first_line_leads_with_technical_readiness():
     md = _summary(_report("commerce-good"))
     assert md.splitlines()[0] == "## Scovant Core — Technical Readiness 82 / 100 (B) · coverage 97%"
-    assert "R2.1@b0fe0dbf407b" in md.splitlines()[2]
+    assert "R2.1@7b46d2ed7f8b" in md.splitlines()[2]
     assert "**Not measured by Core:** MCP_DISCOVERY_INVALID (handshake_not_performed)" in md
 
 

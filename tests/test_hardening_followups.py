@@ -130,12 +130,13 @@ def test_discovery_reads_openapi_and_oauth_from_store():
     # machine-rep probe (11 extra requests; --no-technical adds none).
     # PR-19: 44 -> 48; with --experimental the representations gatherer adds
     # the page + its three agent variants (4 requests).
-    previous_requests = 48
+    # MCP discovery: 48 -> 49 (the AI Catalog GET, 404 on this fixture).
+    previous_requests = 49
     assert report.metrics["requests"] <= previous_requests
     # base value of the same scan with the Technical pass off (none of the new probes)
     off = scan("https://example.com/", ScanOptions(profile="api", experimental=True, technical=False),
                transport=FixtureTransport(FIXTURES / "sites" / "api-good"))
-    assert off.metrics["requests"] == 37  # PR-19: +4, the representations gatherer (experimental)
+    assert off.metrics["requests"] == 38  # PR-19: +4 representations gatherer (experimental); +1 AI Catalog GET
 
 
 def test_operability_011_never_forces_its_own_fetch():

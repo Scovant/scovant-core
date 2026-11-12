@@ -445,7 +445,7 @@ def test_404_on_link_headers_and_payments_paths_stays_measured():
         assert not {"link_headers", "agent_payments"} & ev.defaulted, path
 
 
-OFF_REQUESTS = 33
+OFF_REQUESTS = 34  # +1: AI Catalog GET
 
 
 def _request_count(technical):
@@ -466,7 +466,7 @@ def test_technical_false_never_triggers_the_new_gatherers():
     off = _request_count(False)
     on = _request_count(True)
     assert off == OFF_REQUESTS
-    assert on == 55
+    assert on == 56
 
 
 # --- evidence step 2: content blocks and landmarks --------------------------------

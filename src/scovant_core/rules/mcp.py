@@ -36,6 +36,50 @@ def _site_type_gate(domain: dict | None, ctx: MeasureCtx, key: str) -> OutcomeSt
     return probe_measured(domain, ctx, key)
 
 
+def mcp_surface_found(mcp: dict | None) -> bool:
+    """A real MCP discovery surface was found: a valid discovery file, a
+    card-shaped server card at the well-known paths, or a server card reached
+    through the AI Catalog. A 200 at /.well-known/mcp.json that is not a
+    discovery document is not one."""
+    if not isinstance(mcp, dict):
+        return False
+    if mcp.get("valid") is True or mcp.get("server_card") is True:
+        return True
+    catalog = mcp.get("ai_catalog")
+    cards = catalog.get("cards_found") if isinstance(catalog, dict) else None
+    return isinstance(cards, int) and not isinstance(cards, bool) and cards > 0
+
+
+def ai_catalog_unanswered(mcp: dict | None) -> bool:
+    """No MCP surface was found and our AI Catalog probe did not get its
+    answers: the catalog GET or a followed card URL never got a usable HTTP
+    answer (none, 429 or 5xx — the gatherer records that as `fetch_status`
+    "error" / `card_fetch_errors`), or the catalog body, or a listed card's
+    body, was cut at the probe cap before it parsed (`cards_truncated`). Absence cannot then be claimed. A block written
+    before the catalog was read (no `ai_catalog` key) is not a failure."""
+    if not isinstance(mcp, dict) or mcp_surface_found(mcp):
+        return False
+    catalog = mcp.get("ai_catalog")
+    if not isinstance(catalog, dict):
+        return False
+    if catalog.get("truncated") is True and not catalog.get("valid"):
+        return True
+    return catalog.get("fetch_status") == "error" or any(
+        _positive_count(catalog.get(key)) for key in ("card_fetch_errors", "cards_truncated"))
+
+
+def _positive_count(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def _catalog_unmeasured(mcp: dict, ctx: MeasureCtx) -> bool:
+    """Our catalog probe failed: the host named it as defaulted, or the block
+    itself records a failed catalog GET or card follow."""
+    if ctx.defaulted is not None and "ai_catalog" in ctx.defaulted:
+        return True
+    return ai_catalog_unanswered(mcp)
+
+
 def _declared(domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
     """The MCP block exists and the site published a discovery file."""
     verdict = probe_measured(domain, ctx, "mcp")
@@ -52,7 +96,7 @@ class McpEndpointAbsent(CoreRule):
     code = "MCP_ENDPOINT_ABSENT"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "1.0"
+    rule_version = "2.0"
     scope = "domain"
     category = "actionability"
     severity = "medium"
@@ -65,41 +109,63 @@ class McpEndpointAbsent(CoreRule):
         if site_type not in MCP_SITE_TYPES:
             return []
         mcp = (domain.get("mcp") or {})
-        # A server card (/.well-known/mcp/server-card.json) is an MCP
-        # discovery surface too — either surface suppresses ABSENT.
-        if not mcp.get("exists") and not mcp.get("server_card"):
-            return [
-                Finding(
-                    title="MCP endpoint absent",
-                    description=(
-                        "No /.well-known/mcp.json or MCP discovery endpoint found for this site."
-                    ),
-                    example=(
-                        "# /.well-known/mcp.json — advertise a Model Context Protocol endpoint\n"
-                        "{\n"
-                        '  "version": "2024-11-05",\n'
-                        '  "endpoint": "https://example.com/mcp",\n'
-                        '  "transport": "http"\n'
-                        "}"
-                    ),
-                    remediation_hint=(
-                        "Implement a Model Context Protocol (MCP) server to give AI agents "
-                        "programmatic access to your site's functionality. Create a "
-                        "/.well-known/mcp.json discovery file that describes your available tools "
-                        "(e.g., search products, get product details, check availability, add to cart). "
-                        "MCP allows AI agents to interact with your site through structured API calls "
-                        "instead of scraping HTML, resulting in faster, more reliable agent experiences. "
-                        "This is especially important for commerce and SaaS sites where agents need to "
-                        "perform actions like searching inventory or initiating purchases. "
-                        "See modelcontextprotocol.io for the full specification and SDKs."
-                    ),
-                    metadata={"site_type": site_type},
-                )
-            ]
-        return []
+        # A valid discovery file, a server card at the well-known paths or a
+        # server card listed in the AI Catalog each suppress ABSENT; a 200 at
+        # /.well-known/mcp.json that is not a discovery document does not.
+        if mcp_surface_found(mcp):
+            return []
+        if mcp.get("exists"):
+            served = "an HTML page" if not mcp.get("json_object") else "JSON without an `mcpServers` server"
+            description = (
+                "/.well-known/mcp.json answers, but not with an MCP discovery document "
+                f"(it serves {served}), and no MCP server card was found."
+            )
+            discovery_file = "not_discovery"
+        else:
+            description = "No /.well-known/mcp.json or MCP discovery endpoint found for this site."
+            discovery_file = "absent"
+        return [
+            Finding(
+                title="MCP endpoint absent",
+                description=description,
+                example=(
+                    "# /.well-known/mcp.json — advertise a Model Context Protocol endpoint\n"
+                    "{\n"
+                    '  "version": "2024-11-05",\n'
+                    '  "endpoint": "https://example.com/mcp",\n'
+                    '  "transport": "http"\n'
+                    "}"
+                ),
+                remediation_hint=(
+                    "Implement a Model Context Protocol (MCP) server to give AI agents "
+                    "programmatic access to your site's functionality. Create a "
+                    "/.well-known/mcp.json discovery file that describes your available tools "
+                    "(e.g., search products, get product details, check availability, add to cart). "
+                    "Or publish an AI Catalog at /.well-known/ai-catalog.json whose entry points "
+                    "at your MCP Server Card (SEP-2127). "
+                    "MCP allows AI agents to interact with your site through structured API calls "
+                    "instead of scraping HTML, resulting in faster, more reliable agent experiences. "
+                    "This is especially important for commerce and SaaS sites where agents need to "
+                    "perform actions like searching inventory or initiating purchases. "
+                    "See modelcontextprotocol.io for the full specification and SDKs."
+                ),
+                metadata={"site_type": site_type, "discovery_file": discovery_file},
+            )
+        ]
 
     def measure(self, page: dict, domain: dict | None, ctx: MeasureCtx) -> OutcomeState | None:
-        return _site_type_gate(domain, ctx, "mcp")
+        if ctx.site_category not in MCP_SITE_TYPES:
+            return NA
+        # Positive evidence wins: a surface found on any path is measured even
+        # when another probe (e.g. the mcp.json fetch) failed.
+        mcp = domain.get("mcp") if isinstance(domain, dict) else None
+        if mcp_surface_found(mcp):
+            return None
+        verdict = probe_measured(domain, ctx, "mcp")
+        if verdict:
+            return verdict
+        assert isinstance(mcp, dict)
+        return NM if _catalog_unmeasured(mcp, ctx) else None
 
 
 @register_rule

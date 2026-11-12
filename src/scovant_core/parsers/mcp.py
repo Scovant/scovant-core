@@ -12,6 +12,62 @@ _MCP_SERVER_CARD_PATHS = (
     "/.well-known/mcp/server-cards.json",
 )
 
+CARD_MEDIA_TYPE = "application/mcp-server-card+json"
+_MAX_CARD_URLS = 3
+
+
+def is_server_card(data: object) -> bool:
+    """True for a JSON object shaped like an MCP server card: a non-empty
+    string ``name`` plus one of ``remotes`` (list), ``version`` or ``$schema``
+    (strings), or the pre-SEP draft's ``serverInfo`` object."""
+    if not isinstance(data, dict):
+        return False
+    if isinstance(data.get("serverInfo"), dict):
+        return True
+    name = data.get("name")
+    if not isinstance(name, str) or not name:
+        return False
+    return (
+        isinstance(data.get("remotes"), list)
+        or isinstance(data.get("version"), str)
+        or isinstance(data.get("$schema"), str)
+    )
+
+
+def _is_card_entry(entry: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    t = entry.get("type")
+    return isinstance(t, str) and t.split(";")[0].strip().lower() == CARD_MEDIA_TYPE
+
+
+def parse_ai_catalog(data: object) -> dict[str, Any]:
+    """Read an AI Catalog (SEP-2127): count entries, collect the first three
+    server-card entry URLs (unresolved) and count inline card entries."""
+    out: dict[str, Any] = {
+        "valid": False, "spec_version": None, "entries": 0,
+        "card_urls": [], "inline_cards": 0, "card_entries": 0,
+    }
+    if not isinstance(data, dict):
+        return out
+    spec, entries = data.get("specVersion"), data.get("entries")
+    if not isinstance(spec, str) or not isinstance(entries, list):
+        return out
+    out["valid"] = True
+    out["spec_version"] = spec
+    out["entries"] = len(entries)
+    for entry in entries:
+        if not _is_card_entry(entry):
+            continue
+        out["card_entries"] += 1
+        url = entry.get("url")
+        if isinstance(url, str) and url and len(out["card_urls"]) < _MAX_CARD_URLS:
+            out["card_urls"].append(url)
+        if is_server_card(entry.get("data")):
+            out["inline_cards"] += 1
+    return out
+
+
 # MCP protocol version sent in an initialize handshake probe.
 _MCP_PROTOCOL_VERSION = "2025-03-26"
 
@@ -99,6 +155,7 @@ def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str,
         {
             "exists": bool,
             "valid": bool,
+            "json_object": bool,           # the 200 body parsed to a JSON object
             "endpoints": [...],
             "declared_name": str | None,   # mcpServers key for endpoints[0]; None if undeclared
             "server_card": bool | None,    # set by a host's live server-card probe;
@@ -128,6 +185,7 @@ def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str,
     result: dict[str, Any] = {
         "exists": False,
         "valid": False,
+        "json_object": False,
         "endpoints": [],
         "declared_name": None,
         "server_card": False,
@@ -152,6 +210,10 @@ def check_mcp_discovery(json_content: str | None, http_status: int) -> dict[str,
         data = json.loads(json_content)
     except (json.JSONDecodeError, ValueError):
         return result
+
+    if not isinstance(data, dict):
+        return result
+    result["json_object"] = True
 
     # Valid = has mcpServers key with at least one server description
     mcp_servers = data.get("mcpServers")

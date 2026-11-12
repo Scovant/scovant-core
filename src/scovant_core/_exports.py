@@ -20,7 +20,7 @@ MOVED_EXPORTS: tuple[str, ...] = (
     "extract_semantic_signals", "extract_visible_text", "find_injection_markers",
     "find_name_collisions", "find_obfuscation", "find_remote_exec_instructions",
     "has_spa_shell_marker", "is_allowed", "normalize_internal_url", "parse_content_signals",
-    "parse_llms_txt", "parse_robots_txt", "probe_mcp_oauth_discovery", "probe_mcp_server_card",
+    "parse_llms_txt", "parse_robots_txt", "probe_ai_catalog", "probe_mcp_oauth_discovery", "probe_mcp_server_card",
     "ssrf_guard", "ssrf_guard_async", "tld_extractor",
 )
 

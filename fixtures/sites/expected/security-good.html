@@ -59,13 +59,13 @@ a { color: #0969da; }
 <section id="summary">
 <h1>Scovant Core — https://example.com/</h1>
 <p><strong>Profile:</strong> commerce (requested auto, confidence 85%)</p>
-<p><strong>Core version:</strong> 0.25.0</p>
+<p><strong>Core version:</strong> 0.26.0</p>
 <p>55 PASS, 1 WARN, 0 FAIL, 13 N/A, 0 ERROR (69 checks)</p>
 </section>
 <section id="score">
 <h2>Technical Readiness</h2>
 <p style="font-size:2.5rem;font-weight:700;">82 / 100</p>
-<p><strong>Grade:</strong> B &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 97% &middot; <strong>Model:</strong> <code>R2.1@b0fe0dbf407b</code></p>
+<p><strong>Grade:</strong> B &middot; <strong>Status:</strong> OK &middot; <strong>Coverage:</strong> 97% &middot; <strong>Model:</strong> <code>R2.1@7b46d2ed7f8b</code></p>
 <p><strong>Not measured by Core:</strong> MCP_DISCOVERY_INVALID (handshake_not_performed)</p>
 <p><strong>Diagnostics (51 readiness checks):</strong> 40 pass · 1 warn · 0 fail</p>
 <p><strong>Capabilities detected</strong> (descriptive, not scored): mcp: present · webmcp: absent · ucp: present · llms_txt: present · openapi: not_checked · oauth: not_checked · content_signal: present · security_txt: present</p>
@@ -254,6 +254,11 @@ a { color: #0969da; }
 </details>
 <details><summary><code>CORE-INTERFACE-001</code> — MCP discovery presence</summary>
 <pre><code>{
+  &quot;ai_catalog&quot;: {
+    &quot;cards_found&quot;: 0,
+    &quot;fetch_status&quot;: &quot;ok&quot;,
+    &quot;valid&quot;: false
+  },
   &quot;declared_name&quot;: &quot;example-shop&quot;,
   &quot;endpoints&quot;: [
     &quot;https://example.com/mcp&quot;
@@ -618,7 +623,7 @@ a { color: #0969da; }
 <li>Only the entry page&#x27;s own robots meta tag and X-Robots-Tag header are checked.</li>
 <li>Absence is not penalised; the convention is emerging. Reference checks are HTTP status only.</li>
 <li>Absence is not penalised; the convention is emerging.</li>
-<li>Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.</li>
+<li>Only `/.well-known/mcp.json`, the two candidate server-card paths and the server cards listed in `/.well-known/ai-catalog.json` (at most three followed) are probed; a custom discovery location is not found.</li>
 <li>Only the `mcpServers` object at /.well-known/mcp.json is parsed; a server card is not covered by this check.</li>
 <li>This is a static text scan of already-fetched HTML for a marker string; the browser-side registration was not executed, so a marker&#x27;s presence does not confirm the tools actually register or work.</li>
 <li>Only a fixed set of conventional paths, plus same-origin entry-page links naming openapi/swagger, are probed.</li>
@@ -742,13 +747,13 @@ a { color: #0969da; }
 <dt>started_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>completed_at</dt><dd>2026-09-04T00:00:00Z</dd>
 <dt>schema_version</dt><dd>2.1</dd>
-<dt>core_version</dt><dd>0.25.0</dd>
+<dt>core_version</dt><dd>0.26.0</dd>
 <dt>profile_detector_version</dt><dd>1.0</dd>
 <dt>ruleset_version</dt><dd>2026.10</dd>
-<dt>ruleset_digest</dt><dd>dbbf2269443f</dd>
+<dt>ruleset_digest</dt><dd>d19138a8e38e</dd>
 <dt>python</dt><dd>&lt;runtime&gt;</dd>
 <dt>platform</dt><dd>&lt;runtime&gt;</dd>
-<dt>user_agent</dt><dd>ScovantCore/0.25.0 (+https://github.com/Scovant/scovant-core)</dd>
+<dt>user_agent</dt><dd>ScovantCore/0.26.0 (+https://github.com/Scovant/scovant-core)</dd>
 <dt>timeout</dt><dd>60.0</dd>
 <dt>max_pages</dt><dd>5</dd>
 <dt>network_mode</dt><dd>fixture</dd>

@@ -9,6 +9,8 @@ from scovant_core.models import Category, CheckStatus, Confidence, Severity
 class McpDiscoveryPresence(CoreCheck):
     id = "CORE-INTERFACE-001"
     title = "MCP discovery presence"
+    # 1.1 (Core 0.26.0): PASS on a server card listed in the AI Catalog.
+    check_version = "1.1"
     category = Category.INTERFACES
     verification_mode = "DECLARED"
     severity_on_fail = Severity.MEDIUM
@@ -17,7 +19,10 @@ class McpDiscoveryPresence(CoreCheck):
         "A published MCP discovery file (or server card) is how an agent finds this site's "
         "own tool interface instead of falling back to browser-shaped scraping."
     )
-    limitations = "Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found."
+    limitations = (
+        "Only `/.well-known/mcp.json`, the two candidate server-card paths and the server cards listed in "
+        "`/.well-known/ai-catalog.json` (at most three followed) are probed; a custom discovery location is not found."
+    )
     cloud_extension = "Scovant Cloud performs a live MCP handshake and enumerates the tool list, not just discovery-file presence."
     standards = ("AR-ACT-03",)
 
@@ -33,6 +38,10 @@ class McpDiscoveryPresence(CoreCheck):
             "valid": discovery["valid"],
             "server_card": server_card,
         }
+        catalog = discovery.get("ai_catalog")
+        if isinstance(catalog, dict):
+            ev["ai_catalog"] = {k: catalog.get(k) for k in ("fetch_status", "valid", "cards_found")}
+        catalog_cards = catalog.get("cards_found") if isinstance(catalog, dict) else 0
         # Two documents feed this verdict — the discovery file and the
         # separately-probed server card (`gatherers/mcp_discovery.py`) —
         # and the record's own `truncated` is an OR across both, so it
@@ -43,6 +52,13 @@ class McpDiscoveryPresence(CoreCheck):
         conf = truncated_confidence(truncated)
 
         if not discovery["exists"] and not server_card:
+            if isinstance(catalog_cards, int) and catalog_cards > 0:
+                # No discovery file and no card at the well-known paths, but
+                # the AI Catalog lists a server card we fetched and recognised.
+                return self.result(
+                    CheckStatus.PASS, "An MCP server card is published through an AI Catalog." + note,
+                    evidence=ev, confidence=truncated_confidence(truncated, default=Confidence.MEDIUM),
+                )
             # `document_status` widens ERROR coverage beyond the old "status
             # is None" check to every genuinely unreadable non-200/non-404/
             # 410 status (5xx, 401/403) — a real 404/410 keeps the check's

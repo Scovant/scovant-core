@@ -165,7 +165,7 @@ def test_link_headers_soft_time_limit_propagates():
 def test_server_card_detected_on_either_path(path):
     def handler(request):
         if request.url.path == path:
-            return httpx.Response(200, json={"name": "srv"})
+            return httpx.Response(200, json={"name": "srv", "version": "1.0.0"})
         return httpx.Response(404)
 
     result = probe_mcp_server_card(_client(handler), DOMAIN)

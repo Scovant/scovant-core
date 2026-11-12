@@ -121,7 +121,7 @@ def test_001_pass_medium_confidence_on_server_card_only():
         if request.url.path == "/":
             return httpx.Response(200, content=_DEFAULT_INDEX.encode(), headers={"content-type": "text/html"})
         if request.url.path == "/.well-known/mcp/server-card.json":
-            return httpx.Response(200, json={"name": "s"})
+            return httpx.Response(200, json={"name": "s", "version": "1.0.0"})
         return httpx.Response(404, text="not found")
 
     store, ctx = _scan(make_client(handler))

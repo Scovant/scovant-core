@@ -1,6 +1,6 @@
 {
   "completed_at": "2026-09-04T00:00:00Z",
-  "core_version": "0.25.0",
+  "core_version": "0.26.0",
   "findings": [
     {
       "category": "access",
@@ -330,10 +330,15 @@
     },
     {
       "category": "interfaces",
-      "check_version": "1.0",
+      "check_version": "1.1",
       "cloud_extension": "Scovant Cloud performs a live MCP handshake and enumerates the tool list, not just discovery-file presence.",
       "confidence": "high",
       "evidence": {
+        "ai_catalog": {
+          "cards_found": 0,
+          "fetch_status": "ok",
+          "valid": false
+        },
         "declared_name": "delete_all_orders",
         "endpoints": [
           "https://example.com/mcp"
@@ -348,7 +353,7 @@
       "family_id": "",
       "fix_owner": "",
       "id": "CORE-INTERFACE-001",
-      "limitations": "Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.",
+      "limitations": "Only `/.well-known/mcp.json`, the two candidate server-card paths and the server cards listed in `/.well-known/ai-catalog.json` (at most three followed) are probed; a custom discovery location is not found.",
       "owasp_agentic": [],
       "remediation": "",
       "security_domain": "",
@@ -2163,7 +2168,7 @@
         "verdict": "allowed"
       }
     },
-    "bytes_fetched": 18307,
+    "bytes_fetched": 18316,
     "entry_error": null,
     "error_count": 0,
     "gather_error_details": [],
@@ -2178,7 +2183,7 @@
       "ucp": "present",
       "webmcp": "absent"
     },
-    "requests": 55,
+    "requests": 56,
     "security_error_count": 0,
     "standards": {
       "agentready_v1": {
@@ -2241,7 +2246,7 @@
   ],
   "provenance": {
     "allow_private_networks": false,
-    "core_version": "0.25.0",
+    "core_version": "0.26.0",
     "dependencies": "<runtime>",
     "environment_digest": "<runtime>",
     "error_count": 0,
@@ -2253,11 +2258,11 @@
     "platform": "<runtime>",
     "profile_detector_version": "1.0",
     "python": "<runtime>",
-    "ruleset_digest": "dbbf2269443f",
+    "ruleset_digest": "d19138a8e38e",
     "ruleset_version": "2026.10",
     "scan_scope": "CANONICAL",
     "timeout": 60.0,
-    "user_agent": "ScovantCore/0.25.0 (+https://github.com/Scovant/scovant-core)"
+    "user_agent": "ScovantCore/0.26.0 (+https://github.com/Scovant/scovant-core)"
   },
   "readiness": {
     "technical": {
@@ -2317,7 +2322,7 @@
       "evidence_state": "ESTIMATED",
       "grade": "B",
       "label": "Technical Readiness",
-      "model_id": "R2.1@b0fe0dbf407b",
+      "model_id": "R2.1@7b46d2ed7f8b",
       "not_measured": [
         {
           "reason": "handshake_not_performed",

@@ -75,8 +75,10 @@ def _checkout_gate(code: str, domain: dict | None, ctx: MeasureCtx | None = None
     `measure` uses the host's flags when it derived them; otherwise (and always
     in `evaluate`, which has no context) the flag is derived the same way from
     the site type and this domain evidence (`derive_capabilities`; the flag
-    reads no page evidence)."""
+    reads no page evidence), then the owner's confirmed flags carried in the
+    domain evidence (`capability_overrides`) replace the derived ones."""
     from scovant_core.capabilities import (  # noqa: PLC0415 (capabilities import r2)
+        apply_capability_overrides,
         derive_capabilities,
         gate,
     )
@@ -85,6 +87,9 @@ def _checkout_gate(code: str, domain: dict | None, ctx: MeasureCtx | None = None
     if caps is None:
         site_type = ctx.site_category if ctx is not None else (domain or {}).get("site_type")
         caps = derive_capabilities(site_type, [], domain)
+        # The site owner's confirmed flags, when the host carries them in the
+        # domain evidence, win over the derived ones.
+        caps = apply_capability_overrides(caps, (domain or {}).get("capability_overrides"))
     hit = gate(code, caps)
     return hit[0] if hit else None
 
@@ -236,7 +241,7 @@ class UcpCheckoutMissing(CoreRule):
     code = "UCP_CHECKOUT_MISSING"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "2.0"
+    rule_version = "2.1"
     scope = "domain"
     category = "ucp"
     severity = "low"
@@ -360,7 +365,7 @@ class AgentPaymentsAbsent(CoreRule):
     code = "AGENT_PAYMENTS_ABSENT"
     since = "0.10.0"
     maturity = "required"
-    rule_version = "2.0"
+    rule_version = "2.1"
     scope = "domain"
     category = "ucp"
     # info: agent payment protocol adoption is near zero — absence informs,

@@ -33,6 +33,7 @@ _PROBE_RULES: dict[str, frozenset[str]] = {
                       "UCP_SIGNING_KEYS_INVALID", "AGENT_PAYMENTS_ABSENT"}),
     "mcp": frozenset({"MCP_ENDPOINT_ABSENT"}) | _MCP_HANDSHAKE_RULES,
     "agent_discovery": frozenset({"AGENT_INTERFACE_DISCOVERY_ABSENT"}),
+    "ai_catalog": frozenset({"MCP_ENDPOINT_ABSENT"}),
     "markdown_agents": frozenset({"MARKDOWN_FOR_AGENTS_ABSENT", "CONTENT-NEG-002", "CONTENT-NEG-004"}),
     "link_headers": frozenset({"LINK_HEADERS_ABSENT"}),
     "agent_payments": frozenset({"AGENT_PAYMENTS_ABSENT"}),

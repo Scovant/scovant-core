@@ -69,6 +69,12 @@ def _robots_unusable(robots: dict) -> bool:
     return status is None or _unusable_answer(status) or bool(robots.get("truncated"))
 
 
+def _ai_catalog_unanswered(mcp: dict) -> bool:
+    from scovant_core.rules.mcp import ai_catalog_unanswered  # noqa: PLC0415 (rules import r2)
+
+    return ai_catalog_unanswered(mcp)
+
+
 def _probe_unusable(doc: dict | None) -> bool:
     if doc is None:
         return True
@@ -130,8 +136,22 @@ def evidence_from_store(store, *, site_type: str, root: str | None = None) -> Sc
     if _probe_unusable(mcp):
         defaulted.add("mcp")
         domain["mcp"] = check_mcp_discovery(None, 0)
+        # The server-card paths and the AI Catalog are probed independently
+        # of mcp.json: keep what they found, so a server card reached either
+        # way still counts as an MCP surface (Cloud's `enrich_mcp_discovery`
+        # keeps both on the same inert block).
+        found = (mcp or {}).get("discovery") or {}
+        if "server_card" in found:
+            domain["mcp"]["server_card"] = found["server_card"]
+        if "server_card_truncated" in found:
+            domain["mcp"]["server_card_truncated"] = found["server_card_truncated"]
+        catalog = found.get("ai_catalog")
+        if isinstance(catalog, dict):
+            domain["mcp"]["ai_catalog"] = catalog
     else:
         domain["mcp"] = _without(mcp["discovery"], _MCP_GATHERER_KEYS)
+    if _ai_catalog_unanswered(domain["mcp"]):
+        defaulted.add("ai_catalog")
 
     discovery = store.try_get("agent_discovery_surface")
     if discovery is None:

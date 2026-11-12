@@ -4,6 +4,68 @@ All notable changes to this project are documented here. The format follows
 Keep a Changelog; versions follow semver. `ruleset_version` changes are called
 out explicitly because scores are only comparable within one ruleset version.
 
+## [0.26.0] - 2026-11-12
+
+`ruleset_version` UNCHANGED (`2026.10`); **`ruleset_digest` changes**
+(`dbbf2269443f` → `d19138a8e38e`): CORE-INTERFACE-001 moves to check version 1.1.
+The **Technical Readiness model changes** (`R2.1@b0fe0dbf407b` →
+`R2.1@7b46d2ed7f8b`): `MCP_ENDPOINT_ABSENT` moves to rule version 2.0, and
+`UCP_CHECKOUT_MISSING` and `AGENT_PAYMENTS_ABSENT` move to rule version 2.1.
+`r2.technical.BUILDER_VERSION` moves to `"8"`, so a host rebuilding stored
+outcomes rebuilds every document.
+
+MCP discovery now reads real evidence and the AI Catalog. In a corpus of 8,523
+sites, 0 published a valid /.well-known/mcp.json, 239 answered it with another
+document, 33 published a valid AI Catalog and 19 had a resolvable server card.
+
+- `parsers.mcp.is_server_card(data)`: the one test for an MCP server card — a
+  JSON object with a non-empty `name` plus a `remotes` list, a `version` or a
+  `$schema` string, or one with a `serverInfo` object (the pre-SEP draft).
+  The server-card probe at the two well-known paths now records a card only
+  when the body passes it, so a JSON error page at those paths is no card.
+- `parsers.mcp.parse_ai_catalog(data)` reads `/.well-known/ai-catalog.json`
+  and returns the server-card URLs and inline cards it lists;
+  `parsers.mcp.CARD_MEDIA_TYPE` (`application/mcp-server-card+json`) is the
+  media type an entry uses to mark a server card.
+- `gatherers.mcp_metadata.probe_ai_catalog(client, origin)` fetches the AI
+  Catalog and follows at most three listed card URLs (https only, public
+  addresses only), recording `fetch_status`, `status`, `valid`, `cards_found`,
+  `card_fetch_errors` and `truncated`. A catalog or card answered with no
+  response, a 429 or a 5xx counts as unanswered (`fetch_status` "error" /
+  `card_fetch_errors`); a 403 or 404 is an answer. Both the catalog and each
+  card follow up to five redirects themselves (https and public hosts on every
+  hop; relative card URLs resolve against the catalog's final URL). A redirect
+  to a plain-http or private URL is an answer that is not the document; a
+  chain that never ends is no answer. A card body cut at the probe cap that
+  did not parse as a card increments `cards_truncated`. The MCP discovery
+  gatherer always runs it, so a scan makes up to four more requests (the
+  catalog and up to three cards), plus any redirect hops.
+- Evidence: `mcp.json_object` (the `/.well-known/mcp.json` body was a JSON
+  object), `mcp.ai_catalog` (the probe above) and the domain-level
+  `capability_overrides` (a host's owner-declared capability flags).
+- `rules.mcp.mcp_surface_found(mcp)`: a valid discovery file, a card at the
+  well-known paths or a card listed in the AI Catalog.
+  `rules.mcp.ai_catalog_unanswered(mcp)`: no surface was found and the catalog
+  or one of its cards got no usable answer, or the catalog body or a listed
+  card's body was cut at the probe cap before it parsed.
+- `MCP_ENDPOINT_ABSENT` (rule version 2.0): passes when `mcp_surface_found`;
+  a 200 at `/.well-known/mcp.json` that is not a discovery document (an HTML
+  page or JSON without an `mcpServers` server) no longer counts as an endpoint,
+  and the finding says what was served. When no surface was found and the
+  catalog went unanswered, or the MCP probe itself failed, the rule is
+  NOT_MEASURED rather than a finding. The remediation names the AI Catalog.
+- CORE-INTERFACE-001 (check version 1.1): PASS (medium confidence) when no
+  discovery file and no well-known card exist but the AI Catalog lists a card
+  that was fetched and recognised; the catalog block joins its evidence. A
+  `/.well-known/mcp.json` that answers with a page stays WARN even when a
+  catalog card is found — the check judges the discovery file it names.
+- `capabilities.apply_capability_overrides(caps, overrides)` applies
+  owner-declared boolean capability flags over derived ones (source `owner`).
+  The checkout gate of `UCP_CHECKOUT_MISSING` and `AGENT_PAYMENTS_ABSENT`
+  (rule version 2.1) applies the domain's `capability_overrides` when the host
+  passes no capabilities of its own, so `evaluate` and `measure` agree with a
+  host that honours an owner's declaration.
+
 ## [0.25.0] - 2026-11-09
 
 `ruleset_version` UNCHANGED (`2026.10`); **`ruleset_digest` changes**

@@ -104,7 +104,7 @@ def test_mcp_discovery_gatherer_probes_server_card_when_declared():
         if path == "/.well-known/mcp.json":
             return httpx.Response(200, text=mcp_json, headers={"content-type": "application/json"})
         if path == "/.well-known/mcp/server-card.json":
-            return httpx.Response(200, json={"name": "s"})
+            return httpx.Response(200, json={"name": "s", "version": "1.0.0"})
         return httpx.Response(404)
 
     store, _ = _store_for(handler)

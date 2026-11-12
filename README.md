@@ -31,7 +31,7 @@ npx @scovant/core scan https://example.com                  # Node launcher, nee
 Same Core version does not guarantee the same dependency graph months
 later. Each release ships exact pins:
 
-    pip install "scovant-core==0.25.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.25.0/constraints/constraints-0.25.0.txt
+    pip install "scovant-core==0.26.0" -c https://raw.githubusercontent.com/Scovant/scovant-core/v0.26.0/constraints/constraints-0.26.0.txt
 
 Every report records what actually ran (`provenance.dependencies`,
 `provenance.environment_digest`).
@@ -66,9 +66,9 @@ SCOVANT CORE
 
 Target: https://example.com/
 Profile: commerce (auto → commerce, confidence 0.85)
-Core version: 0.25.0
+Core version: 0.26.0
 
-Technical Readiness  82 / 100  B · coverage 97% · model R2.1@b0fe0dbf407b
+Technical Readiness  82 / 100  B · coverage 97% · model R2.1@7b46d2ed7f8b
 Not measured by Core: MCP_DISCOVERY_INVALID (handshake_not_performed)
 Diagnostics (51 readiness checks): 40 pass · 1 warn · 0 fail
 
@@ -297,7 +297,7 @@ Which readiness rules read the same signal as each check:
 ```
 
 `@v0` is the moving major tag while the package is pre-1.0 — see
-[`docs/releasing.md`](docs/releasing.md); pin `@v0.25.0` instead for an
+[`docs/releasing.md`](docs/releasing.md); pin `@v0.26.0` instead for an
 exact, never-moving version. `allow-private-networks` is what makes this
 example work against a private CI runner scanning its own not-yet-public
 staging host — see "Free boundary" below.
@@ -343,7 +343,7 @@ step when the gate you configured trips.
 | `security_high` | Number of `high`-severity findings in the Agentic Security & Trust section (FAIL + WARN) |
 | `security_fail_count` | Number of FAIL findings in the Agentic Security & Trust section |
 | `security_warn_count` | Number of WARN findings in the Agentic Security & Trust section |
-| `model_id` | Technical Readiness model id, e.g. `R2.1@b0fe0dbf407b` (empty when not computed) |
+| `model_id` | Technical Readiness model id, e.g. `R2.1@7b46d2ed7f8b` (empty when not computed) |
 
 `pass_count`/`warn_count`/`fail_count` are readiness-only (the Agentic
 Security & Trust section is never scored — see `Report.security.scored` —

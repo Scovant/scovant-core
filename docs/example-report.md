@@ -6,7 +6,7 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 
 ## Technical Readiness
 
-**Technical Readiness:** 82 / 100 · grade B · coverage 97% · model R2.1@b0fe0dbf407b
+**Technical Readiness:** 82 / 100 · grade B · coverage 97% · model R2.1@7b46d2ed7f8b
 **Not measured by Core:** MCP_DISCOVERY_INVALID (handshake_not_performed)
 **Diagnostics (51 readiness checks):** 40 pass · 1 warn · 0 fail
 **Profile:** commerce (requested auto, confidence 85%)
@@ -262,6 +262,11 @@ Generated from the `commerce-good` fixture by `python -m scovant_core.docs --exa
 
   ```json
   {
+    "ai_catalog": {
+      "cards_found": 0,
+      "fetch_status": "ok",
+      "valid": false
+    },
     "declared_name": "example-shop",
     "endpoints": [
       "https://example.com/mcp"
@@ -876,6 +881,6 @@ This section evaluates tested AI-agent security controls and machine-facing secu
 
 ## Provenance
 
-Core 0.25.0 · ruleset 2026.10 (digest `dbbf2269443f`) · scan `local-golden` · 2026-09-04T00:00:00Z
+Core 0.26.0 · ruleset 2026.10 (digest `d19138a8e38e`) · scan `local-golden` · 2026-09-04T00:00:00Z
 
 Verify with real agents: [scovant.com/scan](https://scovant.com/scan?utm_source=scovant-core&utm_medium=docs&utm_campaign=oss)

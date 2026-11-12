@@ -93,20 +93,34 @@ def _probe_json_ex(client: _ProbeClient, url: str) -> tuple[Any, bool, str | Non
     `None` `parsed` as a confirmed negative; when either is set, the honest
     caller-side outcome is "could not determine", never `False`.
     """
+    parsed, truncated, error, _status = _probe_json_status(client, url)
+    return parsed, truncated, error
+
+
+def _probe_json_status(client: _ProbeClient, url: str) -> tuple[Any, bool, str | None, int | None]:
+    """`_probe_json_ex` plus the HTTP status (`None` when the request never
+    got an answer), for callers that must tell an unusable answer (429/5xx)
+    from a real absence."""
     try:
         resp = client.get(url, timeout=_PROBE_TIMEOUT)
     except SoftTimeLimitExceeded:
         raise
     except Exception as exc:
-        return None, False, _transport_error(exc)
-    if resp.status_code != 200:
-        return None, False, None
+        return None, False, _transport_error(exc), None
+    return _json_answer(resp)
+
+
+def _json_answer(resp: _ProbeResponse) -> tuple[Any, bool, str | None, int | None]:
+    """Read one HTTP answer as `_probe_json_status` does: JSON only on 200."""
+    status = resp.status_code
+    if status != 200:
+        return None, False, None, status
     body, was_truncated = _capped_body(resp.text)
     truncated = was_truncated and body != ""
     try:
-        return json.loads(body), truncated, None
+        return json.loads(body), truncated, None, status
     except (json.JSONDecodeError, ValueError):
-        return None, truncated, None
+        return None, truncated, None, status
 
 
 def _probe_json(client: _ProbeClient, url: str) -> tuple[Any, bool]:

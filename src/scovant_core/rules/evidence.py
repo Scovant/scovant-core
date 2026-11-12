@@ -205,11 +205,24 @@ class McpOAuthEvidence(TypedDict, total=False):
     truncated: bool
 
 
+class McpAiCatalogEvidence(TypedDict, total=False):
+    """/.well-known/ai-catalog.json and the server cards it lists."""
+    fetch_status: str
+    status: int | None
+    valid: bool
+    card_entries: int
+    cards_found: int
+    card_fetch_errors: int
+    cards_truncated: int
+    truncated: bool
+
+
 class McpEvidence(TypedDict, total=False):
     """/.well-known/mcp.json (`parsers.mcp.check_mcp_discovery`) plus what the
     host learned from the endpoint it declares."""
     exists: bool
     valid: bool
+    json_object: bool                  # the 200 body parsed to a JSON object
     endpoints: list[str]
     declared_name: str | None          # the mcpServers key naming endpoints[0]
     server_card: bool | None           # /.well-known/mcp/server-card(s).json; None = read cut off
@@ -218,6 +231,7 @@ class McpEvidence(TypedDict, total=False):
     discover: McpDiscoverEvidence
     interface: McpInterfaceEvidence
     oauth: McpOAuthEvidence
+    ai_catalog: McpAiCatalogEvidence
 
 
 class WebMcpToolEvidence(TypedDict, total=False):
@@ -362,6 +376,7 @@ class InstructionIntegrityEvidence(TypedDict, total=False):
 
 
 class DomainEvidence(TypedDict, total=False):
+    capability_overrides: dict[str, bool]
     content_signals: ContentSignalsEvidence
     sitemap: SitemapEvidence
     robots: RobotsEvidence

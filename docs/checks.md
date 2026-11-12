@@ -369,7 +369,7 @@ Every check the package can run, grouped by category. Regenerated from `checks/r
 
 **Why it matters:** A published MCP discovery file (or server card) is how an agent finds this site's own tool interface instead of falling back to browser-shaped scraping.
 
-**Limitations:** Only `/.well-known/mcp.json` and the two candidate server-card paths are probed; a custom discovery location is not found.
+**Limitations:** Only `/.well-known/mcp.json`, the two candidate server-card paths and the server cards listed in `/.well-known/ai-catalog.json` (at most three followed) are probed; a custom discovery location is not found.
 
 **Standards:** AR-ACT-03
 

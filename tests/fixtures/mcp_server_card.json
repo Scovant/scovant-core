@@ -1,0 +1,7 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/v1/server-card.schema.json",
+  "name": "com.example/server",
+  "version": "1.0.0",
+  "description": "Example MCP server",
+  "remotes": [{"type": "streamable-http", "url": "https://example.com/mcp/"}]
+}

@@ -42,7 +42,9 @@ DERIVATION_VERSION = "2"
 #    `capability_not_established:<flag>`)
 # 7: on a SaaS site an add-to-cart / "buy now" control is not catalog evidence
 #    (capabilities stored in each document change)
-BUILDER_VERSION = "7"
+# 8: MCP endpoint detection reads the AI Catalog and real discovery evidence;
+#    owner capability overrides re-judge the checkout rules
+BUILDER_VERSION = "8"
 # Public rules whose finding is an informational marker, not a defect.
 MARKER_CODES: frozenset[str] = frozenset({"AI-BOT-POLICY-001", "WEBMCP-001", "TOOL-RISK-001"})
 

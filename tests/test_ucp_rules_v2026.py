@@ -49,7 +49,10 @@ def _measure(code: str, domain: dict, site_type: str = "commerce", defaulted=fro
 
 
 def test_every_ucp_rule_is_version_two():
-    assert {_rule(c).rule_version for c in UCP_CODES} == {"2.0"}
+    # the two checkout-gated rules are 2.1: the gate honours owner overrides
+    assert {c: _rule(c).rule_version for c in UCP_CODES} == {
+        "UCP_PROFILE_ABSENT": "2.0", "UCP_PROFILE_INVALID": "2.0", "UCP_CHECKOUT_MISSING": "2.1",
+        "UCP_SIGNING_KEYS_INVALID": "2.0", "AGENT_PAYMENTS_ABSENT": "2.1"}
 
 
 # ── UCP_PROFILE_ABSENT ──────────────────────────────────────────────────

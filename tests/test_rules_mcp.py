@@ -26,11 +26,13 @@ def test_mcp_site_types():
 def test_endpoint_absent_fires_only_for_mcp_site_types_without_any_discovery_surface():
     rule = _rule("MCP_ENDPOINT_ABSENT")
     finding, = rule.evaluate({}, {"site_type": "saas", "mcp": _mcp()})
-    assert finding.metadata == {"site_type": "saas"}
+    assert finding.metadata == {"site_type": "saas", "discovery_file": "absent"}
     assert rule.evaluate({}, {"site_type": "blog", "mcp": _mcp()}) == []
     assert rule.evaluate({}, {"mcp": _mcp()}) == []                       # no site type recorded
     assert rule.evaluate({}, {"site_type": "commerce", "mcp": _mcp(server_card=True)}) == []
-    assert rule.evaluate({}, {"site_type": "commerce", "mcp": _mcp(exists=True)}) == []
+    assert rule.evaluate({}, {"site_type": "commerce", "mcp": _mcp(exists=True, valid=True)}) == []
+    # a 200 at /.well-known/mcp.json that is not a discovery document is no surface (2.0)
+    assert len(rule.evaluate({}, {"site_type": "commerce", "mcp": _mcp(exists=True)})) == 1
     assert rule.evaluate({}, None) == []
 
 

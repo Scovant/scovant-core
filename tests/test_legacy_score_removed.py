@@ -38,7 +38,8 @@ SITES = ("commerce-good", "commerce-bad", "api-good", "saas-mixed", "security-go
 # five-domain scoring constants. 0.18.0 published 7f440d6205c3.
 # PR-19 added CORE-MACHINE-013 (experimental), which re-mints it: e7426fb13abe -> 064828c79279.
 # 0.25.0: CORE-INTERFACE-008 check version 2.0 (UCP v2026-08-25 reading): -> dbbf2269443f.
-RULESET_DIGEST_0_19 = "dbbf2269443f"
+# 0.26.0: CORE-INTERFACE-001 check version 1.1 (AI Catalog server cards): -> d19138a8e38e.
+RULESET_DIGEST_0_19 = "d19138a8e38e"
 BANNED = ("Static Signal", "Legacy", "five-domain", "Core Score", "weight", "25/25/20/15/15")
 
 

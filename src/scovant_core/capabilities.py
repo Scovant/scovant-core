@@ -8,7 +8,7 @@ other, unknown and unlisted types have no default (None = not established).
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from scovant_core.parsers.ucp import ucp_declares_checkout
 from scovant_core.r2.outcome import OutcomeState
@@ -42,7 +42,7 @@ CTA_NOT_CATALOG_TYPES: frozenset[str] = frozenset({"saas"})
 @dataclass(frozen=True)
 class Capability:
     value: bool | None
-    source: str  # "evidence" | "type_default" | "unknown"
+    source: str  # "evidence" | "type_default" | "unknown" | "owner"
     evidence: tuple[str, ...] = ()
 
 
@@ -117,6 +117,20 @@ def derive_capabilities(site_type: str | None, pages: Sequence[dict], domain: di
         else:
             out[flag] = Capability(None, "unknown")
     return Capabilities(**out)
+
+
+def apply_capability_overrides(caps: Capabilities, overrides: dict | None) -> Capabilities:
+    """The site owner's confirmed flag values replace the derived ones
+    (`source="owner"`); the evidence that was derived is kept. Only known
+    flags with a boolean value are read; anything else is ignored."""
+    if not isinstance(overrides, dict) or not overrides:
+        return caps
+    changed: dict[str, Capability] = {}
+    for flag in FLAGS:
+        value = overrides.get(flag)
+        if isinstance(value, bool):
+            changed[flag] = replace(getattr(caps, flag), value=value, source="owner")
+    return replace(caps, **changed) if changed else caps
 
 
 def gate(code: str, caps: Capabilities | None) -> tuple[OutcomeState, str] | None:
